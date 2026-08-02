@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0054)file:///C:/Users/mysve/Downloads/progress-tracker.html -->
+<!-- saved from url=(0056)file:///C:/Users/mysve/Downloads/progress-tracker_1.html -->
 <html lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -353,6 +353,31 @@
   .yamain{flex:1; min-width:0; display:flex; flex-direction:column; align-items:flex-start; gap:5px}
   .yamain .sname{flex:none; width:100%}
   .step:has(.yamain){align-items:flex-start}
+  /* ===== ежедневные письменные трекеры ===== */
+  .dayrow{display:flex; align-items:center; gap:11px; padding:9px 2px; border-bottom:1px solid var(--line); flex-wrap:wrap}
+  .dayrow:last-of-type{border-bottom:none}
+  .dayrow .check{width:24px; height:24px; border-radius:7px}
+  .dayrow-lab{font-size:14px; min-width:120px; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap}
+  .dayrow-lab b{font-weight:600}
+  .dayrow-lab small{font-size:11.5px; color:var(--muted-2)}
+  .dayrow.done .dayrow-lab{color:var(--muted-2)}
+  .dayrow.fut{opacity:.55}
+  .dayrow-note{flex:1 1 190px; min-width:0; min-height:38px; background:rgba(0,0,0,.2); border:1px solid var(--line); border-radius:9px; color:var(--text); padding:0 11px; font-family:inherit; font-size:13.5px}
+  .dayrow-note::placeholder{color:var(--muted-2)}
+  .dayrow-note:focus{outline:none; border-color:var(--accent)}
+  .wkrow{display:flex; align-items:center; gap:10px; padding:6px 0; font-size:12.5px; color:var(--muted); border-bottom:1px solid var(--line)}
+  .wkrow:last-child{border-bottom:none}
+  .wkrow .wkr{flex:1 1 130px; min-width:0}
+  .wkdots{display:inline-flex; gap:4px; flex-shrink:0}
+  .wkdots i{width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.09)}
+  .wkdots i.on{background:var(--accent)}
+  .wkrow .wkn{font-family:"Sora",sans-serif; font-weight:700; color:var(--text); font-size:12px; min-width:32px; text-align:right; flex-shrink:0}
+  @media (max-width:560px){
+    .dayrow-lab{min-width:100px; font-size:13.5px}
+    .dayrow-note{flex:1 1 100%}
+    .wkrow{font-size:11.5px; gap:7px}
+    .wkdots i{width:9px; height:9px}
+  }
   @media (max-width:560px){
     body{padding:20px 14px 90px}
     h1{font-size:26px}
@@ -418,14 +443,16 @@
     <div class="dash">
       <div class="dring" id="engRing"><svg viewBox="0 0 132 132" width="132" height="132">
     <circle cx="66" cy="66" r="60" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"></circle>
-    <circle cx="66" cy="66" r="60" fill="none" stroke="var(--a-green)" stroke-width="12" stroke-linecap="round" stroke-dasharray="376.99111843077515" stroke-dashoffset="307.9240432984194" transform="rotate(-90 66 66)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
-    <text x="66" y="75.9" text-anchor="middle" fill="var(--text)" font-family="Sora,sans-serif" font-size="31.68" font-weight="700">18%</text>
+    <circle cx="66" cy="66" r="60" fill="none" stroke="var(--a-green)" stroke-width="12" stroke-linecap="round" stroke-dasharray="376.99111843077515" stroke-dashoffset="303.464481857397" transform="rotate(-90 66 66)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
+    <text x="66" y="75.9" text-anchor="middle" fill="var(--text)" font-family="Sora,sans-serif" font-size="31.68" font-weight="700">20%</text>
   </svg></div>
       <div style="width:100%">
         <div class="stats">
-          <div class="stat"><div class="n g" id="engStat">48/174</div><div class="l">уроков Яндекса</div></div>
+          <div class="stat"><div class="n g" id="engStat">52/174</div><div class="l">уроков Яндекса</div></div>
+          <div class="stat"><div class="n b">0/20</div><div class="l">«20 уроков»</div></div>
           <div class="stat"><div class="n" style="color:var(--a-amber)">0/4</div><div class="l">говорение</div></div>
-          <div class="stat"><div class="n" style="color:var(--a-violet)">4/40</div><div class="l">серии (аудир.)</div></div>
+          <div class="stat"><div class="n" style="color:var(--a-rose)">0/7 · 0/7</div><div class="l">письмо: Gemini · ГП</div></div>
+          <div class="stat"><div class="n" style="color:var(--a-violet)">15/40</div><div class="l">серии (аудир.)</div></div>
           <div class="stat"><div class="n">—</div><div class="l">неделя цикла</div></div>
         </div>
         <div class="beacon" style="margin-top:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg><div>Отмечай пройденные уроки теории — прогресс считается по урокам. 12-недельный цикл можно включить в настройках (карандаш).</div></div>
@@ -433,19 +460,19 @@
     </div>
   </div>
   <div class="card" style="--accent:var(--a-green); --accent-soft:color-mix(in srgb, var(--a-green) 16%, transparent)">
-    <div class="section-h"><h2>Яндекс.Практикум</h2><span class="daystatus">48/232</span></div>
-    <div class="prog" style="margin:10px 0 14px"><div class="prog-top"><span class="lab">Упражнения + теория + говорение</span><span class="pct" style="color:var(--a-green)">21%</span></div>
-      <div class="track"><i style="width:21%; background:linear-gradient(90deg,var(--a-green),#7fe3c3)"></i></div></div>
+    <div class="section-h"><h2>Яндекс.Практикум</h2><span class="daystatus">52/232</span></div>
+    <div class="prog" style="margin:10px 0 14px"><div class="prog-top"><span class="lab">Упражнения + теория + говорение</span><span class="pct" style="color:var(--a-green)">22%</span></div>
+      <div class="track"><i style="width:22%; background:linear-gradient(90deg,var(--a-green),#7fe3c3)"></i></div></div>
     <div class="lesson  open">
       <div class="lhead" onclick="engToggleYa()">
         <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></span>
         <span class="lring"><svg viewBox="0 0 38 38" width="38" height="38">
     <circle cx="19" cy="19" r="16.5" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"></circle>
-    <circle cx="19" cy="19" r="16.5" fill="none" stroke="var(--a-green)" stroke-width="5" stroke-linecap="round" stroke-dasharray="103.67255756846318" stroke-dashoffset="75.07323134268023" transform="rotate(-90 19 19)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
+    <circle cx="19" cy="19" r="16.5" fill="none" stroke="var(--a-green)" stroke-width="5" stroke-linecap="round" stroke-dasharray="103.67255756846318" stroke-dashoffset="72.68995415719831" transform="rotate(-90 19 19)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
     
   </svg></span>
-        <span class="ltitle"><span class="tt">Уроки и упражнения</span><span class="mm">48 из 174 · по неделям и дням</span></span>
-        <span class="lbadge">28%</span>
+        <span class="ltitle"><span class="tt">Уроки и упражнения</span><span class="mm">52 из 174 · по неделям и дням</span></span>
+        <span class="lbadge">30%</span>
       </div>
       <div class="lbody"><div class="filterbar" style="margin:6px 0 10px">
         <div class="seg"><button id="efAll" class="on" onclick="event.stopPropagation();setEngFilter(&#39;all&#39;)">Все</button><button id="efLeft" class="" onclick="event.stopPropagation();setEngFilter(&#39;left&#39;)">Незавершённые</button></div>
@@ -479,13 +506,13 @@
         <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></span>
         <span class="lring"><svg viewBox="0 0 38 38" width="38" height="38">
     <circle cx="19" cy="19" r="16.5" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"></circle>
-    <circle cx="19" cy="19" r="16.5" fill="none" stroke="var(--a-green)" stroke-width="5" stroke-linecap="round" stroke-dasharray="103.67255756846318" stroke-dashoffset="103.67255756846318" transform="rotate(-90 19 19)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
+    <circle cx="19" cy="19" r="16.5" fill="none" stroke="var(--a-green)" stroke-width="5" stroke-linecap="round" stroke-dasharray="103.67255756846318" stroke-dashoffset="80.63421144213802" transform="rotate(-90 19 19)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
     
   </svg></span>
-        <span class="ltitle"><span class="tt">Неделя 3 <span style="color:var(--a-green); font-size:11px; font-weight:600">· текущая</span></span><span class="mm">0 из 18 уроков · 7 дн. · ~2 ч 14 мин</span></span>
-        <span class="lbadge ">0%</span>
+        <span class="ltitle"><span class="tt">Неделя 3 <span style="color:var(--a-green); font-size:11px; font-weight:600">· текущая</span></span><span class="mm">4 из 18 уроков · 7 дн. · ~2 ч 14 мин</span></span>
+        <span class="lbadge ">22%</span>
       </div>
-      <div class="lbody"><div class="dayhdr">День 1 · 0/3 · ~35 мин</div><div class="step " onclick="yaToggle(48)"><span class="ynum">49</span><span class="yamain"><span class="sname">Вопросы о количестве</span><span class="ytag">Грамматика · 11 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(49)"><span class="ynum">50</span><span class="yamain"><span class="sname">Аксессуары (дополнительно)</span><span class="ytag">Лексика · 4 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(50)"><span class="ynum">51</span><span class="yamain"><span class="sname">В магазине</span><span class="ytag">Фразы · 20 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 2 · 0/3 · ~18 мин</div><div class="step " onclick="yaToggle(51)"><span class="ynum">52</span><span class="yamain"><span class="sname">Про кино</span><span class="ytag">Лексика · 4 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(52)"><span class="ynum">53</span><span class="yamain"><span class="sname">Билеты в театр</span><span class="ytag">Фразы · 9 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(53)"><span class="ynum">54</span><span class="yamain"><span class="sname">Живопись</span><span class="ytag">Лексика · 5 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 3 · 0/3 · ~23 мин</div><div class="step " onclick="yaToggle(54)"><span class="ynum">55</span><span class="yamain"><span class="sname">Профессии: политика и искусство</span><span class="ytag">Лексика · 3 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(55)"><span class="ynum">56</span><span class="yamain"><span class="sname">Предлоги места</span><span class="ytag">Грамматика · 15 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(56)"><span class="ynum">57</span><span class="yamain"><span class="sname">Гостиничные удобства 2</span><span class="ytag">Лексика · 5 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 4 · 0/3 · ~23 мин</div><div class="step " onclick="yaToggle(57)"><span class="ynum">58</span><span class="yamain"><span class="sname">Going to в утверждениях и вопросах</span><span class="ytag">Грамматика · 7 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(58)"><span class="ynum">59</span><span class="yamain"><span class="sname">Мнения</span><span class="ytag">Фразы · 12 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(59)"><span class="ynum">60</span><span class="yamain"><span class="sname">Географические объекты</span><span class="ytag">Лексика · 4 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 5 · 0/2 · ~7 мин</div><div class="step " onclick="yaToggle(60)"><span class="ynum">61</span><span class="yamain"><span class="sname">Обычная одежда 2</span><span class="ytag">Лексика · 3 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(61)"><span class="ynum">62</span><span class="yamain"><span class="sname">Глаголы в длительном времени 2</span><span class="ytag">Лексика · 4 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 6 · 0/2 · ~18 мин</div><div class="step " onclick="yaToggle(62)"><span class="ynum">63</span><span class="yamain"><span class="sname">Подарки</span><span class="ytag">Лексика · 7 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(63)"><span class="ynum">64</span><span class="yamain"><span class="sname">Просьбы о помощи</span><span class="ytag">Фразы · 11 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 7 · 0/2 · ~10 мин</div><div class="step " onclick="yaToggle(64)"><span class="ynum">65</span><span class="yamain"><span class="sname">Глаголы, которые помогут одолжить вещь</span><span class="ytag">Лексика · 5 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(65)"><span class="ynum">66</span><span class="yamain"><span class="sname">Вещи в спальне</span><span class="ytag">Лексика · 5 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div></div>
+      <div class="lbody"><div class="dayhdr">День 1 · 2/3 · ~35 мин</div><div class="step done" onclick="yaToggle(48)"><span class="ynum">49</span><span class="yamain"><span class="sname">Вопросы о количестве</span><span class="ytag">Грамматика · 11 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="yaToggle(49)"><span class="ynum">50</span><span class="yamain"><span class="sname">Аксессуары (дополнительно)</span><span class="ytag">Лексика · 4 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(50)"><span class="ynum">51</span><span class="yamain"><span class="sname">В магазине</span><span class="ytag">Фразы · 20 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 2 · 2/3 · ~18 мин</div><div class="step done" onclick="yaToggle(51)"><span class="ynum">52</span><span class="yamain"><span class="sname">Про кино</span><span class="ytag">Лексика · 4 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(52)"><span class="ynum">53</span><span class="yamain"><span class="sname">Билеты в театр</span><span class="ytag">Фразы · 9 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="yaToggle(53)"><span class="ynum">54</span><span class="yamain"><span class="sname">Живопись</span><span class="ytag">Лексика · 5 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 3 · 0/3 · ~23 мин</div><div class="step " onclick="yaToggle(54)"><span class="ynum">55</span><span class="yamain"><span class="sname">Профессии: политика и искусство</span><span class="ytag">Лексика · 3 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(55)"><span class="ynum">56</span><span class="yamain"><span class="sname">Предлоги места</span><span class="ytag">Грамматика · 15 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(56)"><span class="ynum">57</span><span class="yamain"><span class="sname">Гостиничные удобства 2</span><span class="ytag">Лексика · 5 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 4 · 0/3 · ~23 мин</div><div class="step " onclick="yaToggle(57)"><span class="ynum">58</span><span class="yamain"><span class="sname">Going to в утверждениях и вопросах</span><span class="ytag">Грамматика · 7 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(58)"><span class="ynum">59</span><span class="yamain"><span class="sname">Мнения</span><span class="ytag">Фразы · 12 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(59)"><span class="ynum">60</span><span class="yamain"><span class="sname">Географические объекты</span><span class="ytag">Лексика · 4 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 5 · 0/2 · ~7 мин</div><div class="step " onclick="yaToggle(60)"><span class="ynum">61</span><span class="yamain"><span class="sname">Обычная одежда 2</span><span class="ytag">Лексика · 3 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(61)"><span class="ynum">62</span><span class="yamain"><span class="sname">Глаголы в длительном времени 2</span><span class="ytag">Лексика · 4 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 6 · 0/2 · ~18 мин</div><div class="step " onclick="yaToggle(62)"><span class="ynum">63</span><span class="yamain"><span class="sname">Подарки</span><span class="ytag">Лексика · 7 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(63)"><span class="ynum">64</span><span class="yamain"><span class="sname">Просьбы о помощи</span><span class="ytag">Фразы · 11 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="dayhdr">День 7 · 0/2 · ~10 мин</div><div class="step " onclick="yaToggle(64)"><span class="ynum">65</span><span class="yamain"><span class="sname">Глаголы, которые помогут одолжить вещь</span><span class="ytag">Лексика · 5 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="yaToggle(65)"><span class="ynum">66</span><span class="yamain"><span class="sname">Вещи в спальне</span><span class="ytag">Лексика · 5 мин</span></span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div></div>
     </div><div class="lesson  ">
       <div class="lhead" onclick="yaToggleWeek(3,false)">
         <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></span>
@@ -623,22 +650,27 @@
       <div class="lbody"><div class="item" style="margin:6px 0"><div class="item-top"><button class="check " style="--accent:var(--a-amber)" onclick="engSpeakToggle(0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button><div class="item-name ">Занятие 1</div></div><div class="row-actions"><button class="link" onclick="engSpeakNote(0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg> Дата / заметка</button></div></div><div class="item" style="margin:6px 0"><div class="item-top"><button class="check " style="--accent:var(--a-amber)" onclick="engSpeakToggle(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button><div class="item-name ">Занятие 2</div></div><div class="row-actions"><button class="link" onclick="engSpeakNote(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg> Дата / заметка</button></div></div><div class="item" style="margin:6px 0"><div class="item-top"><button class="check " style="--accent:var(--a-amber)" onclick="engSpeakToggle(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button><div class="item-name ">Занятие 3</div></div><div class="row-actions"><button class="link" onclick="engSpeakNote(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg> Дата / заметка</button></div></div><div class="item" style="margin:6px 0"><div class="item-top"><button class="check " style="--accent:var(--a-amber)" onclick="engSpeakToggle(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button><div class="item-name ">Занятие 4</div></div><div class="row-actions"><button class="link" onclick="engSpeakNote(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg> Дата / заметка</button></div></div></div>
     </div>
   </div>
+  <div class="card" style="--accent:var(--a-blue); --accent-soft:color-mix(in srgb, var(--a-blue) 16%, transparent)">
+    <div class="section-h" style="cursor:pointer" onclick="twToggleOpen()"><h2 style="display:flex; align-items:center; gap:9px"><span class="chev" style="width:17px; height:17px; display:inline-block; transform:rotate(90deg)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></span>Английский за 20 уроков</h2><span class="daystatus" style="color:var(--muted)">0/20 уроков</span></div>
+    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Экспресс-курс с нуля, плейлист из 20 видео (A0 → C1). Длинный урок можно смотреть частями — отмечай, когда досмотрела до конца.</p>
+    <div class="prog" style="margin-bottom:14px"><div class="prog-top"><span class="lab">Просмотрено 0 мин из ~16 ч 59 мин</span><span class="pct" style="color:var(--a-blue)">0%</span></div>
+      <div class="track"><i style="width:0%; background:linear-gradient(90deg,var(--a-blue),#9db0ff)"></i></div></div><div class="lbtns"><button class="link" onclick="event.stopPropagation();twMarkAll(true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg> Отметить все</button><button class="link" onclick="event.stopPropagation();twMarkAll(false)">Снять отметки</button></div><div class="step " onclick="twToggle(0)"><span class="ynum">1</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 1</span><span class="ytag">2:27:10</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(1)"><span class="ynum">2</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 2</span><span class="ytag">1:17:59</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(2)"><span class="ynum">3</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 3</span><span class="ytag">53:53</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(3)"><span class="ynum">4</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 4</span><span class="ytag">48:21</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(4)"><span class="ynum">5</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 5</span><span class="ytag">1:03:55</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(5)"><span class="ynum">6</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 6</span><span class="ytag">42:50</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(6)"><span class="ynum">7</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 7</span><span class="ytag">51:43</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(7)"><span class="ynum">8</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 8</span><span class="ytag">32:45</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(8)"><span class="ynum">9</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 9</span><span class="ytag">30:52</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(9)"><span class="ynum">10</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 10</span><span class="ytag">33:31</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(10)"><span class="ynum">11</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 11</span><span class="ytag">49:40</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(11)"><span class="ynum">12</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 12</span><span class="ytag">32:45</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(12)"><span class="ynum">13</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 13</span><span class="ytag">34:40</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(13)"><span class="ynum">14</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 14</span><span class="ytag">52:42</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(14)"><span class="ynum">15</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 15</span><span class="ytag">49:21</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(15)"><span class="ynum">16</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 16</span><span class="ytag">36:29</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(16)"><span class="ynum">17</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 17</span><span class="ytag">26:57</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(17)"><span class="ynum">18</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 18</span><span class="ytag">43:39</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(18)"><span class="ynum">19</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 19</span><span class="ytag">1:18:21</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="twToggle(19)"><span class="ynum">20</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Урок 20</span><span class="ytag">31:12</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div></div>
   <div class="card" style="--accent:var(--a-cyan); --accent-soft:color-mix(in srgb, var(--a-cyan) 16%, transparent)">
-    <div class="section-h"><h2>Introduction to Web Accessibility</h2><span class="daystatus" style="color:var(--muted)">0/34 уроков</span></div>
+    <div class="section-h"><h2>Introduction to Web Accessibility</h2><span class="daystatus" style="color:var(--muted)">3/34 уроков</span></div>
     <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Курс на английском: слушаешь, читаешь и выписываешь карточки. Двойная польза — язык + доступность.</p>
-    <div class="prog" style="margin-bottom:14px"><div class="prog-top"><span class="lab">Прогресс курса · 7 модулей</span><span class="pct" style="color:var(--a-cyan)">0%</span></div>
-      <div class="track"><i style="width:0%; background:linear-gradient(90deg,var(--a-cyan),#8fe3ee)"></i></div></div><div class="lesson  ">
+    <div class="prog" style="margin-bottom:14px"><div class="prog-top"><span class="lab">Прогресс курса · 7 модулей</span><span class="pct" style="color:var(--a-cyan)">9%</span></div>
+      <div class="track"><i style="width:9%; background:linear-gradient(90deg,var(--a-cyan),#8fe3ee)"></i></div></div><div class="lesson  ">
       <div class="lhead" onclick="axToggleBlock(0,false)">
         <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></span>
         <span class="lring"><svg viewBox="0 0 38 38" width="38" height="38">
     <circle cx="19" cy="19" r="16.5" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"></circle>
-    <circle cx="19" cy="19" r="16.5" fill="none" stroke="var(--a-cyan)" stroke-width="5" stroke-linecap="round" stroke-dasharray="103.67255756846318" stroke-dashoffset="103.67255756846318" transform="rotate(-90 19 19)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
+    <circle cx="19" cy="19" r="16.5" fill="none" stroke="var(--a-cyan)" stroke-width="5" stroke-linecap="round" stroke-dasharray="103.67255756846318" stroke-dashoffset="25.918139392115794" transform="rotate(-90 19 19)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
     
   </svg></span>
-        <span class="ltitle"><span class="tt">Course information</span><span class="mm">0 из 4</span></span>
-        <span class="lbadge ">0%</span>
+        <span class="ltitle"><span class="tt">Course information</span><span class="mm">3 из 4</span></span>
+        <span class="lbadge ">75%</span>
       </div>
-      <div class="lbody"><div class="lbtns"><button class="link" onclick="event.stopPropagation();axMarkBlock(0,true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg> Отметить модуль</button><button class="link" onclick="event.stopPropagation();axMarkBlock(0,false)">Снять</button></div><div class="step " onclick="axToggle(0,0)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Welcome to «Introduction to Web Accessibility»</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="axToggle(0,1)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Course outline, grading, and certificate</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="axToggle(0,2)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Course discussion forums</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="axToggle(0,3)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Time to practice</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div></div>
+      <div class="lbody"><div class="lbtns"><button class="link" onclick="event.stopPropagation();axMarkBlock(0,true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg> Отметить модуль</button><button class="link" onclick="event.stopPropagation();axMarkBlock(0,false)">Снять</button></div><div class="step done" onclick="axToggle(0,0)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Welcome to «Introduction to Web Accessibility»</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="axToggle(0,1)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Course outline, grading, and certificate</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="axToggle(0,2)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Course discussion forums</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="axToggle(0,3)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Time to practice</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div></div>
     </div><div class="lesson  ">
       <div class="lhead" onclick="axToggleBlock(1,false)">
         <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></span>
@@ -713,25 +745,112 @@
       <div class="lbody"><div class="lbtns"><button class="link" onclick="event.stopPropagation();axMarkBlock(6,true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg> Отметить модуль</button><button class="link" onclick="event.stopPropagation();axMarkBlock(6,false)">Снять</button></div><div class="step " onclick="axToggle(6,0)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Summary and next steps</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="axToggle(6,1)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Course evaluation survey</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="axToggle(6,2)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Acknowledgements</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="axToggle(6,3)"><span class="tic video" style="background:rgba(93,214,232,.16); color:var(--a-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z"></path></svg></span><span class="sname">Thank you!</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div></div>
     </div></div>
   <div class="card" style="--accent:var(--a-rose); --accent-soft:color-mix(in srgb, var(--a-rose) 16%, transparent)">
-    <div class="section-h"><h2>Письменная практика · раз в неделю</h2><span class="daystatus" style="color:var(--muted)">на этой неделе</span></div>
-    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Конспект пройденного модуля своими словами. Одна запись в неделю — отсчёт с текущей недели, прошлое не догоняем.</p>
-    <div class="item"><div class="item-top"><button class="check " style="--accent:var(--a-rose)" onclick="ewToggle(&#39;2026-W29&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button><div class="item-name ">Неделя 13 июл. — 19 июл.</div></div></div>
-    <textarea class="note-area" placeholder="Конспект своими словами..." onchange="ewNote(&#39;2026-W29&#39;,this.value)"></textarea></div>
+    <div class="section-h"><h2>Письменная практика с Gemini</h2><span class="daystatus" style="color:var(--muted)">0/7 за неделю</span></div>
+    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Пишу в чате с Gemini каждый день. Даже пара предложений — уже отметка.</p>
+    <div class="weeknav">
+      <button aria-label="Предыдущая неделя" onclick="dtShift(&#39;wdaily&#39;,-1)">‹</button>
+      <span>27 июл. — 2 авг. · текущая</span>
+      <button aria-label="Следующая неделя" onclick="dtShift(&#39;wdaily&#39;,1)">›</button>
+    </div>
+    <div class="dayrow  ">
+      <button class="check " aria-label="Отметить 27 июл." onclick="dtToggle(&#39;wdaily&#39;,&#39;2026-07-27&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Пн</b> 27 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="о чём писала (по желанию)" onchange="dtNote(&#39;wdaily&#39;,&#39;2026-07-27&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 28 июл." onclick="dtToggle(&#39;wdaily&#39;,&#39;2026-07-28&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Вт</b> 28 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="о чём писала (по желанию)" onchange="dtNote(&#39;wdaily&#39;,&#39;2026-07-28&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 29 июл." onclick="dtToggle(&#39;wdaily&#39;,&#39;2026-07-29&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Ср</b> 29 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="о чём писала (по желанию)" onchange="dtNote(&#39;wdaily&#39;,&#39;2026-07-29&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 30 июл." onclick="dtToggle(&#39;wdaily&#39;,&#39;2026-07-30&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Чт</b> 30 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="о чём писала (по желанию)" onchange="dtNote(&#39;wdaily&#39;,&#39;2026-07-30&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 31 июл." onclick="dtToggle(&#39;wdaily&#39;,&#39;2026-07-31&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Пт</b> 31 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="о чём писала (по желанию)" onchange="dtNote(&#39;wdaily&#39;,&#39;2026-07-31&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 1 авг." onclick="dtToggle(&#39;wdaily&#39;,&#39;2026-08-01&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Сб</b> 1 авг.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="о чём писала (по желанию)" onchange="dtNote(&#39;wdaily&#39;,&#39;2026-08-01&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 2 авг." onclick="dtToggle(&#39;wdaily&#39;,&#39;2026-08-02&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Вс</b> 2 авг. <small>· сегодня</small></span>
+      <input class="dayrow-note" type="text" value="" placeholder="о чём писала (по желанию)" onchange="dtNote(&#39;wdaily&#39;,&#39;2026-08-02&#39;,this.value)">
+    </div>
+    <div class="stats" style="margin-top:16px">
+      <div class="stat"><div class="n" style="color:var(--a-rose)">0/7</div><div class="l">за эту неделю</div></div>
+      <div class="stat"><div class="n g">0</div><div class="l">стрик, дней</div></div>
+      <div class="stat"><div class="n b">0</div><div class="l">лучший стрик</div></div>
+      <div class="stat"><div class="n">0</div><div class="l">отмечено дней</div></div>
+    </div>
+    <div style="font-size:13px; font-weight:600; margin:18px 0 2px">От недели к неделе</div><div class="wkrow"><span class="wkr">27 июл. — 2 авг. · текущая</span><span class="wkdots"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></span><span class="wkn">0/7</span></div>
+    
+  </div>
+  <div class="card" style="--accent:var(--a-amber); --accent-soft:color-mix(in srgb, var(--a-amber) 16%, transparent)">
+    <div class="section-h"><h2>Гарри Поттер · переписываю по-английски</h2><span class="daystatus" style="color:var(--muted)">0/7 за неделю</span></div>
+    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Переписываю кусочек текста каждый день. Хоть абзац — главное постоянство.</p>
+    <div class="weeknav">
+      <button aria-label="Предыдущая неделя" onclick="dtShift(&#39;hp&#39;,-1)">‹</button>
+      <span>27 июл. — 2 авг. · текущая</span>
+      <button aria-label="Следующая неделя" onclick="dtShift(&#39;hp&#39;,1)">›</button>
+    </div>
+    <div class="dayrow  ">
+      <button class="check " aria-label="Отметить 27 июл." onclick="dtToggle(&#39;hp&#39;,&#39;2026-07-27&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Пн</b> 27 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="глава / сколько переписала" onchange="dtNote(&#39;hp&#39;,&#39;2026-07-27&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 28 июл." onclick="dtToggle(&#39;hp&#39;,&#39;2026-07-28&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Вт</b> 28 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="глава / сколько переписала" onchange="dtNote(&#39;hp&#39;,&#39;2026-07-28&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 29 июл." onclick="dtToggle(&#39;hp&#39;,&#39;2026-07-29&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Ср</b> 29 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="глава / сколько переписала" onchange="dtNote(&#39;hp&#39;,&#39;2026-07-29&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 30 июл." onclick="dtToggle(&#39;hp&#39;,&#39;2026-07-30&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Чт</b> 30 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="глава / сколько переписала" onchange="dtNote(&#39;hp&#39;,&#39;2026-07-30&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 31 июл." onclick="dtToggle(&#39;hp&#39;,&#39;2026-07-31&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Пт</b> 31 июл.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="глава / сколько переписала" onchange="dtNote(&#39;hp&#39;,&#39;2026-07-31&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 1 авг." onclick="dtToggle(&#39;hp&#39;,&#39;2026-08-01&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Сб</b> 1 авг.</span>
+      <input class="dayrow-note" type="text" value="" placeholder="глава / сколько переписала" onchange="dtNote(&#39;hp&#39;,&#39;2026-08-01&#39;,this.value)">
+    </div><div class="dayrow  ">
+      <button class="check " aria-label="Отметить 2 авг." onclick="dtToggle(&#39;hp&#39;,&#39;2026-08-02&#39;)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></button>
+      <span class="dayrow-lab"><b>Вс</b> 2 авг. <small>· сегодня</small></span>
+      <input class="dayrow-note" type="text" value="" placeholder="глава / сколько переписала" onchange="dtNote(&#39;hp&#39;,&#39;2026-08-02&#39;,this.value)">
+    </div>
+    <div class="stats" style="margin-top:16px">
+      <div class="stat"><div class="n" style="color:var(--a-amber)">0/7</div><div class="l">за эту неделю</div></div>
+      <div class="stat"><div class="n g">0</div><div class="l">стрик, дней</div></div>
+      <div class="stat"><div class="n b">0</div><div class="l">лучший стрик</div></div>
+      <div class="stat"><div class="n">0</div><div class="l">отмечено дней</div></div>
+    </div>
+    <div style="font-size:13px; font-weight:600; margin:18px 0 2px">От недели к неделе</div><div class="wkrow"><span class="wkr">27 июл. — 2 авг. · текущая</span><span class="wkdots"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></span><span class="wkn">0/7</span></div>
+    
+  </div>
   <div class="card" style="--accent:var(--a-violet); --accent-soft:color-mix(in srgb, var(--a-violet) 16%, transparent)">
-    <div class="section-h"><h2>Gravity Falls · аудирование</h2><span class="daystatus" style="color:var(--muted)">4/40 серий</span></div>
-    <div class="prog" style="margin-bottom:14px"><div class="prog-top"><span class="lab">Просмотрено серий · 2 сезона</span><span class="pct" style="color:var(--a-violet)">10%</span></div>
-      <div class="track"><i style="width:10%; background:linear-gradient(90deg,var(--a-violet),#c9b3ff)"></i></div></div><div class="lesson  ">
+    <div class="section-h"><h2>Gravity Falls · аудирование</h2><span class="daystatus" style="color:var(--muted)">15/40 серий</span></div>
+    <div class="prog" style="margin-bottom:14px"><div class="prog-top"><span class="lab">Просмотрено серий · 2 сезона</span><span class="pct" style="color:var(--a-violet)">38%</span></div>
+      <div class="track"><i style="width:38%; background:linear-gradient(90deg,var(--a-violet),#c9b3ff)"></i></div></div><div class="lesson  ">
       <div class="lhead" onclick="gvToggleBlock(0,false)">
         <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></span>
         <span class="lring"><svg viewBox="0 0 38 38" width="38" height="38">
     <circle cx="19" cy="19" r="16.5" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"></circle>
-    <circle cx="19" cy="19" r="16.5" fill="none" stroke="var(--a-violet)" stroke-width="5" stroke-linecap="round" stroke-dasharray="103.67255756846318" stroke-dashoffset="82.93804605477055" transform="rotate(-90 19 19)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
+    <circle cx="19" cy="19" r="16.5" fill="none" stroke="var(--a-violet)" stroke-width="5" stroke-linecap="round" stroke-dasharray="103.67255756846318" stroke-dashoffset="25.918139392115794" transform="rotate(-90 19 19)" style="transition:stroke-dashoffset .6s var(--ease)"></circle>
     
   </svg></span>
-        <span class="ltitle"><span class="tt">Сезон 1</span><span class="mm">4 из 20 серий</span></span>
-        <span class="lbadge ">20%</span>
+        <span class="ltitle"><span class="tt">Сезон 1</span><span class="mm">15 из 20 серий</span></span>
+        <span class="lbadge ">75%</span>
       </div>
-      <div class="lbody"><div class="lbtns"><button class="link" onclick="event.stopPropagation();gvMarkBlock(0,true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg> Отметить сезон</button><button class="link" onclick="event.stopPropagation();gvMarkBlock(0,false)">Снять</button></div><div class="step done" onclick="gvToggle(0,0)"><span class="ynum">1</span><span class="sname">Tourist Trapped</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,1)"><span class="ynum">2</span><span class="sname">The Legend of the Gobblewonker</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,2)"><span class="ynum">3</span><span class="sname">Headhunters</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,3)"><span class="ynum">4</span><span class="sname">The Hand That Rocks the Mabel</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,4)"><span class="ynum">5</span><span class="sname">The Inconveniencing</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,5)"><span class="ynum">6</span><span class="sname">Dipper vs. Manliness</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,6)"><span class="ynum">7</span><span class="sname">Double Dipper</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,7)"><span class="ynum">8</span><span class="sname">Irrational Treasure</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,8)"><span class="ynum">9</span><span class="sname">The Time Traveler's Pig</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,9)"><span class="ynum">10</span><span class="sname">Fight Fighters</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,10)"><span class="ynum">11</span><span class="sname">Little Dipper</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,11)"><span class="ynum">12</span><span class="sname">Summerween</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,12)"><span class="ynum">13</span><span class="sname">Boss Mabel</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,13)"><span class="ynum">14</span><span class="sname">Bottomless Pit!</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,14)"><span class="ynum">15</span><span class="sname">The Deep End</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,15)"><span class="ynum">16</span><span class="sname">Carpet Diem</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,16)"><span class="ynum">17</span><span class="sname">Boyz Crazy</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,17)"><span class="ynum">18</span><span class="sname">Land Before Swine</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,18)"><span class="ynum">19</span><span class="sname">Dreamscaperers</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,19)"><span class="ynum">20</span><span class="sname">Gideon Rises</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div></div>
+      <div class="lbody"><div class="lbtns"><button class="link" onclick="event.stopPropagation();gvMarkBlock(0,true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg> Отметить сезон</button><button class="link" onclick="event.stopPropagation();gvMarkBlock(0,false)">Снять</button></div><div class="step done" onclick="gvToggle(0,0)"><span class="ynum">1</span><span class="sname">Tourist Trapped</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,1)"><span class="ynum">2</span><span class="sname">The Legend of the Gobblewonker</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,2)"><span class="ynum">3</span><span class="sname">Headhunters</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,3)"><span class="ynum">4</span><span class="sname">The Hand That Rocks the Mabel</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,4)"><span class="ynum">5</span><span class="sname">The Inconveniencing</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,5)"><span class="ynum">6</span><span class="sname">Dipper vs. Manliness</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,6)"><span class="ynum">7</span><span class="sname">Double Dipper</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,7)"><span class="ynum">8</span><span class="sname">Irrational Treasure</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,8)"><span class="ynum">9</span><span class="sname">The Time Traveler's Pig</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,9)"><span class="ynum">10</span><span class="sname">Fight Fighters</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,10)"><span class="ynum">11</span><span class="sname">Little Dipper</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,11)"><span class="ynum">12</span><span class="sname">Summerween</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,12)"><span class="ynum">13</span><span class="sname">Boss Mabel</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,13)"><span class="ynum">14</span><span class="sname">Bottomless Pit!</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step done" onclick="gvToggle(0,14)"><span class="ynum">15</span><span class="sname">The Deep End</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,15)"><span class="ynum">16</span><span class="sname">Carpet Diem</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,16)"><span class="ynum">17</span><span class="sname">Boyz Crazy</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,17)"><span class="ynum">18</span><span class="sname">Land Before Swine</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,18)"><span class="ynum">19</span><span class="sname">Dreamscaperers</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div><div class="step " onclick="gvToggle(0,19)"><span class="ynum">20</span><span class="sname">Gideon Rises</span><span class="cbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></div></div>
     </div><div class="lesson  ">
       <div class="lhead" onclick="gvToggleBlock(1,false)">
         <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></span>
@@ -867,21 +986,22 @@ function mstamp(p){ if(data){ data._m=data._m||{}; data._m[p]=Date.now(); } }
 function lsGet(k){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):null; }catch(e){ return null; } }
 function ensureSport(sp){ sp=sp||{}; sp.config=Object.assign({startDate:null,exercises:[],height:177,weightStart:82,cycleWeeks:12,stepGoal:10000,sex:'f',age:30,activity:1.45},sp.config||{});
   sp.days=sp.days||{}; sp.workouts=sp.workouts||[]; sp.weight=sp.weight||[]; sp.chest=sp.chest||[]; sp.waist=sp.waist||[]; sp.belly=sp.belly||[]; sp.hips=sp.hips||[]; sp.lifts=sp.lifts||{}; sp.energy=sp.energy||[]; sp.weekNotes=sp.weekNotes||{}; sp.archives=sp.archives||[]; return sp; }
-function ensureCareer(c){ c=c||{}; c.config=Object.assign({startDate:null,cycleWeeks:12,netologyTotal:null},c.config||{});
-  c.sessions=c.sessions||[]; c.features=c.features||[]; c.netologyDone=c.netologyDone||0; c.later=c.later||[]; c.exp=c.exp||{}; c.timeExp=c.timeExp||{}; c.timeLog=c.timeLog||[]; c.vkcourse=ensureVk(c.vkcourse);
+function ensureCareer(c){ c=c||{}; c.config=Object.assign({startDate:null,cycleWeeks:12},c.config||{});
+  c.sessions=c.sessions||[]; c.features=c.features||[]; c.later=c.later||[]; c.exp=c.exp||{}; c.timeExp=c.timeExp||{}; c.timeLog=c.timeLog||[]; c.vkcourse=ensureVk(c.vkcourse);
   if(!c.timeLog.length && c.sessions.length){ c.timeLog=c.sessions.map(d=>({d,m:0,note:'занятие'})); }
   c.stages=c.stages||{};
   CR_STAGES.forEach(st=>{ c.stages[st.key]=c.stages[st.key]||{}; st.items.forEach(it=>{ if(!(it[0] in c.stages[st.key])) c.stages[st.key][it[0]]=false; }); });
   c.vk=Object.assign({osnovy:false,design:false,research:false,dev:false,testing:false},c.vk||{});
   c.checkpoints=Object.assign({cp1:false,cp2:false,cp3:false,cp4:false},c.checkpoints||{});
-  c.bychkov=ensureBy(c.bychkov);
   return c; }
 function ensureVk(v){ v=v||{}; v.done=v.done||{}; v.exp=v.exp||{}; return v; }
-function ensureBy(b){ b=b||{}; b.done=b.done||{}; b.exp=b.exp||{}; return b; }
 function ensureEnglish(e){ e=e||{}; e.config=Object.assign({startDate:null,cycleWeeks:12},e.config||{}); e.yandex=e.yandex||{done:{}}; e.yandex.done=e.yandex.done||{}; e.yandex.wexp=e.yandex.wexp||{};
   e.theory=e.theory||{done:{},open:false}; e.theory.done=e.theory.done||{};
   e.a11y=e.a11y||{done:{},exp:{}}; e.a11y.done=e.a11y.done||{}; e.a11y.exp=e.a11y.exp||{};
   e.writing=e.writing||{};
+  e.wdaily=e.wdaily||{days:{}}; e.wdaily.days=e.wdaily.days||{};
+  e.hp=e.hp||{days:{}}; e.hp.days=e.hp.days||{};
+  e.twenty=e.twenty||{done:{},open:true}; e.twenty.done=e.twenty.done||{};
   if(!e.speaking||!e.speaking.length) e.speaking=[{done:false,date:null,note:""},{done:false,date:null,note:""},{done:false,date:null,note:""},{done:false,date:null,note:""}];
   if(!e.gravity){ e.gravity={done:{s0e0:1,s0e1:1,s0e2:1},exp:{}}; } e.gravity.done=e.gravity.done||{}; e.gravity.exp=e.gravity.exp||{}; return e; }
 function migrate(d){ if(!d||!d.sections) return d; d._m=d._m||{};
@@ -957,7 +1077,7 @@ function sectionProgress(sec){
   if(sec.kind==="course"){ const t=cTotalSteps(); return t?cDoneSteps(sec.course)/t:0; }
   if(sec.kind==="sport"){ return spWeekCompliance(sec.sport); }
   if(sec.kind==="career"){ const eE=engData(); const t=crAllTotal()+vkTotal()+axTotal(); return t?(crAllDone(sec.career)+vkAllDone(sec.career.vkcourse)+(eE?axAllDone(eE.a11y):0))/t:0; }
-  if(sec.kind==="english"){ const e=sec.english; const t=yaTotal()+thTotal()+axTotal(); return t?(yaDone(e)+thDone(e)+axAllDone(e.a11y))/t:0; }
+  if(sec.kind==="english"){ const e=sec.english; const t=yaTotal()+thTotal()+axTotal()+twTotal(); return t?(yaDone(e)+thDone(e)+axAllDone(e.a11y)+twDone(e))/t:0; }
   const m=sec.items.filter(it=>!(it.type==="time"&&it.goal<=0));
   if(m.length===0) return sec.items.some(it=>it.minutes>0)?null:0;
   return m.reduce((a,it)=>a+itemProgress(it),0)/m.length;
@@ -1798,25 +1918,7 @@ function careerHTML(sec){
 /* ---- career actions ---- */
 function crToggleItem(sk,k){ const c=activeCareer().career; c.stages[sk][k]=!c.stages[sk][k]; mstamp("st:"+sk+"."+k); save(); renderCareer(); }
 function crToggleCheckpoint(cp){ const c=activeCareer().career; c.checkpoints[cp]=!c.checkpoints[cp]; mstamp("st:cp."+cp); save(); renderCareer(); if(c.checkpoints[cp]) toast("Чек-поинт закрыт 🎉"); }
-function crToggleVk(k){ const c=activeCareer().career; c.vk[k]=!c.vk[k]; save(); renderCareer(); }
 function crToggleStage(k,cur){ const c=activeCareer().career; c.exp[k]=!cur; save(); renderCareer(); }
-function openSession(){ document.getElementById("modal").innerHTML=`
-  <h3>Дизайн-сессия</h3><p class="mhint">Отметь день сессии (можно задним числом).</p>
-  <label for="ssDate">Дата</label><input type="date" id="ssDate" value="${todayStr()}" max="${todayStr()}">
-  <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="saveSession()">Добавить</button></div>`;
-  showModal(); }
-function saveSession(){ const c=activeCareer().career; const d=document.getElementById("ssDate").value; if(!d){ alert("Выбери дату"); return; } c.sessions.push(d); save(); closeModal(); renderCareer(); toast("Сессия засчитана"); }
-function crDelSession(i){ const c=activeCareer().career; c.sessions.splice(i,1); save(); renderCareer(); }
-function openFeature(){ document.getElementById("modal").innerHTML=`
-  <h3>Фича Фигмы</h3><p class="mhint">Отмечай только если воспроизвела руками.</p>
-  <label for="ftName">Что за фича</label><input type="text" id="ftName" placeholder="напр. auto layout">
-  <label for="ftDate">Дата</label><input type="date" id="ftDate" value="${todayStr()}">
-  <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="saveFeature()">Добавить</button></div>`;
-  showModal(); setTimeout(()=>{const e=document.getElementById("ftName");if(e)e.focus();},50); }
-function saveFeature(){ const c=activeCareer().career; const n=document.getElementById("ftName").value.trim(); if(!n){ alert("Впиши название"); return; } c.features.push({date:document.getElementById("ftDate").value||todayStr(),feature:n}); save(); closeModal(); renderCareer(); toast("Фича засчитана"); }
-function crDelFeature(i){ const c=activeCareer().career; c.features.splice(i,1); save(); renderCareer(); }
-function crNetSet(){ const v=prompt("Сколько UX-модулей Нетологии осталось всего?","10"); if(v!==null){ const n=parseInt(v)||0; activeCareer().career.config.netologyTotal=n>0?n:null; save(); renderCareer(); } }
-function crNetInc(d){ const c=activeCareer().career; const max=c.config.netologyTotal||999; c.netologyDone=Math.max(0,Math.min(max,(c.netologyDone||0)+d)); save(); renderCareer(); }
 function crAddLater(){ const v=prompt("Название курса в список «Потом»:"); if(v&&v.trim()){ activeCareer().career.later.push(v.trim()); save(); renderCareer(); } }
 function crDelLater(i){ const c=activeCareer().career; c.later.splice(i,1); save(); renderCareer(); }
 let crPickMin=30;
@@ -1904,83 +2006,6 @@ function vkToggle(bi,vi){ const v=activeCareer().career.vkcourse; const k=vkKey(
 function vkToggleBlock(bi,cur){ const v=activeCareer().career.vkcourse; v.exp[bi]=!cur; save(); renderCareer(); }
 function vkMarkBlock(bi,val){ const v=activeCareer().career.vkcourse; VK_PROGRAM[bi].v.forEach((_,vi)=>{ const k=vkKey(bi,vi); if(val) v.done[k]=1; else delete v.done[k]; mstamp("vk:"+k); }); save(); renderCareer(); }
 
-/* ================= Курс Бычкова (Фигма) ================= */
-const BYCHKOV_TITLES=[
-"Как скачать фигму и какие тарифы Figma. Бесплатный подробный новый курс по фигме с нуля",
-"Как удобно организовать проекты в Figma. Черновики и команды, отличия платного тарифа Фигма",
-"История версий в Фигме, совместный просмотр и хоткеи Figma. Фигма с нуля",
-"Что такое Nudge Amount и почему сетка для мобильных приложений 8 px? Фигма с нуля",
-"Фреймы, группы или секции — чем лучше пользоваться в Figma? Фигма с нуля",
-"Фигуры в Figma: прямоугольник, эллипс, полигон, звезда. Как из них делать иконки? Фигма",
-"Инструмент Перо в Figma, линия, стрелка и карандаш. Бесплатный курс по фигме. Фигма с нуля",
-"Булевы операции в Figma, как просто делать иконки. Бесплатный курс по фигме. Фигма с нуля",
-"Всё про маски в Figma! Как готовить изображения на основе маски яркости. Фигма с нуля",
-"Инструмент Scale: адаптивы, дроби и неверстальбельные макеты. Бесплатный курс Figma. Фигма",
-"Панель слоёв и поиск с заменой контента. Как правильно называть слои и ставить блоки. Фигма",
-"Регулярные выражения и массовое переименование в Фигме. Regexp Figma",
-"Выравнивания в Фигме? Для чего нужны направляющие? Как больше успевать? Фигма с нуля",
-"Сетка в Figma: какой должна быть ширины? 8 или 10 px? Что лучше stretch или center? Фигма",
-"Сетка в Figma. 8, 12, 16 и 24 колоночные. Почему колонки разной ширины? Фигма с нуля",
-"Сетка в Figma из направляющих? Почему горизонтальная сетка ерунда? Фигма с нуля",
-"Цвет в Figma. Градиенты и режимы наложения в Фигме. Бесплатный курс. Фигма с нуля",
-"Режимы изображений в Figma. Паттерны в Figma. Почему нельзя использовать CROP? Фигма с нуля",
-"Как подобрать идеальный цвет в Figma? Selection colors и зашкварный зашквар. Фигма с нуля",
-"Всё про бордер в Figma! Прерывистые линии из обводки. Узоры и лайфхаки из контура. Фигма",
-"Эффекты в Figma! Внутренняя и обычная тень. Размытие слоя и блюр фона. Фигма с нуля",
-"Текст в Фигме: шрифт, размер, интерлиньяж, letter spacing, абзац. Типографика в Figma",
-"Текст и типографика в Фигме: выравнивания, vertical trim Figma, список, абзацы. Фигма с нуля",
-"Типографика в Фигме: красная строка, кривые, текст по кругу, вариативный шрифт. Фигма с нуля",
-"Математика в Figma: как формулы помогают экономить время и настраивать сетку. Фигма с нуля",
-"Как правильно копировать в Фигме? Как сделать скриншот области прямо в Figma? Фигма с нуля",
-"Библиотека сеток в Figma: как настроить, подключить сетки для адаптива? Фигма с нуля",
-"Библиотека цветов и эффектов в Figma: как настроить и подключить? Фигма с нуля",
-"Режим контуров (outline) в Фигме. Компоненты, маски, выравнивания. Фигма с нуля",
-"Привязки (constraints). Как настроить Bento Grids? Автолейаут или привязки? Фигма с нуля",
-"Компоненты в Фигме. Как сломать мастер, как делать иконки через компоненты. Фигма с нуля",
-"Компоненты в Фигме. Что такое оверрайд, как пушить компоненты. Figma components",
-"Компоненты в Фигме. Что такое атом? Что компонентить, а что наоборот делать нельзя?",
-"Компоненты в Фигме. Как свапать иконки? Фигма с нуля",
-"Варианты в Фигме. Как настраивать Figma Variants? Фигма с нуля",
-"Свойства компонентов. Как их настраивать и когда использовать варианты?! Фигма с нуля",
-"Компоненты в фигме. Что надо компонентить, а что не нужно? Как быстро работать. Фигма с нуля",
-"Компоненты в Фигме. Библиотека компонентов – как пользоваться? Фигма с нуля",
-"Figma SLOTS: полный обзор, как пользоваться слотами в компонентах в Фигме. Бесплатный курс",
-"Figma Slots: самый полный гайд за 30 минут",
-"Autolayout в Figma за 20 минут (2026). Как настраивать АЛ. Лишние фреймы. Фигма с нуля",
-"Автолейаут в Фигме (2025). Fill, Fix, Hug как настраивать? Игнор АЛ. Фигма с нуля",
-"Автолейаут в Фигме (2026). Min Max значения. Wrap НЕ адаптив? Masonry autolayout!",
-"Autolayout Grids in Figma. Как настраивать автолейаут. Бесплатный курс по Фигма",
-"[Бусти] Переменные: семантика. Как ими пользоваться",
-"[Бусти] Переменные: моды — тёмная/светлая тема и адаптивы",
-"Ссылка на проект? Как не попасть на деньги? Как проверить доступ? Фигма с нуля",
-"[Бусти] Прототипы через Variants: почему не работают и как починить",
-"[Бусти] Радиокнопки в прототипах: через переменные и варианты",
-"Теперь Figma Agent убийца Claude Design! ИИ забирает всю рутину и работает вместо тебя",
-"Figma Motion с Config 2026 — анимация теперь ВНУТРИ Figma!",
-"Генеративные плагины! Создай свой идеальный плагин за 2 минуты с помощью AI агента в Фигме"
-];
-function byKey(i){ return "v"+i; }
-function byTotal(){ return BYCHKOV_TITLES.length; }
-function byAllDone(b){ let n=0; for(let i=0;i<BYCHKOV_TITLES.length;i++) if(b.done[byKey(i)]) n++; return n; }
-function byWeek(b,mon){ let n=0; for(let i=0;i<BYCHKOV_TITLES.length;i++){ const k=byKey(i); if(b.done[k]&&tsInWeek("by:"+k,mon))n++; } return n; }
-function bychkovCardHTML(c){
-  const b=c.bychkov; const done=byAllDone(b), total=byTotal(), pct=total?done/total:0; const open=b.open!==false;
-  let html=`<div class="card" style="--accent:var(--a-amber); --accent-soft:${softColor('var(--a-amber)')}">
-    <div class="section-h" style="cursor:pointer" onclick="byToggleOpen()"><h2 style="display:flex; align-items:center; gap:9px"><span class="chev" style="width:17px; height:17px; display:inline-block; transition:transform .25s var(--ease);${open?' transform:rotate(90deg)':''}">${svg('chev')}</span>Курс Бычкова · Фигма</h2><span class="daystatus" style="color:${(done===total&&total)?'var(--success)':'var(--muted)'}">${done}/${total} видео</span></div>
-    <div class="prog" style="margin-top:12px"><div class="prog-top"><span class="lab">Смотришь и повторяешь сама · прогресс идёт в общий процент</span><span class="pct" style="color:var(--a-amber)">${Math.round(pct*100)}%</span></div>
-      <div class="track"><i style="width:${Math.round(pct*100)}%; background:linear-gradient(90deg,var(--a-amber),#ffd89e)"></i></div></div>`;
-  if(open){
-    html+=`<div class="lbtns" style="margin-top:12px"><button class="link" onclick="byMarkAll(true)">${svg('check')} Отметить все</button><button class="link" onclick="byMarkAll(false)">Снять все</button></div>`;
-    html+=BYCHKOV_TITLES.map((title,i)=>{ const dn=!!b.done[byKey(i)]; return `<div class="step ${dn?'done':''}" onclick="byToggle(${i})"><span class="ynum">${i+1}</span><span class="tic video" style="background:rgba(255,182,92,.16); color:var(--a-amber)">${svg('play')}</span><span class="sname">${esc(title)}</span><span class="cbox">${svg('check')}</span></div>`; }).join("");
-  } else {
-    html+=`<p style="font-size:12px; color:var(--muted-2); margin:10px 0 0">Свёрнуто. Нажми на заголовок, чтобы раскрыть список из ${total} видео.</p>`;
-  }
-  return html+`</div>`;
-}
-function byToggle(i){ const b=activeCareer().career.bychkov; const k=byKey(i); if(b.done[k]) delete b.done[k]; else b.done[k]=1; mstamp("by:"+k); save(); renderCareer(); }
-function byToggleOpen(){ const b=activeCareer().career.bychkov; const cur=b.open!==false; b.open=!cur; save(); renderCareer(); }
-function byMarkAll(val){ const b=activeCareer().career.bychkov; BYCHKOV_TITLES.forEach((_,i)=>{ const k=byKey(i); if(val) b.done[k]=1; else delete b.done[k]; mstamp("by:"+k); }); save(); renderCareer(); }
-
 /* ================= English module ================= */
 const YA_PROGRAM=[
  ["Другое","Урок «Выходные в городе»"],["Другое","Урок «Какой вид отдыха выбрать?»"],["Другое","Урок «Общение онлайн»"],["Лексика","Литература"],["Лексика","Фильмы и телевидение"],["Лексика","Театр"],["Лексика","Рисование"],["Лексика","Люди искусства"],["Лексика","Инфраструктура аэропорта (дополнительно)"],["Лексика","Достопримечательности"],["Фразы","Глагол play (играть)"],["Лексика","Вещи для отдыха и путешествия"],
@@ -2004,7 +2029,7 @@ let engFilter="all";
 function activeEng(){ const s=data.sections.find(x=>x.id===data.active); return s&&s.kind==="english"?s:null; }
 function renderEng(){ const sec=activeEng(); if(!sec)return; document.getElementById("view").innerHTML=englishHTML(sec); }
 function renderEngList(){ const sec=activeEng(); if(!sec)return; const el=document.getElementById("engList"); if(el) el.innerHTML=engListHTML(sec.english); }
-function refreshEngDash(){ const sec=activeEng(); if(!sec)return; const e=sec.english; const done=yaDone(e),total=yaTotal(); const allT=total+thTotal()+axTotal(), allD=done+thDone(e)+axAllDone(e.a11y), pct=allT?allD/allT:0; const r=document.getElementById("engRing"); if(r)r.innerHTML=ring(pct,132,12,'var(--a-green)',true); const st=document.getElementById("engStat"); if(st)st.textContent=done+"/"+total; }
+function refreshEngDash(){ const sec=activeEng(); if(!sec)return; const e=sec.english; const done=yaDone(e),total=yaTotal(); const allT=total+thTotal()+axTotal()+twTotal(), allD=done+thDone(e)+axAllDone(e.a11y)+twDone(e), pct=allT?allD/allT:0; const r=document.getElementById("engRing"); if(r)r.innerHTML=ring(pct,132,12,'var(--a-green)',true); const st=document.getElementById("engStat"); if(st)st.textContent=done+"/"+total; }
 function yaKey(i){ return "y"+i; }
 function yaTotal(){ return YA_PROGRAM.length; }
 function yaDone(e){ let n=0; for(let i=0;i<YA_PROGRAM.length;i++){ if(e.yandex.done[yaKey(i)]) n++; } return n; }
@@ -2125,22 +2150,89 @@ function a11yCardHTML(e){
   return html+`</div>`;
 }
 
-/* ---- Письменная практика (раз в неделю) ---- */
-function ewGet(e,w){ e.writing=e.writing||{}; e.writing[w]=e.writing[w]||{done:false,note:""}; return e.writing[w]; }
-function ewToggle(w){ const e=activeEng().english; const r=ewGet(e,w); r.done=!r.done; mstamp("ew:"+w); save(); renderEng(); }
-function ewNote(w,v){ const e=activeEng().english; ewGet(e,w).note=v; mstamp("ew:"+w); save(); }
-function ewWeekDone(e,mon){ const r=(e.writing||{})[isoWeek(mon)]; return (r&&r.done)?1:0; }
-function writingCardHTML(e){
-  const curW=isoWeek(todayStr()), mon=mondayOf(todayStr());
-  const cur=(e.writing||{})[curW]||{done:false,note:""};
-  const past=Object.keys(e.writing||{}).filter(w=>w!==curW&&(e.writing[w].done||e.writing[w].note)).sort().reverse().slice(0,8);
-  let html=`<div class="card" style="--accent:var(--a-rose); --accent-soft:${softColor('var(--a-rose)')}">
-    <div class="section-h"><h2>Письменная практика · раз в неделю</h2><span class="daystatus" style="color:${cur.done?'var(--success)':'var(--muted)'}">${cur.done?'сделано':'на этой неделе'}</span></div>
-    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Конспект пройденного модуля своими словами. Одна запись в неделю — отсчёт с текущей недели, прошлое не догоняем.</p>
-    <div class="item"><div class="item-top"><button class="check ${cur.done?'on':''}" style="--accent:var(--a-rose)" onclick="ewToggle('${curW}')">${svg('check')}</button><div class="item-name ${cur.done?'done':''}">Неделя ${ruDate(mon)} — ${ruDate(dateAddDays(mon,6))}</div></div></div>
-    <textarea class="note-area" placeholder="Конспект своими словами..." onchange="ewNote('${curW}',this.value)">${esc(cur.note||'')}</textarea>`;
-  if(past.length) html+=`<div style="font-size:13px; font-weight:600; margin:16px 0 8px">Прошлые недели</div>`+past.map(w=>{ const r=e.writing[w]; return `<div class="metric"><div class="micon">${svg('pencil')}</div><div class="mlabel">${esc(w)}<small>${esc((r.note||'').slice(0,70))||'без заметки'}</small></div><div class="mval">${r.done?'✓':'—'}</div></div>`; }).join("");
+/* ---- Английский за 20 уроков (экспресс-курс) ---- */
+const TW_LESSONS=["2:27:10","1:17:59","53:53","48:21","1:03:55","42:50","51:43","32:45","30:52","33:31","49:40","32:45","34:40","52:42","49:21","36:29","26:57","43:39","1:18:21","31:12"];
+function twKey(i){ return "u"+i; }
+function twTotal(){ return TW_LESSONS.length; }
+function twDone(e){ let n=0; for(let i=0;i<TW_LESSONS.length;i++) if(e.twenty.done[twKey(i)]) n++; return n; }
+function twSecs(s){ const p=String(s).split(":").map(Number); return p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1]; }
+function twAllMin(){ return Math.round(TW_LESSONS.reduce((a,s)=>a+twSecs(s),0)/60); }
+function twDoneMin(e){ let s=0; TW_LESSONS.forEach((d,i)=>{ if(e.twenty.done[twKey(i)]) s+=twSecs(d); }); return Math.round(s/60); }
+function twWeek(e,mon){ let n=0; for(let i=0;i<TW_LESSONS.length;i++){ const k=twKey(i); if(e.twenty.done[k]&&tsInWeek("tw:"+k,mon))n++; } return n; }
+function twToggle(i){ const e=activeEng().english; const k=twKey(i); if(e.twenty.done[k]) delete e.twenty.done[k]; else e.twenty.done[k]=1; mstamp("tw:"+k); save(); renderEng(); }
+function twToggleOpen(){ const e=activeEng().english; e.twenty.open=(e.twenty.open===false); save(); renderEng(); }
+function twMarkAll(val){ const e=activeEng().english; TW_LESSONS.forEach((_,i)=>{ const k=twKey(i); if(val) e.twenty.done[k]=1; else delete e.twenty.done[k]; mstamp("tw:"+k); }); save(); renderEng(); }
+function twentyCardHTML(e){
+  const done=twDone(e), total=twTotal(), pct=total?done/total:0, open=e.twenty.open!==false;
+  let html=`<div class="card" style="--accent:var(--a-blue); --accent-soft:${softColor('var(--a-blue)')}">
+    <div class="section-h" style="cursor:pointer" onclick="twToggleOpen()"><h2 style="display:flex; align-items:center; gap:9px"><span class="chev" style="width:17px; height:17px; display:inline-block;${open?' transform:rotate(90deg)':''}">${svg('chev')}</span>Английский за 20 уроков</h2><span class="daystatus" style="color:${(done===total&&total)?'var(--success)':'var(--muted)'}">${done}/${total} уроков</span></div>
+    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Экспресс-курс с нуля, плейлист из 20 видео (A0 → C1). Длинный урок можно смотреть частями — отмечай, когда досмотрела до конца.</p>
+    <div class="prog" style="margin-bottom:${open?'14px':'0'}"><div class="prog-top"><span class="lab">Просмотрено ${fmtMin(twDoneMin(e))} из ~${fmtMin(twAllMin())}</span><span class="pct" style="color:var(--a-blue)">${Math.round(pct*100)}%</span></div>
+      <div class="track"><i style="width:${Math.round(pct*100)}%; background:linear-gradient(90deg,var(--a-blue),#9db0ff)"></i></div></div>`;
+  if(open){
+    html+=`<div class="lbtns"><button class="link" onclick="event.stopPropagation();twMarkAll(true)">${svg('check')} Отметить все</button><button class="link" onclick="event.stopPropagation();twMarkAll(false)">Снять отметки</button></div>`;
+    html+=TW_LESSONS.map((dur,i)=>{ const dn=!!e.twenty.done[twKey(i)];
+      return `<div class="step ${dn?'done':''}" onclick="twToggle(${i})"><span class="ynum">${i+1}</span><span class="tic video" style="background:rgba(108,140,255,.16); color:var(--video)">${svg('play')}</span><span class="sname">Урок ${i+1}</span><span class="ytag">${dur}</span><span class="cbox">${svg('check')}</span></div>`; }).join("");
+  }
   return html+`</div>`;
+}
+
+/* ---- Ежедневные письменные трекеры (Gemini + Гарри Поттер) ---- */
+const DT={
+  wdaily:{ title:"Письменная практика с Gemini", pfx:"wd:", color:"var(--a-rose)",
+    sub:"Пишу в чате с Gemini каждый день. Даже пара предложений — уже отметка.",
+    ph:"о чём писала (по желанию)" },
+  hp:{ title:"Гарри Поттер · переписываю по-английски", pfx:"hp:", color:"var(--a-amber)",
+    sub:"Переписываю кусочек текста каждый день. Хоть абзац — главное постоянство.",
+    ph:"глава / сколько переписала" }
+};
+let dtMon={};
+function dtStore(e,k){ e[k]=e[k]||{days:{}}; e[k].days=e[k].days||{}; return e[k]; }
+function dtDay(e,k,ds){ return dtStore(e,k).days[ds]||{}; }
+function dtMonOf(k){ if(!dtMon[k]) dtMon[k]=mondayOf(todayStr()); return dtMon[k]; }
+function dtShift(k,n){ dtMon[k]=dateAddDays(dtMonOf(k),n*7); renderEng(); }
+function dtToggle(k,ds){ const e=activeEng().english; const st=dtStore(e,k); const d=st.days[ds]||(st.days[ds]={}); d.done=!d.done; if(!d.done&&!String(d.note||"").trim()) delete st.days[ds]; mstamp(DT[k].pfx+ds); save(); renderEng(); }
+function dtNote(k,ds,v){ const e=activeEng().english; const st=dtStore(e,k); const d=st.days[ds]||(st.days[ds]={}); d.note=v; if(!d.done&&!String(v||"").trim()) delete st.days[ds]; mstamp(DT[k].pfx+ds); save(); }
+function dtWeekCount(e,k,mon){ let n=0; for(let i=0;i<7;i++) if(dtDay(e,k,dateAddDays(mon,i)).done) n++; return n; }
+function dtTotal(e,k){ const d=dtStore(e,k).days; return Object.keys(d).filter(x=>d[x].done).length; }
+function dtStreak(e,k){ let d=todayStr(); if(!dtDay(e,k,d).done) d=dateAddDays(d,-1); let n=0; while(dtDay(e,k,d).done){ n++; d=dateAddDays(d,-1); } return n; }
+function dtBest(e,k){ const st=dtStore(e,k).days; const ds=Object.keys(st).filter(x=>st[x].done).sort(); let best=0,cur=0,prev=null; ds.forEach(x=>{ cur=(prev&&dateAddDays(prev,1)===x)?cur+1:1; if(cur>best)best=cur; prev=x; }); return best; }
+function dtFirstMon(e,k){ const st=dtStore(e,k).days; const ds=Object.keys(st).sort(); return ds.length?mondayOf(ds[0]):mondayOf(todayStr()); }
+function dailyCardHTML(e,k){
+  const cfg=DT[k], mon=dtMonOf(k), cur=mondayOf(todayStr());
+  const cnt=dtWeekCount(e,k,mon), streak=dtStreak(e,k), best=dtBest(e,k), tot=dtTotal(e,k);
+  let rows="";
+  for(let i=0;i<7;i++){ const ds=dateAddDays(mon,i), d=dtDay(e,k,ds), fut=ds>todayStr();
+    rows+=`<div class="dayrow ${d.done?'done':''} ${fut?'fut':''}">
+      <button class="check ${d.done?'on':''}" aria-label="Отметить ${ruDate(ds)}" onclick="dtToggle('${k}','${ds}')">${svg('check')}</button>
+      <span class="dayrow-lab"><b>${WD[i]}</b> ${ruDate(ds)}${ds===todayStr()?' <small>· сегодня</small>':''}</span>
+      <input class="dayrow-note" type="text" value="${esc(d.note||'')}" placeholder="${cfg.ph}" onchange="dtNote('${k}','${ds}',this.value)">
+    </div>`; }
+  const first=dtFirstMon(e,k); let hist="", m=cur, guard=0;
+  while(m>=first&&guard<12){ const c=dtWeekCount(e,k,m);
+    hist+=`<div class="wkrow"><span class="wkr">${ruDate(m)} — ${ruDate(dateAddDays(m,6))}${m===cur?' · текущая':''}</span><span class="wkdots">${[0,1,2,3,4,5,6].map(i=>`<i class="${dtDay(e,k,dateAddDays(m,i)).done?'on':''}"></i>`).join("")}</span><span class="wkn">${c}/7</span></div>`;
+    m=dateAddDays(m,-7); guard++; }
+  let legacy="";
+  if(k==="wdaily"){ const ws=Object.keys(e.writing||{}).filter(w=>e.writing[w]&&(e.writing[w].done||e.writing[w].note)).sort().reverse();
+    if(ws.length) legacy=`<div style="font-size:13px; font-weight:600; margin:16px 0 4px">Архив недельной практики</div>`+ws.map(w=>{ const r=e.writing[w]; return `<div class="metric"><div class="micon">${svg('pencil')}</div><div class="mlabel">${esc(w)}<small>${esc((r.note||'').slice(0,70))||'без заметки'}</small></div><div class="mval">${r.done?'✓':'—'}</div></div>`; }).join(""); }
+  return `<div class="card" style="--accent:${cfg.color}; --accent-soft:${softColor(cfg.color)}">
+    <div class="section-h"><h2>${cfg.title}</h2><span class="daystatus" style="color:${cnt>=5?'var(--success)':'var(--muted)'}">${cnt}/7 за неделю</span></div>
+    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">${cfg.sub}</p>
+    <div class="weeknav">
+      <button aria-label="Предыдущая неделя" onclick="dtShift('${k}',-1)">‹</button>
+      <span>${ruDate(mon)} — ${ruDate(dateAddDays(mon,6))}${mon===cur?' · текущая':''}</span>
+      <button aria-label="Следующая неделя" onclick="dtShift('${k}',1)">›</button>
+    </div>
+    ${rows}
+    <div class="stats" style="margin-top:16px">
+      <div class="stat"><div class="n" style="color:${cfg.color}">${cnt}/7</div><div class="l">за эту неделю</div></div>
+      <div class="stat"><div class="n g">${streak}</div><div class="l">стрик, ${plural(streak,'день','дня','дней')}</div></div>
+      <div class="stat"><div class="n b">${best}</div><div class="l">лучший стрик</div></div>
+      <div class="stat"><div class="n">${tot}</div><div class="l">отмечено дней</div></div>
+    </div>
+    ${hist?`<div style="font-size:13px; font-weight:600; margin:18px 0 2px">От недели к неделе</div>${hist}`:''}
+    ${legacy}
+  </div>`;
 }
 
 /* ---- Большой блок Яндекс.Практикума ---- */
@@ -2188,8 +2280,9 @@ function practicumCardHTML(e){
 }
 function englishHTML(sec){
   const e=sec.english; const done=yaDone(e), total=yaTotal();
-  const allT=yaTotal()+thTotal()+axTotal(), allD=done+thDone(e)+axAllDone(e.a11y), pct=allT?allD/allT:0;
+  const allT=yaTotal()+thTotal()+axTotal()+twTotal(), allD=done+thDone(e)+axAllDone(e.a11y)+twDone(e), pct=allT?allD/allT:0;
   const sdone=e.speaking.filter(s=>s.done).length; const wk=engCycleWeek(e), WEEKS=engWeeks(e);
+  const wdW=dtWeekCount(e,'wdaily',mondayOf(todayStr())), hpW=dtWeekCount(e,'hp',mondayOf(todayStr()));
   let html=`<div class="card" style="--accent:${sec.color}; --accent-soft:${softColor(sec.color)}">
     <div class="sec-head" style="margin-bottom:18px">
       <div class="sec-ico">${svg('lang')}</div>
@@ -2201,7 +2294,9 @@ function englishHTML(sec){
       <div style="width:100%">
         <div class="stats">
           <div class="stat"><div class="n g" id="engStat">${done}/${total}</div><div class="l">уроков Яндекса</div></div>
+          <div class="stat"><div class="n b">${twDone(e)}/${twTotal()}</div><div class="l">«20 уроков»</div></div>
           <div class="stat"><div class="n" style="color:var(--a-amber)">${sdone}/4</div><div class="l">говорение</div></div>
+          <div class="stat"><div class="n" style="color:var(--a-rose)">${wdW}/7 · ${hpW}/7</div><div class="l">письмо: Gemini · ГП</div></div>
           <div class="stat"><div class="n" style="color:var(--a-violet)">${gvAllDone(e.gravity)}/${gvTotal()}</div><div class="l">серии (аудир.)</div></div>
           <div class="stat"><div class="n">${e.config.startDate?wk+'/'+WEEKS:'—'}</div><div class="l">неделя цикла</div></div>
         </div>
@@ -2210,8 +2305,10 @@ function englishHTML(sec){
     </div>
   </div>
   ${practicumCardHTML(e)}
+  ${twentyCardHTML(e)}
   ${a11yCardHTML(e)}
-  ${writingCardHTML(e)}
+  ${dailyCardHTML(e,'wdaily')}
+  ${dailyCardHTML(e,'hp')}
   ${gravityCardHTML(e)}`;
   return html;
 }
@@ -2236,7 +2333,8 @@ function dataScore(d){ if(!d||!d.sections) return 0; let n=0;
     if(s.course){ n+=Object.keys(s.course.done||{}).length+(s.course.timeLog||[]).length+(s.course.moods||[]).length; }
     if(s.sport){ const sp=s.sport; n+=Object.keys(sp.days||{}).length+(sp.weight||[]).length+(sp.workouts||[]).length+(sp.chest||[]).length+(sp.waist||[]).length+(sp.belly||[]).length+(sp.hips||[]).length; }
     if(s.career){ const c=s.career; n+=(c.sessions||[]).length+(c.features||[]).length+(c.timeLog||[]).length+Object.keys((c.vkcourse&&c.vkcourse.done)||{}).length; if(c.stages) Object.keys(c.stages).forEach(k=>Object.keys(c.stages[k]||{}).forEach(kk=>{ if(c.stages[k][kk]) n++; })); }
-    if(s.english){ const e=s.english; n+=Object.keys((e.yandex&&e.yandex.done)||{}).length+Math.max(0,Object.keys((e.gravity&&e.gravity.done)||{}).length-3)+(e.speaking||[]).filter(x=>x.done).length; }
+    if(s.english){ const e=s.english; n+=Object.keys((e.yandex&&e.yandex.done)||{}).length+Math.max(0,Object.keys((e.gravity&&e.gravity.done)||{}).length-3)+(e.speaking||[]).filter(x=>x.done).length
+      +Object.keys((e.twenty&&e.twenty.done)||{}).length+Object.keys((e.wdaily&&e.wdaily.days)||{}).length+Object.keys((e.hp&&e.hp.days)||{}).length; }
     if(s.items){ s.items.forEach(it=>{ if(it.done||it.value||it.minutes) n++; }); }
   }); return n; }
 function loadSync(){ try{ const r=localStorage.getItem(SYNC_KEY); syncCfg=r?JSON.parse(r):null; }catch(e){ syncCfg=null; } return syncCfg; }
@@ -2247,6 +2345,13 @@ function syncHdr(){ return {"apikey":syncCfg.key,"Authorization":"Bearer "+syncC
 /* ---- умное слияние (никогда не теряет отметки) ---- */
 function mergeArr(a,b,keyFn){ a=a||[]; b=b||[]; const seen={},out=[]; a.concat(b).forEach(x=>{ const k=keyFn(x); if(!seen[k]){ seen[k]=1; out.push(x); } }); return out; }
 function mergeWriting(a,b,aM,bM){ a=a?JSON.parse(JSON.stringify(a)):{}; b=b||{}; Object.keys(b).forEach(w=>{ const A=a[w]||{done:false,note:""}, B=b[w]||{done:false,note:""}; const p="ew:"+w, ta=aM[p]||0, tb=bM[p]||0; a[w]=(tb>ta)?B:((ta>tb)?A:{done:!!(A.done||B.done), note:A.note||B.note}); }); return a; }
+/* ---- слияние ежедневных трекеров {дата:{done,note}} ---- */
+function mDailyT(a,b,pfx,aM,bM){ a=a||{}; b=b||{}; const o={},ks={};
+  Object.keys(a).forEach(k=>ks[k]=1); Object.keys(b).forEach(k=>ks[k]=1);
+  Object.keys(ks).forEach(ds=>{ const A=a[ds]||{}, B=b[ds]||{}; const p=pfx+ds, ta=aM[p]||0, tb=bM[p]||0;
+    let v; if(ta||tb) v=(tb>ta)?B:A; else v={done:!!(A.done||B.done), note:A.note||B.note||""};
+    if(v&&(v.done||String(v.note||"").trim())) o[ds]={done:!!v.done, note:v.note||""}; });
+  return o; }
 function mmT(a,b,pfx,aM,bM){ a=a||{}; b=b||{}; const out={},keys={}; Object.keys(a).forEach(k=>keys[k]=1); Object.keys(b).forEach(k=>keys[k]=1);
   Object.keys(keys).forEach(k=>{ const p=pfx+k, ta=aM[p]||0, tb=bM[p]||0; const va=!!a[k], vb=!!b[k]; let present; if(!ta&&!tb) present=va||vb; else present=(ta>=tb)?va:vb; if(present) out[k]=a[k]||b[k]||1; }); return out; }
 function mDayT(a,b,pfx,aM,bM){ a=a||{}; b=b||{}; const o={}; ['steps','warmup','photos','report','stepsCount','kcal','protein','fat','carbs','energy'].forEach(f=>{ const p=pfx+f, ta=aM[p]||0, tb=bM[p]||0; let v; if(ta||tb){ v=(ta>=tb)?a[f]:b[f]; } else { const av=a[f],bv=b[f]; if(typeof av==='boolean'||typeof bv==='boolean') v=(av||bv)?true:false; else v=Math.max(av||0,bv||0); } if(v) o[f]=v; }); return o; }
@@ -2257,8 +2362,12 @@ function mSpeakT(a,b,aM,bM){ a=a||[]; b=b||[]; const o=[]; for(let i=0;i<4;i++){
 function mergeSection(m,b,aM,bM){
   if(b.kind==="course"&&b.course){ const c=m.course; c.done=mmT(c.done,b.course.done,"co:",aM,bM); c.timeLog=mergeArr(c.timeLog,b.course.timeLog,t=>t.d+"|"+t.m+"|"+(t.note||"")); c.moods=mergeArr(c.moods,b.course.moods,x=>x.ts); c.exp=Object.assign({},b.course.exp,c.exp); }
   else if(b.kind==="sport"&&b.sport){ const a=m.sport,bb=b.sport; a.days=mDaysT(a.days,bb.days,aM,bM); a.workouts=mergeArr(a.workouts,bb.workouts,x=>x); a.weight=mergeArr(a.weight,bb.weight,x=>x.date+"|"+x.kg); ['chest','waist','belly','hips'].forEach(k=>{ a[k]=mergeArr(a[k],bb[k],x=>x.date+"|"+x.cm); }); a.energy=mergeArr(a.energy,bb.energy,x=>x.week); a.lifts=mergeLifts(a.lifts,bb.lifts); a.weekNotes=Object.assign({},bb.weekNotes,a.weekNotes); a.archives=mergeArr(a.archives,bb.archives,x=>(x.start||"")+"|"+(x.end||"")); if((!a.config||!a.config.startDate)&&bb.config&&bb.config.startDate){ a.config=Object.assign({},a.config,bb.config); } }
-  else if(b.kind==="career"&&b.career){ const a=m.career,bb=b.career; a.sessions=mergeArr(a.sessions,bb.sessions,x=>x); a.features=mergeArr(a.features,bb.features,x=>(x.date||"")+"|"+(x.feature||"")); a.timeLog=mergeArr(a.timeLog,bb.timeLog,t=>t.d+"|"+t.m+"|"+(t.note||"")); a.later=mergeArr(a.later,bb.later,x=>x); a.netologyDone=Math.max(a.netologyDone||0,bb.netologyDone||0); a.vkcourse=a.vkcourse||{done:{}}; a.vkcourse.done=mmT(a.vkcourse.done,(bb.vkcourse||{}).done,"vk:",aM,bM); a.bychkov=a.bychkov||{done:{}}; a.bychkov.done=mmT(a.bychkov.done,(bb.bychkov||{}).done,"by:",aM,bM); a.stages=mStagesT(a.stages,bb.stages,aM,bM); a.checkpoints=mmT(a.checkpoints,bb.checkpoints,"st:cp.",aM,bM); if((!a.config||!a.config.startDate)&&bb.config&&bb.config.startDate){ a.config=Object.assign({},a.config,bb.config); } }
-  else if(b.kind==="english"&&b.english){ const a=m.english,bb=b.english; a.yandex=a.yandex||{done:{}}; a.yandex.done=mmT(a.yandex.done,(bb.yandex||{}).done,"ya:",aM,bM); a.gravity=a.gravity||{done:{}}; a.gravity.done=mmT(a.gravity.done,(bb.gravity||{}).done,"gv:",aM,bM); a.speaking=mSpeakT(a.speaking,bb.speaking,aM,bM); a.theory=a.theory||{done:{}}; a.theory.done=mmT(a.theory.done,(bb.theory||{}).done,"th:",aM,bM); a.a11y=a.a11y||{done:{},exp:{}}; a.a11y.done=mmT(a.a11y.done,(bb.a11y||{}).done,"ax:",aM,bM); a.writing=mergeWriting(a.writing,bb.writing,aM,bM); if((!a.config||!a.config.startDate)&&bb.config&&bb.config.startDate){ a.config=Object.assign({},a.config,bb.config); } }
+  else if(b.kind==="career"&&b.career){ const a=m.career,bb=b.career; a.sessions=mergeArr(a.sessions,bb.sessions,x=>x); a.features=mergeArr(a.features,bb.features,x=>(x.date||"")+"|"+(x.feature||"")); a.timeLog=mergeArr(a.timeLog,bb.timeLog,t=>t.d+"|"+t.m+"|"+(t.note||"")); a.later=mergeArr(a.later,bb.later,x=>x); a.vkcourse=a.vkcourse||{done:{}}; a.vkcourse.done=mmT(a.vkcourse.done,(bb.vkcourse||{}).done,"vk:",aM,bM); a.stages=mStagesT(a.stages,bb.stages,aM,bM); a.checkpoints=mmT(a.checkpoints,bb.checkpoints,"st:cp.",aM,bM); if((!a.config||!a.config.startDate)&&bb.config&&bb.config.startDate){ a.config=Object.assign({},a.config,bb.config); } }
+  else if(b.kind==="english"&&b.english){ const a=m.english,bb=b.english; a.yandex=a.yandex||{done:{}}; a.yandex.done=mmT(a.yandex.done,(bb.yandex||{}).done,"ya:",aM,bM); a.gravity=a.gravity||{done:{}}; a.gravity.done=mmT(a.gravity.done,(bb.gravity||{}).done,"gv:",aM,bM); a.speaking=mSpeakT(a.speaking,bb.speaking,aM,bM); a.theory=a.theory||{done:{}}; a.theory.done=mmT(a.theory.done,(bb.theory||{}).done,"th:",aM,bM); a.a11y=a.a11y||{done:{},exp:{}}; a.a11y.done=mmT(a.a11y.done,(bb.a11y||{}).done,"ax:",aM,bM); a.writing=mergeWriting(a.writing,bb.writing,aM,bM);
+    a.twenty=a.twenty||{done:{}}; a.twenty.done=mmT(a.twenty.done,(bb.twenty||{}).done,"tw:",aM,bM);
+    a.wdaily=a.wdaily||{days:{}}; a.wdaily.days=mDailyT(a.wdaily.days,(bb.wdaily||{}).days,"wd:",aM,bM);
+    a.hp=a.hp||{days:{}}; a.hp.days=mDailyT(a.hp.days,(bb.hp||{}).days,"hp:",aM,bM);
+    if((!a.config||!a.config.startDate)&&bb.config&&bb.config.startDate){ a.config=Object.assign({},a.config,bb.config); } }
   else if(b.kind==="generic"&&b.items&&m.items){ b.items.forEach(bi=>{ const mi=m.items.find(x=>x.id===bi.id||x.name===bi.name); if(mi){ if(bi.done)mi.done=true; if(bi.value)mi.value=Math.max(mi.value||0,bi.value||0); if(bi.minutes)mi.minutes=Math.max(mi.minutes||0,bi.minutes||0); } else m.items.push(JSON.parse(JSON.stringify(bi))); }); }
 }
 function mergeData(A,B){ if(!A) return B; if(!B) return A; const M=JSON.parse(JSON.stringify(A)); const aM=A._m||{}, bM=B._m||{};
@@ -2340,8 +2449,10 @@ function reportEnglish(sec,mon){ const e=sec.english; let o=["🇬🇧 "+sec.nam
   o.push("• Говорение: "+spw+" на этой неделе (всего "+spAll+"/4)");
   o.push("• Яндекс.Практикум за неделю: "+yaWeek(e,mon)+" "+plural(yaWeek(e,mon),'урок','урока','уроков')+" (всего "+yaDone(e)+"/"+yaTotal()+")");
   o.push("• Теория (грамматика) за неделю: "+thWeek(e,mon)+" "+plural(thWeek(e,mon),'тема','темы','тем')+" (всего "+thDone(e)+"/"+thTotal()+")");
+  o.push("• Английский за 20 уроков: "+twWeek(e,mon)+" "+plural(twWeek(e,mon),'урок','урока','уроков')+" (всего "+twDone(e)+"/"+twTotal()+")");
   o.push("• Web Accessibility за неделю: "+axWeek(e.a11y,mon)+" "+plural(axWeek(e.a11y,mon),'урок','урока','уроков')+" (всего "+axAllDone(e.a11y)+"/"+axTotal()+")");
-  o.push("• Письменная практика: "+(ewWeekDone(e,mon)?"конспект написан ✓":"не написан"));
+  o.push("• Письменная практика с Gemini: "+dtWeekCount(e,'wdaily',mon)+"/7 дней (стрик "+dtStreak(e,'wdaily')+", всего "+dtTotal(e,'wdaily')+")");
+  o.push("• Гарри Поттер, переписывание: "+dtWeekCount(e,'hp',mon)+"/7 дней (стрик "+dtStreak(e,'hp')+", всего "+dtTotal(e,'hp')+")");
   o.push("• Gravity Falls за неделю: "+gvWeek(e.gravity,mon)+" "+plural(gvWeek(e.gravity,mon),'серия','серии','серий')+" (всего "+gvAllDone(e.gravity)+"/"+gvTotal()+")");
   o.push(""); return o; }
 function reportCourse(sec,mon){ const c=sec.course; let o=["📘 "+sec.name];
@@ -2390,7 +2501,7 @@ function planForWeek(mon){ const d=planWeekDays(mon); return ensurePlan().tasks.
 function planWeekDone(mon){ return planForWeek(mon).filter(t=>taskDone(t)); }
 function schedSections(){ return data.sections.filter(s=>["course","english","career"].indexOf(s.kind)>=0); }
 function schedItems(sec){ const o=[];
-  if(sec.kind==="english"){ YA_PROGRAM.forEach((l,i)=>o.push({reft:"ya",key:yaKey(i),label:"Практикум: "+l[1]})); YA_THEORY.forEach((t,i)=>o.push({reft:"th",key:thKey(i),label:"Теория: "+t})); A11Y_COURSE.forEach((b,bi)=>b.v.forEach((v,vi)=>o.push({reft:"ax",key:axKey(bi,vi),label:"A11y: "+v}))); GRAVITY.forEach((s,si)=>s.ep.forEach((e,ei)=>o.push({reft:"gv",key:gvKey(si,ei),label:"Gravity Falls S"+(si+1)+"·E"+(ei+1)+" — "+e}))); }
+  if(sec.kind==="english"){ YA_PROGRAM.forEach((l,i)=>o.push({reft:"ya",key:yaKey(i),label:"Практикум: "+l[1]})); YA_THEORY.forEach((t,i)=>o.push({reft:"th",key:thKey(i),label:"Теория: "+t})); TW_LESSONS.forEach((d,i)=>o.push({reft:"tw",key:twKey(i),label:"20 уроков · Урок "+(i+1)+" ("+d+")"})); A11Y_COURSE.forEach((b,bi)=>b.v.forEach((v,vi)=>o.push({reft:"ax",key:axKey(bi,vi),label:"A11y: "+v}))); GRAVITY.forEach((s,si)=>s.ep.forEach((e,ei)=>o.push({reft:"gv",key:gvKey(si,ei),label:"Gravity Falls S"+(si+1)+"·E"+(ei+1)+" — "+e}))); }
   else if(sec.kind==="career"){ CR_STAGES.forEach(st=>st.items.forEach(it=>o.push({reft:"st",key:st.key+"."+it[0],label:st.title.replace(/^Этап \d+\.\s*/,"")+": "+it[1]}))); A11Y_COURSE.forEach((b,bi)=>b.v.forEach((v,vi)=>o.push({reft:"ax",key:axKey(bi,vi),label:"A11y: "+v}))); VK_PROGRAM.forEach((b,bi)=>b.v.forEach((v,vi)=>o.push({reft:"vk",key:vkKey(bi,vi),label:"VK · "+b.t+": "+v}))); }
   return o; }
 /* связка задачи плана с конкретным пунктом курса — единый источник «выполнено» */
@@ -2400,8 +2511,8 @@ function refState(t){ if(!t.reft||!t.ref) return null; const sec=data.sections.f
   if(t.reft==="gv"&&sec.english){ const g=sec.english.gravity; return {done:!!g.done[t.ref], set:v=>{ if(v)g.done[t.ref]=1; else delete g.done[t.ref]; mstamp("gv:"+t.ref); }}; }
   if(t.reft==="th"&&sec.english){ const th=sec.english.theory; return {done:!!th.done[t.ref], set:v=>{ if(v)th.done[t.ref]=1; else delete th.done[t.ref]; mstamp("th:"+t.ref); }}; }
   if(t.reft==="ax"&&sec.english){ const ax=sec.english.a11y; return {done:!!ax.done[t.ref], set:v=>{ if(v)ax.done[t.ref]=1; else delete ax.done[t.ref]; mstamp("ax:"+t.ref); }}; }
+  if(t.reft==="tw"&&sec.english){ const tw=sec.english.twenty; return {done:!!tw.done[t.ref], set:v=>{ if(v)tw.done[t.ref]=1; else delete tw.done[t.ref]; mstamp("tw:"+t.ref); }}; }
   if(t.reft==="vk"&&sec.career){ const v2=sec.career.vkcourse; return {done:!!v2.done[t.ref], set:v=>{ if(v)v2.done[t.ref]=1; else delete v2.done[t.ref]; mstamp("vk:"+t.ref); }}; }
-  if(t.reft==="by"&&sec.career){ const b2=sec.career.bychkov; return {done:!!b2.done[t.ref], set:v=>{ if(v)b2.done[t.ref]=1; else delete b2.done[t.ref]; mstamp("by:"+t.ref); }}; }
   if(t.reft==="st"&&sec.career){ const parts=t.ref.split("."), sk=parts[0], ik=parts[1]; const c=sec.career; c.stages[sk]=c.stages[sk]||{}; return {done:!!c.stages[sk][ik], set:v=>{ c.stages[sk][ik]=v; mstamp("st:"+sk+"."+ik); }}; }
   return null; }
 function taskDone(t){ const r=refState(t); return r? r.done : !!t.done; }
@@ -2575,7 +2686,7 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); });
 function exportData(){ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="moy-progress-"+todayStr()+".json"; a.click(); URL.revokeObjectURL(url); toast("Файл сохранён"); }
 function importData(ev){ const f=ev.target.files[0]; if(!f)return; const r=new FileReader();
-  r.onload=()=>{ try{ const o=JSON.parse(r.result); if(!o.sections) throw 0; data=o; if(!data.active) data.active="overview"; render(); if(activeCourse()) afterCourseRender(); toast("Данные загружены"); }
+  r.onload=()=>{ try{ const o=JSON.parse(r.result); if(!o.sections) throw 0; data=migrate(o); if(!data.active) data.active="overview"; render(); if(activeCourse()) afterCourseRender(); toast("Данные загружены"); }
     catch(e){ alert("Не удалось прочитать файл"); } }; r.readAsText(f); ev.target.value=""; }
 
 /* ================= Toast ================= */
@@ -2587,5 +2698,6 @@ function toast(msg){ const el=document.getElementById("toast");
 /* ================= Init ================= */
 data=load()||defaultData(); if(!data.active) data.active="overview"; render(); if(activeCourse()) afterCourseRender(); initializing=false; syncInit();
 </script>
+
 
 </body></html>
