@@ -19,6 +19,7 @@ function setGoal(sid,iid){ const it=findItem(sid,iid); const v=prompt("Цель 
 function setGoalTime(sid,iid){ const it=findItem(sid,iid); const v=prompt("Цель в минутах (0 = без цели):",it.goal||0); if(v!==null){ const n=parseInt(v,10); it.goal=isNaN(n)?0:Math.max(0,n); render(); } }
 function deleteSection(id){ if(!confirm("Удалить весь раздел?"))return;
   data.secDeleted=data.secDeleted||[]; if(data.secDeleted.indexOf(id)<0) data.secDeleted.push(id);  // тумбстон: чтобы не воскрес при синхронизации
+  evLog("block_state",{block:id, kind:"section", state:"deleted", name:(findSec(id)||{}).name});
   data.sections=data.sections.filter(s=>s.id!==id); data.active="overview"; render(); }
 
 /* ================= Actions: course ================= */

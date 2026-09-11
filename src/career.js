@@ -382,7 +382,7 @@ function uiPaused(sec){ const st=uiStore(sec); st.paused=st.paused||{}; return s
 function cardIsPaused(sec,k){ return !!uiPaused(sec)[k]; }
 function cardPause(sid,k,on){ const sec=findSec(sid); if(!sec) return; const p=uiPaused(sec);
   if(on) p[k]=1; else delete p[k];
-  mstamp("pa:"+k); save(); render(); toast(on?"Блок приостановлен":"Блок вернулся"); }
+  mstamp("pa:"+k); evLog("block_state",{block:k, state:on?"paused":"active", section:sec.kind}); save(); render(); toast(on?"Блок приостановлен":"Блок вернулся"); }
 function cardZoneToggle(sid){ const sec=findSec(sid); if(!sec) return; const st=uiStore(sec);
   st.pauseOpen=!st.pauseOpen; save(); render(); }
 function cardEditOn(sid){ window.cardEditSec=sid; render();

@@ -3,10 +3,11 @@
    Имена вывешиваются в window в конце файла: их зовут обработчики в разметке. */
 
 /* ================= Import / Export ================= */
-function exportData(){ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+/* Журнал событий едет в том же файле отдельным полем _events: в основных данных его нет */
+function exportData(){ const blob=new Blob([JSON.stringify(Object.assign({},data,{_events:evAll()}),null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="moy-progress-"+todayStr()+".json"; a.click(); URL.revokeObjectURL(url); toast("Файл сохранён"); }
 function importData(ev){ const f=ev.target.files[0]; if(!f)return; const r=new FileReader();
-  r.onload=()=>{ try{ const o=JSON.parse(r.result); if(!o.sections) throw 0; window.data=migrate(o); if(!data.active) data.active="overview"; render(); if(activeCourse()) afterCourseRender(); toast("Данные загружены"); }
+  r.onload=()=>{ try{ const o=JSON.parse(r.result); if(!o.sections) throw 0; try{ if(o._events) evMerge(o._events); }catch(e){} delete o._events; window.data=migrate(o); if(!data.active) data.active="overview"; render(); if(activeCourse()) afterCourseRender(); toast("Данные загружены"); }
     catch(e){ alert("Не удалось прочитать файл"); } }; r.readAsText(f); ev.target.value=""; }
 
 /* ================= Toast ================= */

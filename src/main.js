@@ -19,4 +19,5 @@ import './cloud-sync.js';
 import './report.js';
 import './modal.js';
 import './io.js';
+import './events.js';
 import './init.js';

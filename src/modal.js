@@ -28,7 +28,7 @@ function saveSection(){ const name=document.getElementById("mName").value.trim()
   if(editingSection){ editingSection.name=name; editingSection.sub=sub; editingSection.color=pickColor; editingSection.icon=pickIcon;
     if(editingSection.kind==="custom") mstamp("cs:"+editingSection.id); }
   else{ const ns=ensureCustom({id:uid(),name,sub,color:pickColor,icon:pickIcon,kind:"custom"});
-    data.sections.push(ns); data.active=ns.id; mstamp("cs:"+ns.id);
+    data.sections.push(ns); data.active=ns.id; mstamp("cs:"+ns.id); evLog("block_new",{block:ns.id, kind:"section", name:name});
     closeModal(); render(); toast("Раздел создан");
     openBlockModal(ns.id);                       // шаг 2: сразу выбор первого блока
     return; }

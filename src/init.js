@@ -3,4 +3,4 @@
    Имена вывешиваются в window в конце файла: их зовут обработчики в разметке. */
 
 /* ================= Init ================= */
-window.data=load()||migrate(defaultData()); if(!data.active) data.active="overview"; render(); if(activeCourse()) afterCourseRender(); window.initializing=false; syncInit();
+window.data=load()||migrate(defaultData()); if(!data.active) data.active="overview"; render(); if(activeCourse()) afterCourseRender(); window.initializing=false; syncInit(); evInit();

@@ -494,7 +494,7 @@ function openWeight(){ document.getElementById("modal").innerHTML=`
   <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="saveWeight()">Сохранить</button></div>`;
   showModal(); setTimeout(()=>{const e=document.getElementById("wKg");if(e)e.focus();},50); }
 function saveWeight(){ const sec=activeSport(); const kg=parseFloat(document.getElementById("wKg").value); if(isNaN(kg)){ alert("Укажи вес"); return; }
-  const d=document.getElementById("wDate").value||todayStr(); sec.sport.weight.push({date:d,kg}); save(); closeModal(); renderSport(); toast("Вес записан"); }
+  const d=document.getElementById("wDate").value||todayStr(); sec.sport.weight.push({date:d,kg}); evMark("wt:"+d); save(); closeModal(); renderSport(); toast("Вес записан"); }
 function openMeasure(type){ const label={chest:"Обхват груди",waist:"Обхват талии",belly:"Обхват живота",hips:"Обхват бёдер"}[type]||"Обхват"; document.getElementById("modal").innerHTML=`
   <h3>${label}</h3><p class="mhint">Замеряй раз в 2 недели.</p>
   <label for="mDate">Дата</label><input type="date" id="mDate" value="${todayStr()}">
@@ -502,7 +502,7 @@ function openMeasure(type){ const label={chest:"Обхват груди",waist:"
   <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="saveMeasure('${type}')">Сохранить</button></div>`;
   showModal(); setTimeout(()=>{const e=document.getElementById("mCm");if(e)e.focus();},50); }
 function saveMeasure(type){ const sec=activeSport(); const cm=parseFloat(document.getElementById("mCm").value); if(isNaN(cm)){ alert("Укажи значение"); return; }
-  const d=document.getElementById("mDate").value||todayStr(); sec.sport[type].push({date:d,cm}); save(); closeModal(); renderSport(); toast("Записано"); }
+  const d=document.getElementById("mDate").value||todayStr(); sec.sport[type].push({date:d,cm}); evMark("ms:"+type+"."+d); save(); closeModal(); renderSport(); toast("Записано"); }
 function openEnergy(){ const cur=(function(){ const sp=activeSport().sport; const wk=isoWeek(todayStr()); const e=sp.energy.find(x=>x.week===wk); return e?e.score:0; })();
   document.getElementById("modal").innerHTML=`
   <h3>Бодрость</h3><p class="mhint">Оцени уровень бодрости за неделю (1–10).</p>
@@ -527,7 +527,7 @@ function archiveCycle(){ const sec=activeSport(); if(!sec) return; const sp=sec.
     summary:{ weeks:spWeeks(sp), compliance:Math.round(spCycleCompliance(sp)*100),
       workouts:spWorkoutsSince(sp,sp.config.startDate), strengthCompliance:Math.round(spStrengthCompliance(sp)*100), bestStreak:spBestStreak(sp) },
     result:{ weightStart:sp.config.weightStart, weightEnd:latest, waist:cm(sp.waist), belly:cm(sp.belly), chest:cm(sp.chest), hips:cm(sp.hips) } });
-  mstamp("ar:"+aid);
+  mstamp("ar:"+aid); evLog("block_state",{block:"cycle", state:"archived", archive:aid, section:"sport"});
   sp.config.startDate=todayStr(); if(latest!=null) sp.config.weightStart=latest;
   save(); renderSport(); toast("Цикл закрыт, новый начат");
 }

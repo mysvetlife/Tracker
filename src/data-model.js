@@ -47,7 +47,7 @@ function defaultData(){
   ]};
 }
 function save(){ try{ if(data && !initializing) data.updatedAt=Date.now(); localStorage.setItem(STORE_KEY, JSON.stringify(data)); }catch(e){} window.dataRev++; schedulePush(); }
-function mstamp(p){ if(data){ data._m=data._m||{}; data._m[p]=Date.now(); } }
+function mstamp(p){ if(data){ data._m=data._m||{}; data._m[p]=Date.now(); } if(typeof evMark==="function") evMark(p); }   // evMark - журнал событий, events.js
 function lsGet(k){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):null; }catch(e){ return null; } }
 function ensureSport(sp){ sp=sp||{}; sp.config=Object.assign({startDate:null,exercises:[],height:177,weightStart:82,cycleWeeks:12,stepGoal:10000,sex:'f',age:30,activity:1.45},sp.config||{});
   sp.days=sp.days||{}; sp.workouts=sp.workouts||[]; sp.weight=sp.weight||[]; sp.chest=sp.chest||[]; sp.waist=sp.waist||[]; sp.belly=sp.belly||[]; sp.hips=sp.hips||[]; sp.energy=sp.energy||[]; sp.weekNotes=sp.weekNotes||{}; sp.archives=sp.archives||[]; sp.cardExp=sp.cardExp||{};

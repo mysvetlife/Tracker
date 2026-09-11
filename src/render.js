@@ -315,7 +315,7 @@ function bmCreate(){ if(!bmTarget||!bmType) return; const sec=findSec(bmTarget);
     b.unit=((uEl&&uEl.value)||"").trim()||"раз"; const g=parseInt(gEl?gEl.value:"0",10); b.goal=isNaN(g)?0:Math.max(0,g); }
   if(bmType==="program"){ const pEl=document.getElementById("bmProg");
     b.groups=cbParseProgram(pEl?pEl.value:"",null); b.done={}; b.exp={}; b.del=[]; }
-  sec.blocks.push(b); mstamp("cb:"+b.id+"~cfg");
+  sec.blocks.push(b); mstamp("cb:"+b.id+"~cfg"); evLog("block_new",{block:b.id, kind:b.type, name:b.name, section:sec.kind});
   window.bmTarget=null; window.bmType=null; closeModal(); toast("Блок «"+b.name+"» добавлен"); render(); }
 /* ---- настройки блока (карандаш в шапке) ---- */
 function openBlockEdit(bid){ const f=cbFind(bid); if(!f) return; const b=f.b;
@@ -344,7 +344,7 @@ function saveBlockEdit(bid){ const f=cbFind(bid); if(!f) return; const b=f.b;
   mstamp("cb:"+bid+"~cfg"); closeModal(); render(); }
 function cbDeleteBlock(sid,bid){ const sec=findSec(sid); if(!sec) return; const b=(sec.blocks||[]).find(x=>x.id===bid); if(!b) return;
   if(!confirm("Удалить блок «"+b.name+"»? Отметки в нём тоже удалятся.")) return;
-  if(sec.blocksDeleted.indexOf(bid)<0) sec.blocksDeleted.push(bid);
+  if(sec.blocksDeleted.indexOf(bid)<0) sec.blocksDeleted.push(bid); evLog("block_state",{block:bid, state:"deleted", name:b.name, section:sec.kind});
   sec.blocks=sec.blocks.filter(x=>x.id!==bid); closeModal(); toast("Блок удалён"); render(); }
 
 /* ---- course section ---- */

@@ -1053,6 +1053,7 @@ function mstamp$1(p) {
 		data._m = data._m || {};
 		data._m[p] = Date.now();
 	}
+	if (typeof evMark === "function") evMark(p);
 }
 function lsGet(k) {
 	try {
@@ -2281,6 +2282,12 @@ function bmCreate() {
 	}
 	sec.blocks.push(b);
 	mstamp("cb:" + b.id + "~cfg");
+	evLog("block_new", {
+		block: b.id,
+		kind: b.type,
+		name: b.name,
+		section: sec.kind
+	});
 	window.bmTarget = null;
 	window.bmType = null;
 	closeModal();
@@ -2344,6 +2351,12 @@ function cbDeleteBlock(sid, bid) {
 	if (!b) return;
 	if (!confirm("Удалить блок «" + b.name + "»? Отметки в нём тоже удалятся.")) return;
 	if (sec.blocksDeleted.indexOf(bid) < 0) sec.blocksDeleted.push(bid);
+	evLog("block_state", {
+		block: bid,
+		state: "deleted",
+		name: b.name,
+		section: sec.kind
+	});
 	sec.blocks = sec.blocks.filter((x) => x.id !== bid);
 	closeModal();
 	toast("Блок удалён");
@@ -2589,6 +2602,12 @@ function deleteSection(id) {
 	if (!confirm("Удалить весь раздел?")) return;
 	data.secDeleted = data.secDeleted || [];
 	if (data.secDeleted.indexOf(id) < 0) data.secDeleted.push(id);
+	evLog("block_state", {
+		block: id,
+		kind: "section",
+		state: "deleted",
+		name: (findSec$1(id) || {}).name
+	});
 	data.sections = data.sections.filter((s) => s.id !== id);
 	data.active = "overview";
 	render();
@@ -3801,6 +3820,7 @@ function saveWeight() {
 		date: d,
 		kg
 	});
+	evMark("wt:" + d);
 	save();
 	closeModal();
 	renderSport();
@@ -3836,6 +3856,7 @@ function saveMeasure(type) {
 		date: d,
 		cm
 	});
+	evMark("ms:" + type + "." + d);
 	save();
 	closeModal();
 	renderSport();
@@ -3919,6 +3940,12 @@ function archiveCycle() {
 		}
 	});
 	mstamp("ar:" + aid);
+	evLog("block_state", {
+		block: "cycle",
+		state: "archived",
+		archive: aid,
+		section: "sport"
+	});
 	sp.config.startDate = todayStr();
 	if (latest != null) sp.config.weightStart = latest;
 	save();
@@ -4704,6 +4731,11 @@ function cardPause(sid, k, on) {
 	if (on) p[k] = 1;
 	else delete p[k];
 	mstamp("pa:" + k);
+	evLog("block_state", {
+		block: k,
+		state: on ? "paused" : "active",
+		section: sec.kind
+	});
 	save();
 	render();
 	toast(on ? "Блок приостановлен" : "Блок вернулся");
@@ -7318,7 +7350,7 @@ function loadSync() {
 	}
 	return syncCfg;
 }
-function syncConfigured() {
+function syncConfigured$1() {
 	return !!(syncCfg && syncCfg.url && syncCfg.key && syncCfg.code);
 }
 function setSyncStatus(txt, color) {
@@ -7330,7 +7362,7 @@ function setSyncStatus(txt, color) {
 	}
 }
 function updateSyncBtn() {
-	if (!syncConfigured()) {
+	if (!syncConfigured$1()) {
 		setSyncStatus("Синхронизация", "");
 		return;
 	}
@@ -7345,7 +7377,7 @@ function updateSyncBtn() {
 	}
 	setSyncStatus("Всё сохранено", "var(--success)");
 }
-function syncHdr() {
+function syncHdr$1() {
 	return {
 		"apikey": syncCfg.key,
 		"Authorization": "Bearer " + syncCfg.key,
@@ -7849,7 +7881,7 @@ var POLL_MS = 3e3;
 function syncInit$1() {
 	loadSync();
 	updateSyncBtn();
-	if (!syncConfigured()) return;
+	if (!syncConfigured$1()) return;
 	const go = function() {
 		cloudPull(true);
 		if (!syncTimer) window.syncTimer = setInterval(function() {
@@ -7863,9 +7895,9 @@ function syncInit$1() {
 	else go();
 }
 function cloudPoll() {
-	if (!syncConfigured() || syncBusy || pollBusy || pushBusy) return;
+	if (!syncConfigured$1() || syncBusy || pollBusy || pushBusy) return;
 	window.pollBusy = true;
-	fetch(syncCfg.url + "/rest/v1/trackers?code=eq." + encodeURIComponent(syncCfg.code) + "&select=updated_at", { headers: syncHdr() }).then((r) => {
+	fetch(syncCfg.url + "/rest/v1/trackers?code=eq." + encodeURIComponent(syncCfg.code) + "&select=updated_at", { headers: syncHdr$1() }).then((r) => {
 		if (!r.ok) throw new Error("HTTP " + r.status);
 		return r.json();
 	}).then((rows) => {
@@ -7877,10 +7909,10 @@ function cloudPoll() {
 	});
 }
 function cloudPull(silent) {
-	if (!syncConfigured() || syncBusy) return;
+	if (!syncConfigured$1() || syncBusy) return;
 	window.syncBusy = true;
 	setSyncStatus("Синхр…");
-	fetch(syncCfg.url + "/rest/v1/trackers?code=eq." + encodeURIComponent(syncCfg.code) + "&select=data,updated_at", { headers: syncHdr() }).then((r) => {
+	fetch(syncCfg.url + "/rest/v1/trackers?code=eq." + encodeURIComponent(syncCfg.code) + "&select=data,updated_at", { headers: syncHdr$1() }).then((r) => {
 		if (!r.ok) throw new Error("HTTP " + r.status);
 		return r.json();
 	}).then((rows) => {
@@ -7913,7 +7945,7 @@ function cloudPull(silent) {
 	});
 }
 function pushSoon() {
-	if (!syncConfigured()) return;
+	if (!syncConfigured$1()) return;
 	markDirty();
 	updateSyncBtn();
 	if (pushBusy || pushTimer) {
@@ -7923,7 +7955,7 @@ function pushSoon() {
 	cloudPush(true);
 }
 function schedulePush$1() {
-	if (!syncConfigured() || syncApplying) return;
+	if (!syncConfigured$1() || syncApplying) return;
 	markDirty();
 	updateSyncBtn();
 	if (pushBusy || pushTimer) {
@@ -7940,10 +7972,10 @@ function schedulePush$1() {
 	cloudPush(true);
 }
 function retryPush() {
-	if (syncConfigured() && isDirty() && !pushBusy && !pushTimer) cloudPush(true);
+	if (syncConfigured$1() && isDirty() && !pushBusy && !pushTimer) cloudPush(true);
 }
 document.addEventListener("visibilitychange", function() {
-	if (!syncConfigured()) return;
+	if (!syncConfigured$1()) return;
 	if (document.visibilityState === "visible") {
 		retryPush();
 		cloudPull(true);
@@ -7954,13 +7986,13 @@ document.addEventListener("visibilitychange", function() {
 	}
 });
 window.addEventListener("focus", function() {
-	if (syncConfigured()) {
+	if (syncConfigured$1()) {
 		retryPush();
 		cloudPoll();
 	}
 });
 window.addEventListener("online", function() {
-	if (syncConfigured()) {
+	if (syncConfigured$1()) {
 		updateSyncBtn();
 		retryPush();
 		cloudPoll();
@@ -7970,21 +8002,21 @@ window.addEventListener("offline", function() {
 	updateSyncBtn();
 });
 window.addEventListener("pagehide", function() {
-	if (syncConfigured() && isDirty()) {
+	if (syncConfigured$1() && isDirty()) {
 		clearTimeout(pushTimer);
 		window.pushTimer = null;
 		cloudPush(true);
 	}
 });
 window.addEventListener("beforeunload", function() {
-	if (syncConfigured() && isDirty()) {
+	if (syncConfigured$1() && isDirty()) {
 		clearTimeout(pushTimer);
 		window.pushTimer = null;
 		cloudPush(true);
 	}
 });
 function cloudPush(silent) {
-	if (!syncConfigured()) return Promise.resolve();
+	if (!syncConfigured$1()) return Promise.resolve();
 	if (navigator.onLine === false) {
 		markDirty();
 		updateSyncBtn();
@@ -8002,7 +8034,7 @@ function cloudPush(silent) {
 	}]);
 	return fetch(syncCfg.url + "/rest/v1/trackers", {
 		method: "POST",
-		headers: Object.assign(syncHdr(), { "Prefer": "resolution=merge-duplicates" }),
+		headers: Object.assign(syncHdr$1(), { "Prefer": "resolution=merge-duplicates" }),
 		body
 	}).then((r) => {
 		if (!r.ok) throw new Error("HTTP " + r.status);
@@ -8036,7 +8068,7 @@ function openSyncModal() {
   <label for="syKey">anon public key</label><input type="text" id="syKey" value="${esc(c.key || "")}" placeholder="eyJhbGciOi...">
   <label for="syCode">Код синхронизации (секретное слово)</label><input type="text" id="syCode" value="${esc(c.code || "")}" placeholder="напр. sveta-progress-2026">
   <p class="mhint" style="margin-top:14px">Как получить URL и ключ — см. инструкцию, которую я дал в чате (Supabase → Project Settings → API).</p>
-  <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button>${syncConfigured() ? "<button class=\"btn\" onclick=\"syncDisable()\">Отключить</button>" : ""}<button class="btn primary" onclick="saveSyncCfg()">Подключить</button></div>`;
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button>${syncConfigured$1() ? "<button class=\"btn\" onclick=\"syncDisable()\">Отключить</button>" : ""}<button class="btn primary" onclick="saveSyncCfg()">Подключить</button></div>`;
 	showModal();
 }
 function saveSyncCfg() {
@@ -8074,10 +8106,10 @@ Object.assign(window, {
 	clearDirty,
 	dataScore,
 	loadSync,
-	syncConfigured,
+	syncConfigured: syncConfigured$1,
 	setSyncStatus,
 	updateSyncBtn,
-	syncHdr,
+	syncHdr: syncHdr$1,
 	mergeArr,
 	mergeWriting,
 	mDailyT,
@@ -9847,6 +9879,11 @@ function saveSection() {
 		data.sections.push(ns);
 		data.active = ns.id;
 		mstamp("cs:" + ns.id);
+		evLog("block_new", {
+			block: ns.id,
+			kind: "section",
+			name
+		});
 		closeModal$1();
 		render();
 		toast("Раздел создан");
@@ -9883,7 +9920,7 @@ Object.assign(window, {
 //#endregion
 //#region src/io.js
 function exportData() {
-	const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+	const blob = new Blob([JSON.stringify(Object.assign({}, data, { _events: evAll() }), null, 2)], { type: "application/json" });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
@@ -9900,6 +9937,10 @@ function importData(ev) {
 		try {
 			const o = JSON.parse(r.result);
 			if (!o.sections) throw 0;
+			try {
+				if (o._events) evMerge(o._events);
+			} catch (e) {}
+			delete o._events;
 			window.data = migrate(o);
 			if (!data.active) data.active = "overview";
 			render();
@@ -9925,6 +9966,349 @@ Object.assign(window, {
 	toast: toast$1
 });
 //#endregion
+//#region src/events.js
+var EV_KEY = "tracker_events_v1";
+var EV_DIRTY_KEY = "tracker_events_dirty";
+var EV_DEV_KEY = "tracker_device";
+var EV_GC_KEY = "tracker_events_gc";
+var EV_KEEP_DAYS = 183;
+var EV_IDLE_MS = 3e5;
+var EV_SAME_MS = 6e4;
+var EV_MOBILE = !!(window.matchMedia && window.matchMedia("(pointer:coarse)").matches);
+var evList = null;
+var evRev = 0;
+var evSaveT = null;
+var evFlushT = null;
+var evInVisit = false;
+var evLastInput = Date.now();
+var evFlushBusy = false;
+var evFlushAgain = false;
+function evAll$1() {
+	if (evList) return evList;
+	try {
+		const r = JSON.parse(localStorage.getItem(EV_KEY) || "[]");
+		evList = Array.isArray(r) ? r : [];
+	} catch (e) {
+		evList = [];
+	}
+	const cut = Date.now() - EV_KEEP_DAYS * 864e5;
+	evList = evList.filter((x) => x && x.at >= cut);
+	return evList;
+}
+function evSaveNow() {
+	clearTimeout(evSaveT);
+	evSaveT = null;
+	if (!evList) return;
+	try {
+		localStorage.setItem(EV_KEY, JSON.stringify(evList));
+	} catch (e) {
+		try {
+			evList.sort((a, b) => a.at - b.at);
+			evList = evList.slice(Math.ceil(evList.length / 10));
+			localStorage.setItem(EV_KEY, JSON.stringify(evList));
+		} catch (e2) {}
+	}
+}
+function evSaveSoon() {
+	if (!evSaveT) evSaveT = setTimeout(evSaveNow, 1e3);
+}
+function evDev() {
+	try {
+		let d = localStorage.getItem(EV_DEV_KEY);
+		if (!d) {
+			d = (EV_MOBILE ? "mob-" : "desk-") + uid();
+			localStorage.setItem(EV_DEV_KEY, d);
+		}
+		return d;
+	} catch (e) {
+		return EV_MOBILE ? "mob" : "desk";
+	}
+}
+function evMonth(ms) {
+	return ymd(new Date(ms)).slice(0, 7);
+}
+function evLocal(ms) {
+	const d = new Date(ms);
+	return ymd(d) + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + ":" + String(d.getSeconds()).padStart(2, "0");
+}
+function evLog$1(type, extra, at) {
+	try {
+		const list = evAll$1(), t = at || Date.now();
+		const e = Object.assign({
+			id: uid() + t.toString(36),
+			type,
+			at: t,
+			local: evLocal(t),
+			dev: evDev()
+		}, extra || {});
+		list.push(e);
+		evRev++;
+		evDirty(evMonth(t));
+		evSaveSoon();
+		return e;
+	} catch (err) {
+		return null;
+	}
+}
+function evScreen() {
+	try {
+		if (!window.data) return null;
+		const a = data.active, s = (data.sections || []).find((x) => x.id === a);
+		let v = s ? s.kind : a;
+		const ov = document.getElementById("overlay");
+		if (ov && ov.classList.contains("on")) v += "+окно";
+		return v;
+	} catch (e) {
+		return null;
+	}
+}
+function evFor(key) {
+	const d = String(key).match(/(\d{4}-\d{2}-\d{2})/);
+	if (d) return d[1];
+	const w = String(key).match(/(\d{4}-W\d{2})/);
+	return w ? w[1] : null;
+}
+function evMark$1(key) {
+	try {
+		if (!key || String(key).indexOf("pa:") === 0) return;
+		const now = Date.now(), list = evAll$1();
+		for (let i = list.length - 1; i >= 0 && i >= list.length - 40; i--) {
+			const x = list[i];
+			if (x.type === "mark" && x.key === key && now - (x.last || x.at) < EV_SAME_MS) {
+				x.n = (x.n || 1) + 1;
+				x.last = now;
+				evRev++;
+				evDirty(evMonth(x.at));
+				evSaveSoon();
+				return;
+			}
+		}
+		evLastInput = now;
+		if (!evInVisit) evOpen("active");
+		evLog$1("mark", {
+			key: String(key),
+			for: evFor(key),
+			src: "app",
+			screen: evScreen()
+		}, now);
+	} catch (e) {}
+}
+function evOpen(how) {
+	if (evInVisit) return;
+	evInVisit = true;
+	evLastInput = Date.now();
+	evLog$1("open", {
+		how,
+		screen: evScreen()
+	});
+	evFlushSoon();
+}
+function evEnd(why, at) {
+	if (!evInVisit) return;
+	evInVisit = false;
+	evLog$1("end", { why }, at);
+	evSaveNow();
+	evFlush();
+}
+function evTouch() {
+	evLastInput = Date.now();
+	if (!evInVisit && document.visibilityState === "visible") evOpen("active");
+}
+function evInit$1() {
+	try {
+		evAll$1();
+		document.addEventListener("visibilitychange", function() {
+			if (document.visibilityState === "visible") evOpen("return");
+			else evEnd("hide");
+		});
+		window.addEventListener("pagehide", function() {
+			evEnd("close");
+			evSaveNow();
+		});
+		if (!EV_MOBILE) {
+			window.addEventListener("blur", function() {
+				evEnd("blur");
+			});
+			window.addEventListener("focus", function() {
+				if (document.visibilityState === "visible") evOpen("focus");
+			});
+		}
+		[
+			"pointerdown",
+			"keydown",
+			"wheel",
+			"touchstart"
+		].forEach((t) => document.addEventListener(t, evTouch, {
+			capture: true,
+			passive: true
+		}));
+		setInterval(function() {
+			if (evInVisit && Date.now() - evLastInput > EV_IDLE_MS) evEnd("idle", evLastInput);
+		}, 3e4);
+		window.addEventListener("online", evFlushSoon);
+		if (document.visibilityState === "visible") evOpen("launch");
+	} catch (e) {}
+}
+function evDirtyList() {
+	try {
+		const r = JSON.parse(localStorage.getItem(EV_DIRTY_KEY) || "[]");
+		return Array.isArray(r) ? r : [];
+	} catch (e) {
+		return [];
+	}
+}
+function evDirty(m) {
+	const d = evDirtyList();
+	if (d.indexOf(m) < 0) {
+		d.push(m);
+		try {
+			localStorage.setItem(EV_DIRTY_KEY, JSON.stringify(d));
+		} catch (e) {}
+	}
+}
+function evUndirty(m) {
+	try {
+		localStorage.setItem(EV_DIRTY_KEY, JSON.stringify(evDirtyList().filter((x) => x !== m)));
+	} catch (e) {}
+}
+var evStamp = (x) => x.last || x.at;
+function evMerge$1(arr) {
+	if (!Array.isArray(arr)) return 0;
+	const list = evAll$1(), byId = {}, cut = Date.now() - EV_KEEP_DAYS * 864e5;
+	let n = 0;
+	list.forEach((x) => {
+		byId[x.id] = x;
+	});
+	arr.forEach((x) => {
+		if (!x || !x.id || !(x.at >= cut)) return;
+		const mine = byId[x.id];
+		if (!mine) {
+			list.push(x);
+			byId[x.id] = x;
+			evDirty(evMonth(x.at));
+			n++;
+		} else if (evStamp(x) > evStamp(mine)) {
+			mine.n = x.n;
+			mine.last = x.last;
+			n++;
+		}
+	});
+	if (n) {
+		evRev++;
+		evSaveNow();
+	}
+	return n;
+}
+function evSyncMonth(m) {
+	const code = syncCfg.code + "#ev:" + m, rev0 = evRev;
+	return fetch(syncCfg.url + "/rest/v1/trackers?code=eq." + encodeURIComponent(code) + "&select=data", { headers: syncHdr() }).then((r) => {
+		if (!r.ok) throw new Error("HTTP " + r.status);
+		return r.json();
+	}).then((rows) => {
+		const cloud = rows && rows[0] && rows[0].data && Array.isArray(rows[0].data.events) ? rows[0].data.events : [];
+		evMerge$1(cloud);
+		const had = {};
+		cloud.forEach((x) => {
+			if (x && x.id) had[x.id] = evStamp(x);
+		});
+		const mine = evAll$1().filter((x) => evMonth(x.at) === m);
+		if (!mine.some((x) => !(x.id in had) || evStamp(x) > had[x.id])) {
+			if (evRev === rev0) evUndirty(m);
+			return;
+		}
+		const body = JSON.stringify([{
+			code,
+			data: { events: mine },
+			updated_at: (/* @__PURE__ */ new Date()).toISOString()
+		}]);
+		return fetch(syncCfg.url + "/rest/v1/trackers", {
+			method: "POST",
+			headers: Object.assign(syncHdr(), { "Prefer": "resolution=merge-duplicates" }),
+			body
+		}).then((r) => {
+			if (!r.ok) throw new Error("HTTP " + r.status);
+			if (evRev === rev0) evUndirty(m);
+			else evFlushAgain = true;
+		});
+	});
+}
+function evGc() {
+	const code = syncCfg.code;
+	if (/["\\]/.test(code)) return;
+	const d = /* @__PURE__ */ new Date();
+	d.setDate(1);
+	d.setMonth(d.getMonth() - 7);
+	const upTo = evMonth(d.getTime());
+	let done = "";
+	try {
+		done = localStorage.getItem(EV_GC_KEY) || "";
+	} catch (e) {}
+	if (done === upTo) return;
+	const codes = [];
+	for (let i = 0; i < 24; i++) {
+		codes.push("\"" + code + "#ev:" + evMonth(d.getTime()) + "\"");
+		d.setMonth(d.getMonth() - 1);
+	}
+	return fetch(syncCfg.url + "/rest/v1/trackers?code=in.(" + encodeURIComponent(codes.join(",")) + ")", {
+		method: "DELETE",
+		headers: syncHdr()
+	}).then((r) => {
+		if (r.ok) try {
+			localStorage.setItem(EV_GC_KEY, upTo);
+		} catch (e) {}
+	});
+}
+function evFlush() {
+	try {
+		if (typeof syncConfigured !== "function" || !syncConfigured() || navigator.onLine === false) return Promise.resolve();
+		if (evFlushBusy) {
+			evFlushAgain = true;
+			return Promise.resolve();
+		}
+		evFlushBusy = true;
+		evSaveNow();
+		clearTimeout(evFlushT);
+		evFlushT = null;
+		const months = evDirtyList(), now = /* @__PURE__ */ new Date(), cur = evMonth(now.getTime());
+		if (months.indexOf(cur) < 0) months.push(cur);
+		if (now.getDate() <= 7) {
+			const pm = evMonth(new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime());
+			if (months.indexOf(pm) < 0) months.push(pm);
+		}
+		let chain = Promise.resolve();
+		months.forEach((m) => {
+			chain = chain.then(() => evSyncMonth(m));
+		});
+		return chain.then(evGc).catch(function() {}).then(function() {
+			evFlushBusy = false;
+			if (evFlushAgain) {
+				evFlushAgain = false;
+				evFlushSoon();
+			}
+		});
+	} catch (e) {
+		evFlushBusy = false;
+		return Promise.resolve();
+	}
+}
+function evFlushSoon() {
+	if (!evFlushT) evFlushT = setTimeout(function() {
+		evFlushT = null;
+		evFlush();
+	}, 2500);
+}
+Object.assign(window, {
+	evAll: evAll$1,
+	evSaveNow,
+	evLog: evLog$1,
+	evMark: evMark$1,
+	evMerge: evMerge$1,
+	evFlush,
+	evInit: evInit$1,
+	EV_KEY,
+	EV_KEEP_DAYS
+});
+//#endregion
 //#region src/init.js
 window.data = load() || migrate(defaultData());
 if (!data.active) data.active = "overview";
@@ -9932,4 +10316,5 @@ render();
 if (activeCourse()) afterCourseRender();
 window.initializing = false;
 syncInit();
+evInit();
 //#endregion
