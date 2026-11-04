@@ -17,6 +17,7 @@ function autoMin(sec,mon){
   if(sec.kind==="sport") return spWeekMin(sec.sport,mon)+cb;
   if(sec.kind==="english") return engWeekMin(sec.english,mon)+cb;
   if(sec.kind==="career") return careerWeekMin(sec.career,mon)+cb;
+  if(sec.kind==="project") return pjWeekMin(sec.project,mon)+cb;
   if(sec.kind==="course") return tlogWeek(sec.course,"co",mon)+(sec.course.timeLog||[]).filter(t=>mondayOf(t.d)===mon).reduce((a,t)=>a+(t.m||0),0)+cb;
   return cb; }
 function autoHours(sec,mon){ return Math.round(autoMin(sec,mon)/6)/10; }
@@ -101,6 +102,10 @@ function metEnglish(sec,mon){ const e=sec.english;
   if(!engPaused(e,'ya')) o.push({k:'ya',label:'Яндекс.Практикум',val:yaWeek(e,mon)+' '+plural(yaWeek(e,mon),'урок','урока','уроков'),extra:'всего '+yaDone(e)+'/'+yaTotal(),w:1});
   if(!engPaused(e,'th')) o.push({k:'th',label:'Теория (грамматика)',val:thWeek(e,mon)+' '+plural(thWeek(e,mon),'тема','темы','тем'),extra:'всего '+thDone(e)+'/'+thTotal(),w:1});
   return o; }
+function pjWeekSteps(p,mon){ let n=0; pjTasks(p).forEach(t=>{ if(t.subs.length) t.subs.forEach(s=>{ if(s.done&&tsInWeek("ps:"+s.id,mon)) n++; }); else if(t.status==="d"&&tsInWeek("pj:"+t.id,mon)) n++; }); return n; }
+function metProject(sec,mon){ const p=sec.project, o=[]; metTime(sec,mon,o); const pr=pjProgress(p), k=pjWeekSteps(p,mon);
+  o.push({k:'steps',label:'Пройдено пунктов',val:k+' '+plural(k,'пункт','пункта','пунктов'),extra:'всего '+pr.done+'/'+pr.total+', '+pctTxt(pr.done,pr.total),w:1});
+  return o; }
 function metCourse(sec,mon){ const c=sec.course; const o=[]; metTime(sec,mon,o);
   o.push({k:'steps',label:'Пройдено подтем',val:cWeekSteps(c,mon)+' '+plural(cWeekSteps(c,mon),'подтема','подтемы','подтем'),extra:'всего '+cDoneSteps(c)+'/'+cTotalSteps()+', '+pctTxt(cDoneSteps(c),cTotalSteps()),w:1});
   return o; }
@@ -133,6 +138,7 @@ function metricsRaw(sec,mon){
   if(sec.kind==="sport") return metSport(sec,mon).concat(metBlocks(sec,mon));
   if(sec.kind==="career") return metCareer(sec,mon).concat(metBlocks(sec,mon));
   if(sec.kind==="english") return metEnglish(sec,mon).concat(metBlocks(sec,mon));
+  if(sec.kind==="project") return metProject(sec,mon);
   if(sec.kind==="course") return metCourse(sec,mon).concat(metBlocks(sec,mon));
   if(sec.kind==="custom") return metCustom(sec,mon);
   if(sec.kind==="generic") return metGeneric(sec,mon);
@@ -145,6 +151,7 @@ function metricsLines(sec,mon){ return metricsText(sec,mon).split("\n").filter(l
 function reportSport(sec,mon){ return ["🏋 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
 function reportCareer(sec,mon){ return ["💼 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
 function reportEnglish(sec,mon){ return ["🇬🇧 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
+function reportProject(sec,mon){ return ["📘 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
 function reportCourse(sec,mon){ return ["📘 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
 function reportGeneric(sec,mon){ return ["🎯 "+sec.name].concat(metricsLines(sec,mon||mondayOf(todayStr()))).concat([""]); }
 function reportCustom(sec,mon){ return ["✨ "+sec.name].concat(metricsLines(sec,mon||mondayOf(todayStr()))).concat([""]); }
@@ -154,6 +161,7 @@ function buildWeeklyReport(mon){ const sun=dateAddDays(mon,6);
     if(sec.kind==="sport") L=L.concat(reportSport(sec,mon));
     else if(sec.kind==="career") L=L.concat(reportCareer(sec,mon));
     else if(sec.kind==="english") L=L.concat(reportEnglish(sec,mon));
+    else if(sec.kind==="project") L=L.concat(reportProject(sec,mon));
     else if(sec.kind==="course") L=L.concat(reportCourse(sec,mon));
     else if(sec.kind==="custom") L=L.concat(reportCustom(sec,mon));
     else if(sec.kind==="generic") L=L.concat(reportGeneric(sec,mon));
@@ -176,7 +184,7 @@ function ensureWeekData(){ data.week=data.week||{}; data.week.plan=data.week.pla
      каждый раз будет выглядеть изменением */
   Object.keys(data.week.general).forEach(w=>{ const g=data.week.general[w]||{};
     if(g.note===undefined)g.note=""; if(g.task===undefined)g.task=""; if(g.plan===undefined)g.plan=""; data.week.general[w]=g; }); }
-function secKey(sec){ return sec.kind==="custom"?("c:"+sec.id):(sec.kind==="generic"?("g:"+sec.name):sec.kind); }
+function secKey(sec){ if(sec.kind==="project") return sec.legacyKey||("p:"+sec.id); return sec.kind==="custom"?("c:"+sec.id):(sec.kind==="generic"?("g:"+sec.name):sec.kind); }
 function wPlan(w,sk){ ensureWeekData(); data.week.plan[w]=data.week.plan[w]||{}; data.week.plan[w][sk]=data.week.plan[w][sk]||[]; return data.week.plan[w][sk]; }
 function wReview(w,sk){ ensureWeekData(); data.week.review[w]=data.week.review[w]||{}; const r=data.week.review[w][sk]=data.week.review[w][sk]||{done:"",score:"",blockers:"",metrics:"",hours:""};
   if(r.metrics===undefined) r.metrics=""; if(r.hours===undefined) r.hours=""; return r; }
@@ -187,8 +195,9 @@ function planForDate(ds){ return ensurePlan().tasks.filter(t=>t.date===ds).sort(
 function planWeekDays(mon){ const d=[]; for(let i=0;i<7;i++)d.push(dateAddDays(mon,i)); return d; }
 function planForWeek(mon){ const d=planWeekDays(mon); return ensurePlan().tasks.filter(t=>d.indexOf(t.date)>=0); }
 function planWeekDone(mon){ return planForWeek(mon).filter(t=>taskDone(t)); }
-function schedSections(){ return data.sections.filter(s=>["course","english","career"].indexOf(s.kind)>=0); }
+function schedSections(){ return data.sections.filter(s=>["course","english","career","project"].indexOf(s.kind)>=0); }
 function schedItems(sec){ const o=[];
+  if(sec.kind==="project"){ pjTasks(sec.project).forEach(t=>t.subs.forEach(x=>o.push({reft:"pj",key:x.id,label:(t.name||"Задача")+" · "+(x.name||"Подзадача"),group:t.name||"Задача",text:x.name||"Подзадача"}))); return o; }
   if(sec.kind==="english"){ YA_PROGRAM.forEach((l,i)=>o.push({reft:"ya",key:yaKey(i),label:"Практикум: "+l[1]})); YA_THEORY.forEach((t,i)=>o.push({reft:"th",key:thKey(i),label:"Теория: "+t})); TW_LESSONS.forEach((d,i)=>o.push({reft:"tw",key:twKey(i),label:"20 уроков · Урок "+(i+1)+" ("+d+")"})); A11Y_COURSE.forEach((b,bi)=>b.v.forEach((v,vi)=>o.push({reft:"ax",key:axKey(bi,vi),label:"A11y: "+v}))); GRAVITY.forEach((s,si)=>s.ep.forEach((e,ei)=>o.push({reft:"gv",key:gvKey(si,ei),label:"Gravity Falls S"+(si+1)+"·E"+(ei+1)+" — "+e}))); }
   else if(sec.kind==="career"){ const btitle={}; TREE_BLOCKS.forEach(b=>b.items.forEach(it=>btitle[it[0]]=b.t));
     RT_PROJECTS.forEach(p=>p.blocks.forEach(b=>b.items.forEach(it=>o.push({reft:"st",key:p.key+"."+it[0],label:p.short+" · "+b.t+": "+it[1]}))));
@@ -196,6 +205,7 @@ function schedItems(sec){ const o=[];
   return o; }
 /* связка задачи плана с конкретным пунктом курса — единый источник «выполнено» */
 function refState(t){ if(!t.reft||!t.ref) return null; const sec=data.sections.find(s=>s.id===t.secId); if(!sec) return null;
+  if((t.reft==="co"||t.reft==="pj")&&sec.kind==="project"){ const f=pjSub(sec.project,t.reft==="co"?"co-"+t.ref:t.ref); if(!f) return null; return {done:f.sub.done, set:v=>pjSetSubDone(f.sub,f.task,v)}; }
   if(t.reft==="co"&&sec.course){ const c=sec.course; return {done:!!c.done[t.ref], set:v=>{ if(v)c.done[t.ref]=1; else delete c.done[t.ref]; mstamp("co:"+t.ref); }}; }
   if(t.reft==="ya"&&sec.english){ const y=sec.english.yandex; return {done:!!y.done[t.ref], set:v=>{ if(v)y.done[t.ref]=1; else delete y.done[t.ref]; mstamp("ya:"+t.ref); }}; }
   if(t.reft==="gv"&&sec.english){ const g=sec.english.gravity; return {done:!!g.done[t.ref], set:v=>{ if(v)g.done[t.ref]=1; else delete g.done[t.ref]; mstamp("gv:"+t.ref); }}; }
@@ -251,6 +261,7 @@ function ptSecChange(){ const sid=document.getElementById("ptSec").value; docume
 function fillPtItems(sid,curVal){ const sec=findSec(sid); const sel=document.getElementById("ptItem"); if(!sel||!sec)return;
   let html=`<option value="">— выбрать из списка —</option>`;
   if(sec.kind==="course"){ COURSE.forEach((l,li)=>{ html+=`<optgroup label="${esc(l.t)}">`; l.s.forEach((st,si)=>{ const v="co|"+ckey(li,si); html+=`<option value="${v}" ${v===curVal?'selected':''}>${esc(st[1])}</option>`; }); html+=`</optgroup>`; }); }
+  else if(sec.kind==="project"){ let g=null; schedItems(sec).forEach(it=>{ if(it.group!==g){ if(g!==null) html+=`</optgroup>`; g=it.group; html+=`<optgroup label="${esc(g)}">`; } const v=it.reft+"|"+it.key; html+=`<option value="${v}" ${v===curVal?'selected':''}>${esc(it.text)}</option>`; }); if(g!==null) html+=`</optgroup>`; }
   else { schedItems(sec).forEach(it=>{ const v=it.reft+"|"+it.key; html+=`<option value="${v}" ${v===curVal?'selected':''}>${esc(it.label)}</option>`; }); }
   sel.innerHTML=html;
 }
@@ -374,6 +385,7 @@ const PLAN_TPL_DEF={
   english:"Шэдоуинг — каждый день, 5–10 минут\nГолосовая практика с Gemini — каждый день\nКарточки Анки — каждый день\nГарри Поттер — каждый день\nGravity Falls — с мужем за завтраком\nПрактика Инглекс — 3–4 раза в неделю"
 };
 const PLAN_ORDER=["career","course","sport","english"];
+function planSec(kind){ return data.sections.find(x=>x.kind===kind)||data.sections.find(x=>x.kind==="project"&&x.legacyKey===kind); }
 function ensurePlanTpl(){ data.planTpl=data.planTpl||{}; return data.planTpl; }
 function planTplFor(sk){ const t=ensurePlanTpl(); return (sk in t)?t[sk]:(PLAN_TPL_DEF[sk]||""); }
 function planTplSet(sk,v){ ensurePlanTpl()[sk]=v; mstamp("pl:"+sk); save(); }
@@ -392,6 +404,9 @@ function planAutoLines(sec,mon){
     if(!cardIsPaused(sec,'stages')){ const nx=crNextStep(c); if(nx) out.push("Семейное древо — "+nx+" (этап: "+crCurBlock(c).t+")"); }
     if(mtsAllDone(c.mts)<mtsTotal()) out.push("Курс МТС — "+mtsAllDone(c.mts)+"/"+mtsTotal()+" видео пройдено");
   }
+  if(sec.kind==="project"&&sec.legacyKey==="course"){
+    const ls=pjTasks(sec.project).filter(t=>t.subs.length); const nx=ls.find(t=>t.subs.some(x=>!x.done));
+    if(nx) out.push("Следующий урок — "+nx.name+" ("+nx.subs.filter(x=>x.done).length+"/"+nx.subs.length+" подтем)"); }
   if(sec.kind==="course"){ const c=sec.course;
     for(let li=0;li<COURSE.length;li++){ const dn=cLessonDone(c,li), tot=COURSE[li].s.length;
       if(dn<tot){ out.push("Следующий урок — "+COURSE[li].t+" ("+dn+"/"+tot+" подтем)"); break; } }
@@ -417,7 +432,7 @@ function planAutoLines(sec,mon){
 function buildWeekPlan(mon){
   const sun=dateAddDays(mon,6);
   let L=["ПЛАН","Неделя "+isoWeek(mon).split("-W")[1]+" ("+ruDate(mon)+" — "+ruDate(sun)+")",""];
-  PLAN_ORDER.forEach(kind=>{ const sec=data.sections.find(x=>x.kind===kind); if(!sec) return;
+  PLAN_ORDER.forEach(kind=>{ const sec=planSec(kind); if(!sec) return;
     const g=PLAN_GOALS[kind]||{goal:sec.name,cat:""};
     L.push("🎯 "+g.goal);
     if(g.cat) L.push("Категория: "+g.cat);
@@ -444,7 +459,7 @@ function renderWeekPlan(){ const mon=wplanMon, edited=String(wGeneral(isoWeek(mo
   <div class="pt-hint">${edited?'Текст отредактирован вручную и больше не пересобирается автоматически.':'Собран автоматически из шаблона и текущего состояния курсов.'}</div>
   <div class="modal-actions"><button class="btn" onclick="openPlanTpl()">${svg('pencil')} Постоянные строки</button><button class="btn" onclick="wplanReset()">Пересобрать</button><button class="btn" onclick="copyReport()">Скопировать</button><button class="btn primary" onclick="downloadReport()">Скачать .txt</button></div>`; }
 function openPlanTpl(){
-  const rows=PLAN_ORDER.map(kind=>{ const sec=data.sections.find(x=>x.kind===kind); if(!sec) return "";
+  const rows=PLAN_ORDER.map(kind=>{ const sec=planSec(kind); if(!sec) return "";
     const sk=secKey(sec), g=PLAN_GOALS[kind]||{};
     return `<label for="tpl_${sk}">${esc(g.goal||sec.name)}</label>
       <textarea class="note-area" id="tpl_${sk}" style="min-height:96px" placeholder="по строке на пункт" oninput="planTplSet('${sk}',this.value)">${esc(planTplFor(sk))}</textarea>`; }).join("");

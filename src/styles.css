@@ -670,3 +670,15 @@
   .pj-ghost{color:var(--muted-2); padding:10px 4px; cursor:text; border-radius:8px} .pj-ghost:hover{background:var(--surface-2)}
   .pj-menu{position:absolute; top:100%; left:0; z-index:20; background:var(--surface); border:1px solid var(--line-2); border-radius:12px; box-shadow:var(--shadow); padding:5px; min-width:190px}
   .pj-menu div{padding:7px 10px; border-radius:8px; cursor:pointer; font-size:13.5px} .pj-menu div:hover{background:var(--surface-3)} .pj-menu b{display:inline-block; width:22px; color:var(--brown)}
+
+  .pj-tools{display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:12px 14px}
+  .pj-tools .search{min-width:180px}
+  .pj-timeform .cap{font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--brown); margin-bottom:8px}
+  .pj-tf{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end}
+  .pj-tf label{display:flex; flex-direction:column; gap:4px; margin:0; font-size:12px; color:var(--muted)}
+  .pj-tf input,.pj-tf select{width:auto; min-height:38px; padding:0 10px; font-size:13.5px}
+  .pj-tf .pj-tw{flex:1 1 220px} .pj-tf .pj-tw input{width:100%}
+  .pj-week{margin-top:12px} .pj-weekhead{display:flex; justify-content:space-between; font-size:13px; padding:6px 10px; background:var(--surface-2); border-radius:8px; margin-bottom:2px}
+  .pj-trow{display:flex; gap:12px; align-items:baseline; padding:6px 10px; border-bottom:1px solid var(--line); font-size:13.5px}
+  .pj-tdate{width:64px; color:var(--muted-2); flex-shrink:0} .pj-tmin{width:70px; font-weight:600; flex-shrink:0} .pj-twhat{flex:1; min-width:0} .pj-twhat small{color:var(--muted-2)}
+  .pj-trow:hover .pj-x{opacity:1}

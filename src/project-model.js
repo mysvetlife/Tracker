@@ -28,11 +28,38 @@ function ensureTask(t){ t.id=t.id||uid(); t.name=t.name||""; t.status=(t.status 
   t.subs=t.subs||[]; t.subs.forEach(s=>{ s.id=s.id||uid(); s.name=s.name||""; s.done=!!s.done; s.type=s.type||""; });
   t.blocks=t.blocks||{}; PJ_BLOCK_KEYS.forEach(k=>{ t.blocks[k]=t.blocks[k]||[]; });
   return t; }
-function ensureProject(p){ p=p||{}; p.stages=p.stages||[]; p.goals=p.goals||[]; p.time=p.time||[]; p.del=p.del||[]; p.exp=p.exp||{};
+function ensureProject(p){ p=p||{}; p.stages=p.stages||[]; p.goals=p.goals||[]; p.time=p.time||[]; p.del=p.del||[]; p.exp=p.exp||{}; p.moods=p.moods||[];
   p.stages.forEach(st=>{ st.id=st.id||uid(); st.name=st.name||""; st.tasks=st.tasks||[]; st.tasks.forEach(ensureTask); });
   p.goals.forEach(g=>{ g.id=g.id||uid(); g.kind=g.kind||"global"; g.title=g.title||""; g.date=g.date||""; g.pct=+g.pct||0; });
   p.time.forEach(x=>{ x.id=x.id||uid(); x.task=x.task||""; x.date=x.date||""; x.min=+x.min||0; x.what=x.what||""; x.src=x.src||""; });
   return p; }
+
+/* ---- «Понедельник»: старый раздел kind:"course" -> kind:"project", без потерь ----
+   Урок = задача, пункт программы = подзадача (тип пункта сохранён). Номера детерминированные
+   (co-l<урок>, co-l<урок>s<пункт>): два устройства, переведшие раздел независимо, получают одни и те же id,
+   и слияние их объединяет, а не дублирует. Отметки done, минуты (timeLog, tlog) и настроения (moods)
+   переносятся; метки co:<ключ> копируются в ps:<id>. Полная копия старого раздела лежит в project.legacy. */
+function pjHash(str){ let h=5381; for(let i=0;i<str.length;i++) h=((h<<5)+h+str.charCodeAt(i))|0; return (h>>>0).toString(36); }
+function pjCourseStages(){ let cur={name:"Введение",items:[]}; const out=[cur]; let mod=0;
+  COURSE.forEach((l,li)=>{ cur.items.push(li);
+    if(li===1||/^Обратная связь по модулю/.test(l.t)){ mod++; cur={name:"Модуль "+mod,items:[]}; out.push(cur); } });
+  if(!cur.items.length) out.pop(); else if(cur.items.length===1&&/^Заключение/.test(COURSE[cur.items[0]].t)) cur.name="Заключение";
+  out.forEach((st,i)=>{ st.id="co-m"+i; }); return out; }
+function courseToProject(sec,M){ M=M||{}; const c=JSON.parse(JSON.stringify(sec.course||{})), done=c.done||{};
+  const stages=pjCourseStages().map(st=>({id:st.id,name:st.name,tasks:st.items.map(li=>{ const l=COURSE[li];
+    const subs=l.s.map((x,si)=>{ const k="l"+li+"s"+si, id="co-l"+li+"s"+si; if(M["co:"+k]) M["ps:"+id]=Math.max(M["ps:"+id]||0,M["co:"+k]);
+      return {id:id,name:x[1],type:x[0],done:!!done[k]}; });
+    const dn=subs.filter(x=>x.done).length;
+    return {id:"co-l"+li,name:l.t,status:dn===subs.length?"d":(dn?"i":"n"),subs:subs}; })}));
+  const time=[], seen={};
+  (c.timeLog||[]).forEach(t=>{ const base="tl-"+pjHash((t.d||"")+"|"+(t.m||0)+"|"+(t.note||"")); seen[base]=(seen[base]||0)+1;
+    time.push({id:seen[base]>1?base+"-"+seen[base]:base,task:"",date:t.d||"",min:t.m||0,what:t.note||"",src:""}); });
+  Object.keys(c.tlog||{}).forEach(k=>{ const ds=k.split("|")[1]||""; if(c.tlog[k]) time.push({id:"tlg-"+pjHash(k),task:"",date:ds,min:c.tlog[k],what:"",src:"минуты по дням"});
+    if(M["tl:"+k]) M["pt:tlg-"+pjHash(k)]=M["tl:"+k]; });
+  const exp={}; Object.keys(c.exp||{}).forEach(li=>{ if(c.exp[li]) exp["co-l"+li]=1; });
+  const out=Object.assign({},sec,{kind:"project",legacyKey:"course",cover:sec.cover||"",goal:sec.goal||sec.sub||"",
+    project:ensureProject({stages:stages,time:time,moods:c.moods||[],exp:exp,legacy:{course:c}})});
+  delete out.course; return out; }
 function newProjectSection(o){ o=o||{};
   return { id:o.id||uid(), name:o.name||"Новое направление", kind:"project", color:o.color||"var(--a-blue)", icon:o.icon||"star",
     sub:o.sub||"", cover:o.cover||"", goal:o.goal||"", project:ensureProject(o.project) }; }
@@ -90,6 +117,7 @@ function mergeProject(m,b,aM,bM){ const a=ensureProject(m.project), bb=ensurePro
   { const bt={}; bb.time.forEach(x=>{ bt[x.id]=x; }); a.time=a.time.map(x=>bt[x.id]?pjPick(x,bt[x.id],"pt:"+x.id,aM,bM):x); }
   a.goals=pjById(a.goals,bb.goals).filter(x=>!gone(x.id));
   { const bg={}; bb.goals.forEach(x=>{ bg[x.id]=x; }); a.goals=a.goals.map(x=>bg[x.id]?pjPick(x,bg[x.id],"pg:"+x.id,aM,bM):x); }
+  a.moods=mergeArr(a.moods,bb.moods,x=>x.ts);
   a.exp=Object.assign({},bb.exp,a.exp);
   const sp="cs:"+b.id; if((bM[sp]||0)>(aM[sp]||0)){ ["name","sub","color","icon","cover","goal"].forEach(f=>{ m[f]=b[f]; }); }
   else ["cover","goal"].forEach(f=>{ if(!m[f]&&b[f]) m[f]=b[f]; });
@@ -97,5 +125,5 @@ function mergeProject(m,b,aM,bM){ const a=ensureProject(m.project), bb=ensurePro
 
 Object.assign(window, {
   PJ_BLOCK_KEYS, ensureTask, ensureProject, newProjectSection, pjTasks, pjFind, pjProgress,
-  projectScore, mergeProject, pjWeekMin,
+  projectScore, mergeProject, pjWeekMin, courseToProject, pjCourseStages,
 });

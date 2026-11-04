@@ -154,6 +154,7 @@ function mergeData(A,B){ if(!A) return B; if(!B) return A; const M=JSON.parse(JS
   /* тумбстоны удалённых разделов: объединение, потом фильтр — удаление не воскресает */
   M.secDeleted=M.secDeleted||[]; (B.secDeleted||[]).forEach(id=>{ if(M.secDeleted.indexOf(id)<0) M.secDeleted.push(id); });
   (B.sections||[]).forEach(bs=>{ if(M.secDeleted.indexOf(bs.id)>=0) return;
+    if(bs.kind==="course") bs=courseToProject(bs,bM);        // устаревшее устройство: переводим раздел и его метки
     let ms; if(bs.kind==="custom"||bs.kind==="project") ms=M.sections.find(s=>s.kind===bs.kind&&s.id===bs.id);
     else if(bs.kind==="generic") ms=M.sections.find(s=>s.kind==="generic"&&s.name===bs.name); else ms=M.sections.find(s=>s.kind===bs.kind);
     if(!ms){ M.sections.push(JSON.parse(JSON.stringify(bs))); } else { mergeSection(ms,bs,aM,bM); } });

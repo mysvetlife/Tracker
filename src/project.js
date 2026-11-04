@@ -3,7 +3,7 @@
    Заметки, Вопросы, Ссылки). Данные и метки синхронизации описаны в project-model.js.
    Правки идут через mstamp(метка) и save(); перерисовка нужна только при смене состава. */
 
-window.pjTab="plan"; window.pjTask=null; window.pjBTab="theory"; window.pjFocus=null;
+window.pjTab="plan"; window.pjTask=null; window.pjBTab="theory"; window.pjFocus=null; window.pjQuery=""; window.pjFilter="all";
 const PJ_ST={n:"Не начато",i:"Идёт",d:"Готово",o:"Необязательно"}, PJ_ORDER=["n","i","d","o"];
 const PJ_TYPE={"":"•",v:"▶",a:"≡",r:"✎",q:"?"}, PJ_TYPE_NEXT={"":"v",v:"a",a:"r",r:"q",q:""};
 const PJ_TYPE_NAME={"":"без типа",v:"видео",a:"текст",r:"практика",q:"тест"};
@@ -28,11 +28,12 @@ function pjCycle(secId,taskId){ const sec=pjSec(secId); const f=sec&&pjFind(sec.
 function pjCheckTask(secId,taskId){ const sec=pjSec(secId); const f=sec&&pjFind(sec.project,taskId); if(!f) return;
   pjSetStatus(secId,taskId,f.task.status==="d"?"i":"d"); }
 /* галочка подзадачи; вся задача становится «Готово», когда отмечены все подзадачи, и «Идёт», если одну сняли */
-function pjToggleSub(secId,subId){ const sec=pjSec(secId); const f=sec&&pjSub(sec.project,subId); if(!f) return; const s=f.sub,t=f.task;
-  s.done=!s.done; mstamp("ps:"+s.id);
+function pjSetSubDone(s,t,v){ if(s.done===v) return; s.done=v; mstamp("ps:"+s.id);
   if(t.subs.every(x=>x.done)&&t.status!=="d"&&t.status!=="o"){ t.status="d"; t.doneOn=todayStr(); pjTouchTask(t); }
-  else if(!s.done&&t.status==="d"){ t.status="i"; t.doneOn=""; pjTouchTask(t); }
-  render(); }
+  else if(!v&&t.status==="d"){ t.status="i"; t.doneOn=""; pjTouchTask(t); }
+  else if(v&&t.status==="n"){ t.status="i"; pjTouchTask(t); } }
+function pjToggleSub(secId,subId){ const sec=pjSec(secId); const f=sec&&pjSub(sec.project,subId); if(!f) return;
+  pjSetSubDone(f.sub,f.task,!f.sub.done); render(); }
 function pjCycleType(secId,subId){ const sec=pjSec(secId); const f=sec&&pjSub(sec.project,subId); if(!f) return;
   f.sub.type=PJ_TYPE_NEXT[f.sub.type||""]||""; mstamp("pj:"+f.sub.id); render(); }
 function pjField(secId,taskId,field,val){ const sec=pjSec(secId); const f=sec&&pjFind(sec.project,taskId); if(!f) return; const t=f.task;
@@ -90,8 +91,8 @@ function projectHTML(sec){ const p=sec.project;
       <div class="stat"><div class="n b">${going}</div><div class="l">идёт</div></div>
       <div class="stat"><div class="n">${next?pjDate(next.end):"—"}</div><div class="l">ближайший срок</div></div></div>
     <div class="prog" style="margin-top:12px"><div class="prog-top"><span class="lab">Прогресс направления</span><span class="pct">${pct}%</span></div><div class="track"><i style="width:${pct}%"></i></div></div>
-    <div class="pj-tabs"><button class="${pjTab==='plan'?'on':''}" onclick="pjGo('${sec.id}','plan')">План</button><button class="${pjTab==='kan'?'on':''}" onclick="pjGo('${sec.id}','kan')">Канбан</button></div></div>`;
-  return head+(pjTab==="kan"?pjKanbanHTML(sec):pjPlanHTML(sec));
+    <div class="pj-tabs"><button class="${pjTab==='plan'?'on':''}" onclick="pjGo('${sec.id}','plan')">План</button><button class="${pjTab==='kan'?'on':''}" onclick="pjGo('${sec.id}','kan')">Канбан</button><button class="${pjTab==='time'?'on':''}" onclick="pjGo('${sec.id}','time')">Время</button></div></div>`;
+  return head+(pjTab==="kan"?pjKanbanHTML(sec):(pjTab==="time"?pjTimeHTML(sec):pjPlanHTML(sec)));
 }
 function pjSubHTML(sec,s){ return `<div class="pj-sub"><span class="pj-ck ${s.done?'on':''}" onclick="pjToggleSub('${sec.id}','${s.id}')" role="checkbox" aria-checked="${s.done}"></span>
   <span class="pj-ty" onclick="pjCycleType('${sec.id}','${s.id}')" title="Тип: ${PJ_TYPE_NAME[s.type||'']} (нажми, чтобы сменить)">${PJ_TYPE[s.type||'']}</span>
@@ -99,8 +100,19 @@ function pjSubHTML(sec,s){ return `<div class="pj-sub"><span class="pj-ck ${s.do
 function pjStBadge(sec,t){ return `<span class="pj-st st-${t.status}" onclick="pjCycle('${sec.id}','${t.id}')" title="Нажми, чтобы сменить статус">${PJ_ST[t.status]}</span>`; }
 function pjPlanHTML(sec){ const p=sec.project;
   if(!p.stages.length) return `<div class="card pj-empty"><div class="serif" style="font-size:24px">Плана пока нет</div><p style="color:var(--muted)">Начни с первого этапа, потом добавь в него задачи и подзадачи.</p><button class="btn primary" onclick="pjAddStage('${sec.id}')">${svg('plus')} Первый этап</button></div>`;
-  const stages=p.stages.map(st=>{ const open=pjOpenState(p,st.id,true), dn=st.tasks.filter(t=>t.status==="d").length;
-    const rows=open?st.tasks.map(t=>{ const sopen=pjOpenState(p,t.id,false), sd=t.subs.filter(s=>s.done).length;
+  const tools=`<div class="card pj-tools"><div class="seg"><button class="${pjFilter==='all'?'on':''}" onclick="pjSetFilter('${sec.id}','all')">Все</button><button class="${pjFilter==='left'?'on':''}" onclick="pjSetFilter('${sec.id}','left')">Незавершённые</button></div>
+    <input class="search" data-s="${sec.id}" placeholder="Поиск по задачам и подзадачам…" value="${esc(pjQuery)}" oninput="pjSearch(this)"><button class="btn sm" onclick="pjFoldAll('${sec.id}')">Свернуть / развернуть задачи</button></div>`;
+  return tools+`<div id="pjPlanBody">${pjPlanBody(sec)}</div>`+`<div class="pj-add pj-addstage" onclick="pjAddStage('${sec.id}')">＋ этап</div>`;
+}
+function pjPlanBody(sec){ const p=sec.project, q=pjQuery.trim().toLowerCase(), narrow=!!q||pjFilter==="left", has=s=>String(s||"").toLowerCase().includes(q);
+  const html=p.stages.map(st=>{ const dn=st.tasks.filter(t=>t.status==="d").length;
+    const open=narrow?true:pjOpenState(p,st.id,true);
+    const items=st.tasks.map(t=>{ let subs=t.subs, force=false;
+      if(q){ const own=has(t.name); const ms=t.subs.filter(x=>has(x.name)); if(!own&&!ms.length) return null; if(!own){ subs=ms; force=true; } }
+      if(pjFilter==="left"){ if(t.status==="d"||t.status==="o") return null; subs=subs.filter(x=>!x.done); }
+      return {t,subs,force}; }).filter(Boolean);
+    if(narrow&&!items.length) return "";
+    const rows=open?items.map(({t,subs,force})=>{ const sopen=force||pjOpenState(p,t.id,false), sd=t.subs.filter(s=>s.done).length;
       return `<div class="pj-task"><div class="pj-row">
         ${t.subs.length?`<span class="pj-chev ${sopen?'open':''}" onclick="pjFold('${sec.id}','${t.id}',false)">›</span>`:'<span class="pj-chev none"></span>'}
         <span class="pj-ck ${pjDone(t)?'on':''}" onclick="pjCheckTask('${sec.id}','${t.id}')" role="checkbox" aria-checked="${pjDone(t)}"></span>
@@ -108,11 +120,39 @@ function pjPlanHTML(sec){ const p=sec.project;
         ${t.subs.length?`<span class="pj-cnt">${sd}/${t.subs.length}</span>`:''}
         <span class="pj-sp"></span>${t.end?`<span class="pj-due">до ${pjDate(t.end)}</span>`:''}${pjStBadge(sec,t)}
         <span class="pj-go" onclick="pjOpenTask('${sec.id}','${t.id}')" title="Открыть страницу задачи">↗</span><span class="pj-x" onclick="pjDel('${sec.id}','task','${t.id}')" title="Удалить">×</span></div>
-        ${sopen?`<div class="pj-subs">${t.subs.map(s=>pjSubHTML(sec,s)).join("")}<div class="pj-add" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></div>`:''}</div>`; }).join("")+`<div class="pj-add" onclick="pjAddTask('${sec.id}','${st.id}')">＋ задача</div>`:"";
+        ${sopen?`<div class="pj-subs">${subs.map(s=>pjSubHTML(sec,s)).join("")}<div class="pj-add" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></div>`:''}</div>`; }).join("")+(narrow?"":`<div class="pj-add" onclick="pjAddTask('${sec.id}','${st.id}')">＋ задача</div>`):"";
     return `<div class="card pj-stage"><div class="pj-stagehead"><span class="pj-chev ${open?'open':''}" onclick="pjFold('${sec.id}','${st.id}',true)">›</span>
       ${pjEd("stage",sec.id,st.id,st.name,"Название этапа","pj-stname")}<span class="pj-cnt">${dn}/${st.tasks.length}</span><span class="pj-sp"></span><span class="pj-x" onclick="pjDel('${sec.id}','stage','${st.id}')" title="Удалить этап">×</span></div>${rows}</div>`; }).join("");
-  return stages+`<div class="pj-add pj-addstage" onclick="pjAddStage('${sec.id}')">＋ этап</div>`;
+  return html||`<div class="card pj-empty"><p style="color:var(--muted)">Ничего не найдено.</p></div>`;
 }
+function pjSetFilter(secId,f){ window.pjFilter=f; render(); }
+function pjSearch(el){ window.pjQuery=el.value; const sec=pjSec(el.dataset.s), box=document.getElementById("pjPlanBody"); if(sec&&box) box.innerHTML=pjPlanBody(sec); }
+function pjFoldAll(secId){ const sec=pjSec(secId); if(!sec) return; const p=sec.project, ts=pjTasks(p).filter(t=>t.subs.length);
+  const anyOpen=ts.some(t=>pjOpenState(p,t.id,false)); ts.forEach(t=>{ p.exp[t.id]=anyOpen?0:1; }); render(); }
+
+/* ---------- время ---------- */
+function pjTimeHTML(sec){ const p=sec.project, today=todayStr();
+  const opts=`<option value="">— без задачи —</option>`+pjTasks(p).map(t=>`<option value="${t.id}">${esc(t.name||"Без названия")}</option>`).join("");
+  const form=`<div class="card pj-timeform"><div class="cap">Записать время</div><div class="pj-tf">
+    <label>День<input type="date" id="pjtDate" value="${today}"></label>
+    <label>Минут<input type="number" id="pjtMin" min="1" max="1440" placeholder="40"></label>
+    <label class="pj-tw">Что делала<input type="text" id="pjtWhat" placeholder="Например, конспект урока"></label>
+    <label>Задача<select id="pjtTask">${opts}</select></label>
+    <button class="btn primary" onclick="pjAddTime('${sec.id}')">${svg('plus')} Записать</button></div></div>`;
+  const list=p.time.slice().sort((a,b)=>a.date<b.date?1:(a.date>b.date?-1:0)), byWeek={};
+  list.forEach(x=>{ const w=x.date?mondayOf(x.date):"—"; (byWeek[w]=byWeek[w]||[]).push(x); });
+  const rows=Object.keys(byWeek).sort().reverse().map(w=>{ const arr=byWeek[w], tot=arr.reduce((a,x)=>a+(+x.min||0),0);
+    return `<div class="pj-week"><div class="pj-weekhead"><b>${w==="—"?"Без даты":ruDate(w)+" — "+ruDate(dateAddDays(w,6))}</b><span>${fmtMin(tot)}</span></div>`+arr.map(x=>{ const f=x.task?pjFind(p,x.task):null;
+      return `<div class="pj-trow"><span class="pj-tdate">${x.date?ruDate(x.date):"—"}</span><span class="pj-tmin">${fmtMin(+x.min||0)}</span><span class="pj-twhat">${esc(x.what||"")}${f?` <small>· ${esc(f.task.name)}</small>`:''}${x.src?` <small>· ${esc(x.src)}</small>`:''}</span><span class="pj-x" onclick="pjDelTime('${sec.id}','${x.id}')" title="Удалить">×</span></div>`; }).join("")+`</div>`; }).join("");
+  const all=p.time.reduce((a,x)=>a+(+x.min||0),0);
+  return form+`<div class="card"><div class="band">Всего записано: ${fmtMin(all)}</div>${rows||'<p style="color:var(--muted)">Записей времени пока нет.</p>'}</div>`;
+}
+function pjAddTime(secId){ const sec=pjSec(secId); if(!sec) return; const date=document.getElementById("pjtDate").value, min=parseInt(document.getElementById("pjtMin").value,10);
+  if(!date||!(min>=1&&min<=1440)){ alert("Нужны день и минуты (от 1 до 1440)"); return; }
+  const x={id:uid(),task:document.getElementById("pjtTask").value,date:date,min:min,what:document.getElementById("pjtWhat").value.trim(),src:""};
+  sec.project.time.push(x); mstamp("pt:"+x.id); render(); toast("Записано"); }
+function pjDelTime(secId,id){ const sec=pjSec(secId); if(!sec) return; sec.project.del.push(id); sec.project.time=sec.project.time.filter(x=>x.id!==id); render(); }
+
 function pjKanbanHTML(sec){ const p=sec.project, all=[];
   p.stages.forEach(st=>st.tasks.forEach(t=>all.push({t,st})));
   const cols=PJ_ORDER.map(k=>{ const items=all.filter(x=>x.t.status===k), open=pjOpenState(p,"col:"+k,true);
@@ -195,5 +235,5 @@ function pjAfterRender(){ const id=window.pjFocus; if(!id) return; window.pjFocu
 
 Object.assign(window, {
   projectHTML, pjAfterRender, pjSetStatus, pjCycle, pjCheckTask, pjToggleSub, pjCycleType, pjField, pjFold,
-  pjAddStage, pjAddTask, pjAddSub, pjDel, pjGo, pjOpenTask, pjBTabSet, pjAddBlock, pjSec,
+  pjAddStage, pjAddTask, pjAddSub, pjDel, pjGo, pjOpenTask, pjBTabSet, pjAddBlock, pjSec, pjSub, pjSetSubDone, pjSetFilter, pjSearch, pjFoldAll, pjAddTime, pjDelTime,
 });

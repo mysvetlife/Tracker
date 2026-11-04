@@ -132,6 +132,11 @@ function migrate(d){ if(!d||!d.sections) return d; d._m=d._m||{};
   d.week=d.week||{plan:{},review:{},general:{}}; d.week.plan=d.week.plan||{}; d.week.review=d.week.review||{}; d.week.general=d.week.general||{};
   d.plan=d.plan||{tasks:[],deleted:[]}; d.plan.tasks=d.plan.tasks||[]; d.plan.deleted=d.plan.deleted||[];
   d.secDeleted=d.secDeleted||[];                     // тумбстоны удалённых разделов
+  /* «Понедельник» стал направлением-проектом: kind:"course" переводится без потерь (project-model.js).
+     Если устаревшее устройство вернуло course с тем же id - сливаем с уже готовым проектом. */
+  d.sections.forEach(s=>{ if(!s.kind) s.kind=s.course?"course":(s.sport?"sport":"generic"); });
+  d.sections=d.sections.map(s=>s.kind==="course"?courseToProject(s,d._m):s);
+  { const seen={}; d.sections=d.sections.filter(s=>{ if(s.kind!=="project") return true; const f=seen[s.id]; if(!f){ seen[s.id]=s; return true; } mergeProject(f,s,d._m,d._m); return false; }); }
   d.sections.forEach(s=>{ if(!s.kind) s.kind=s.course?"course":(s.sport?"sport":"generic");
     if(s.kind==="custom") ensureCustom(s); else ensureBlocks(s);   // блоки конструктора есть у любого раздела
     if(s.kind==="generic"&&(s.name==="Учёба"||s.name==="Учеба")){ s.name="Дизайн и карьера"; s.sub="UX/UI + цифровая доступность"; s.kind="career"; s.icon="sparkle"; s.color="var(--a-blue)"; delete s.items; }
@@ -150,7 +155,8 @@ function migrate(d){ if(!d||!d.sections) return d; d._m=d._m||{};
 function load(){
   const cur=lsGet(STORE_KEY); const prev=lsGet("progress_tracker_v3")||lsGet("progress_tracker_v2");
   if(!cur&&!prev) return null;
-  const base=migrate(cur||defaultData());
+  const raw=cur||defaultData();
+  const base=raw;                                    // слияние со старым хранилищем - до перевода «Понедельника» в проект
   if(prev&&prev.sections){
     const pc=prev.sections.find(s=>s.course); const bc=base.sections.find(s=>s.kind==="course");
     if(pc&&pc.course&&bc){
@@ -162,7 +168,7 @@ function load(){
     prev.sections.filter(s=>s.items&&s.items.length).forEach(ps=>{ const bs=base.sections.find(s=>s.kind==="generic"&&s.name===ps.name);
       if(bs&&(!bs.items||bs.items.every(i=>!i.done&&!i.value&&!i.minutes&&!(i.note)))) bs.items=ps.items; });
   }
-  return base;
+  return migrate(base);
 }
 
 /* ---- имена наружу ---- */
