@@ -13,7 +13,7 @@ function softColor(c){ return `color-mix(in srgb, ${c} 16%, transparent)`; }
 function ring(pct,size,stroke,color,showText){
   const r=(size-stroke)/2, c=2*Math.PI*r, off=c*(1-pct), cx=size/2;
   return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-    <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="${stroke}"/>
+    <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="rgba(120,84,56,.12)" stroke-width="${stroke}"/>
     <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round"
       stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 ${cx} ${cx})" style="transition:stroke-dashoffset .6s var(--ease)"/>
     ${showText?`<text x="${cx}" y="${cx+size*0.075}" text-anchor="middle" fill="var(--text)" font-family="Sora,sans-serif" font-size="${size*0.24}" font-weight="700">${Math.round(pct*100)}%</text>`:''}

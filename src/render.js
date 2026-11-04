@@ -5,13 +5,15 @@
 /* ================= Render ================= */
 function render(){ document.getElementById("appTitle").textContent=data.title; renderTabs(); renderView(); save(); }
 function renderTabs(){
-  let h=`<button class="tab ${data.active==='overview'?'active':''}" onclick="go('overview')">${svg('layers')} Обзор</button>`;
+  let h=`<button class="tab ${data.active==='overview'?'active':''}" onclick="go('overview')">${svg('layers')} Главная</button>`;
+  h+=`<div class="tabcap">Направления</div>`;
   data.sections.forEach(s=>{ h+=`<button class="tab ${data.active===s.id?'active':''}" onclick="go('${s.id}')"><span class="tdot" style="background:${s.color}"></span>${esc(s.name)}</button>`; });
-  h+=`<button class="tab add" onclick="openSectionModal()">${svg('plus')} Раздел</button>`;
+  h+=`<div class="tabsep"></div><button class="tab add" onclick="openSectionModal()">${svg('plus')} Новое направление</button>`;
   document.getElementById("tabs").innerHTML=h;
 }
 function renderView(){
   const v=document.getElementById("view");
+  v.className=data.active==="overview"?"":"narrow";
   if(data.active==="overview"){ v.innerHTML=overviewHTML(); wireNotes(); return; }
   const sec=data.sections.find(s=>s.id===data.active);
   if(!sec){ data.active="overview"; return renderView(); }
@@ -25,31 +27,31 @@ function renderView(){
 }
 
 function overviewHTML(){
-  if(!data.sections.length) return `<div class="card empty">Пока нет разделов. Нажми «＋ Раздел».</div>`;
-  const total=data.sections.reduce((a,s)=>a+sectionTime(s),0);
-  let done=0,checks=0;
-  data.sections.forEach(s=>{ if(s.kind==="course"){ done+=cDoneSteps(s.course); checks+=cTotalSteps(); }
-    else if(s.kind==="custom"){ (s.blocks||[]).forEach(b=>{ if(b.type==="checklist"){ checks+=b.items.length; done+=b.items.filter(it=>b.done[it.id]).length; }
-      if(b.type==="program"){ (b.groups||[]).forEach(g=>{ checks+=g.lessons.length; done+=g.lessons.filter(l=>b.done[l.id]).length; }); } }); }
-    else if(s.items){ s.items.filter(i=>i.type==="check").forEach(i=>{ checks++; if(i.done) done++; }); } });
-  const th=Math.floor(total/60), tm=total%60;
+  const banner=`<div class="banner"><div class="b1"></div><div class="b2"><div class="big">Весь твой год может измениться.</div><div class="script">Пусть это будет он.</div></div><div class="b3"></div></div>`;
   const cards=data.sections.map(s=>{
-    const p=sectionProgress(s), pct=p===null?0:p, t=sectionTime(s);
+    const p=sectionProgress(s), pct=Math.round((p===null?0:p)*100), t=sectionTime(s);
     const meta=t>0?fmtMin(t):itemsMeta(s);
-    return `<div class="ring-card" style="--accent:${s.color}; --accent-soft:${softColor(s.color)}" onclick="go('${s.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('${s.id}')">
-      <div class="ring-ico">${svg(s.icon||'star')}</div>
-      <div class="ring-wrap">${ring(pct,96,9,s.color,true)}</div>
-      <div class="ring-name">${esc(s.name)}</div>
-      <div class="ring-meta">${meta}</div>
+    const pic=s.cover?` style="background-image:url('${esc(s.cover)}')"`:"";
+    return `<div class="dir" style="--accent:${s.color}; --accent-soft:${softColor(s.color)}" onclick="go('${s.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('${s.id}')">
+      <div class="dir-pic"${pic}>${s.cover?'':svg(s.icon||'star')}</div>
+      <div class="dir-body"><div class="dir-name">${esc(s.name)}</div><div class="dir-meta">${meta}</div>
+        <div class="dir-prog"><span>${pct}%</span><div class="track"><i style="width:${pct}%"></i></div></div></div>
     </div>`;
   }).join("");
-  return `<div class="card"><div class="hero">
-      <div><div class="hero-label">Всего времени учтено</div>
-        <div class="hero-time">${th}<span> ч </span>${tm}<span> мин</span></div></div>
-      <div class="hero-legend"><div><b>${done}/${checks}</b> отмечено</div>
-        <div><b>${data.sections.length}</b> ${plural(data.sections.length,'раздел','раздела','разделов')}</div></div>
-    </div></div>
-  <div class="grid">${cards}</div>`;
+  const add=`<div class="dir add" onclick="openSectionModal()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openSectionModal()">＋ Добавить новое направление</div>`;
+  return banner+`<div class="home"><div class="col"><div class="card"><div class="band">Направления</div><div class="dirgrid">${cards}${add}</div></div></div>
+    <div class="col">${homeSportWidget()}</div></div>`;
+}
+/* Виджет «Спорт» на главной: только вес, ккал и белок за вчера */
+function homeSportWidget(){
+  const sec=data.sections.find(s=>s.kind==="sport"); if(!sec||!sec.sport) return "";
+  const sp=sec.sport, w=(sp.weight||[]).slice().sort((x,y)=>x.date<y.date?-1:1), last=w.length?w[w.length-1]:null;
+  const y=new Date(); y.setDate(y.getDate()-1); const d=(sp.days||{})[ymd(y)]||{}, g=(sp.config&&sp.config.goals)||{};
+  const rng=a=>a?` <small>/ ${a[0]}–${a[1]}</small>`:"";
+  return `<div class="card wgt"><div class="cap">Спорт</div>
+    <div class="wrow"><span>Вес</span><b>${last?String(last.kg).replace('.',',')+' кг':'—'}</b></div>
+    <div class="wrow"><span>Ккал вчера</span><span><b>${d.kcal||'—'}</b>${rng(g.kcal)}</span></div>
+    <div class="wrow"><span>Белок вчера</span><span><b>${d.protein?d.protein+' г':'—'}</b>${rng(g.protein)}</span></div></div>`;
 }
 
 /* ---- generic section ---- */
