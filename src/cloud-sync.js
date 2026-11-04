@@ -16,6 +16,7 @@ function dataScore(d){ if(!d||!d.sections) return 0; let n=0;
     if(s.career){ const c=s.career; n+=(c.sessions||[]).length+(c.features||[]).length+(c.timeLog||[]).length+Object.keys((c.vkcourse&&c.vkcourse.done)||{}).length+Object.keys((c.mts&&c.mts.done)||{}).length+Object.keys((c.apply&&c.apply.days)||{}).length+Object.keys((c.li&&c.li.weeks)||{}).length; if(c.stages) Object.keys(c.stages).forEach(k=>Object.keys(c.stages[k]||{}).forEach(kk=>{ if(c.stages[k][kk]) n++; })); }
     if(s.english){ const e=s.english; n+=Object.keys((e.yandex&&e.yandex.done)||{}).length+Math.max(0,Object.keys((e.gravity&&e.gravity.done)||{}).length-3)+(e.speaking||[]).filter(x=>x.done).length
       +Object.keys((e.twenty&&e.twenty.done)||{}).length+Object.keys((e.wdaily&&e.wdaily.days)||{}).length+Object.keys((e.hp&&e.hp.days)||{}).length+Object.keys((e.anki&&e.anki.days)||{}).length; }
+    if(s.kind==="project") n+=projectScore(s.project);
     if(s.items){ s.items.forEach(it=>{ if(it.done||it.value||it.minutes) n++; }); }
   }); return n; }
 function loadSync(){ try{ const r=localStorage.getItem(SYNC_KEY); window.syncCfg=r?JSON.parse(r):null; }catch(e){ window.syncCfg=null; } return syncCfg; }
@@ -115,6 +116,7 @@ function mergeSection(m,b,aM,bM){
     /* имя, цвет, иконка, подпись раздела — последняя правка по метке cs:<id> */
     const sp="cs:"+b.id; if((bM[sp]||0)>(aM[sp]||0)){ m.name=b.name; m.sub=b.sub; m.color=b.color; m.icon=b.icon; }
     mKeepUnknown(m,b); }
+  else if(b.kind==="project"&&b.project){ mergeProject(m,b,aM,bM); }
   else if(b.kind==="generic"&&b.items&&m.items){ b.items.forEach(bi=>{ const mi=m.items.find(x=>x.id===bi.id||x.name===bi.name); if(mi){ if(bi.done)mi.done=true; if(bi.value)mi.value=Math.max(mi.value||0,bi.value||0); if(bi.minutes)mi.minutes=Math.max(mi.minutes||0,bi.minutes||0); } else m.items.push(JSON.parse(JSON.stringify(bi))); }); }
   mergeBlocksT(m,b,aM,bM);   // блоки конструктора сливаются у раздела ЛЮБОГО типа
 }
@@ -152,7 +154,7 @@ function mergeData(A,B){ if(!A) return B; if(!B) return A; const M=JSON.parse(JS
   /* тумбстоны удалённых разделов: объединение, потом фильтр — удаление не воскресает */
   M.secDeleted=M.secDeleted||[]; (B.secDeleted||[]).forEach(id=>{ if(M.secDeleted.indexOf(id)<0) M.secDeleted.push(id); });
   (B.sections||[]).forEach(bs=>{ if(M.secDeleted.indexOf(bs.id)>=0) return;
-    let ms; if(bs.kind==="custom") ms=M.sections.find(s=>s.kind==="custom"&&s.id===bs.id);
+    let ms; if(bs.kind==="custom"||bs.kind==="project") ms=M.sections.find(s=>s.kind===bs.kind&&s.id===bs.id);
     else if(bs.kind==="generic") ms=M.sections.find(s=>s.kind==="generic"&&s.name===bs.name); else ms=M.sections.find(s=>s.kind===bs.kind);
     if(!ms){ M.sections.push(JSON.parse(JSON.stringify(bs))); } else { mergeSection(ms,bs,aM,bM); } });
   M.sections=M.sections.filter(s=>M.secDeleted.indexOf(s.id)<0);

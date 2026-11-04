@@ -136,6 +136,7 @@ function migrate(d){ if(!d||!d.sections) return d; d._m=d._m||{};
     if(s.kind==="custom") ensureCustom(s); else ensureBlocks(s);   // блоки конструктора есть у любого раздела
     if(s.kind==="generic"&&(s.name==="Учёба"||s.name==="Учеба")){ s.name="Дизайн и карьера"; s.sub="UX/UI + цифровая доступность"; s.kind="career"; s.icon="sparkle"; s.color="var(--a-blue)"; delete s.items; }
     if(s.kind==="generic"&&s.name==="Английский"){ s.kind="english"; s.sub="Яндекс.Практикум + практика речи"; delete s.items; }
+    if(s.kind==="project") s.project=ensureProject(s.project);
     if(s.kind==="sport") s.sport=ensureSport(s.sport);
     if(s.kind==="career") s.career=ensureCareer(s.career);
     if(s.kind==="english") s.english=ensureEnglish(s.english);

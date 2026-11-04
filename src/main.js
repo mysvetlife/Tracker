@@ -7,6 +7,7 @@ import './state.js';
 import './icons.js';
 import './course-program.js';
 import './data-model.js';
+import './project-model.js';
 import './helpers.js';
 import './render.js';
 import './actions.js';
