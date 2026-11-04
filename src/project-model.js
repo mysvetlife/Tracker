@@ -8,7 +8,8 @@
    task = { id, name, status:"n|i|d|o", start, end, hours, doneOn, note, prac,
             subs:[{id,name,done,type}], blocks:{theory,practice,notes,questions,links} }
    type подзадачи: "" | v видео | a текст | r практика | q тест (как в course-program.js).
-   exp: {id:1} - развёрнутые этапы и задачи (свёртка; хранится как раскрытое).
+   exp: {id:1|0} - свёртка: 1 развёрнуто, 0 свёрнуто; нет ключа - по умолчанию (этап развёрнут, задача свёрнута).
+        Для колонок канбана и карточек ключи "col:<статус>" и "k:<id задачи>".
    del: id удалённых этапов, задач, подзадач, записей времени и целей (тумбстоны).
 
    Метки синхронизации (data._m), которые обязан ставить интерфейс через mstamp():
@@ -43,6 +44,9 @@ function pjProgress(p){ let d=0,t=0;
     if(k.subs.length){ t+=k.subs.length; d+=k.status==="d"?k.subs.length:k.subs.filter(s=>s.done).length; }
     else { t++; if(k.status==="d") d++; } });
   return {done:d,total:t,pct:t?d/t:0}; }
+/* минуты за неделю по записям времени (понедельник недели mon, строка YYYY-MM-DD) */
+function pjWeekMin(p,mon){ const e=new Date(mon+"T00:00:00"); e.setDate(e.getDate()+6); const to=ymd(e);
+  return (p.time||[]).filter(x=>x.date>=mon&&x.date<=to).reduce((a,x)=>a+(+x.min||0),0); }
 function projectScore(p){ if(!p) return 0; let n=0;
   pjTasks(p).forEach(t=>{ if(t.status==="d") n++; n+=t.subs.filter(s=>s.done).length;
     PJ_BLOCK_KEYS.forEach(k=>{ n+=(t.blocks[k]||[]).filter(b=>b&&String(b.text||"").trim()).length; }); });
@@ -93,5 +97,5 @@ function mergeProject(m,b,aM,bM){ const a=ensureProject(m.project), bb=ensurePro
 
 Object.assign(window, {
   PJ_BLOCK_KEYS, ensureTask, ensureProject, newProjectSection, pjTasks, pjFind, pjProgress,
-  projectScore, mergeProject,
+  projectScore, mergeProject, pjWeekMin,
 });

@@ -9,6 +9,7 @@ import './course-program.js';
 import './data-model.js';
 import './project-model.js';
 import './helpers.js';
+import './project.js';
 import './render.js';
 import './actions.js';
 import './sport.js';

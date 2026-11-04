@@ -38,6 +38,7 @@ function itemProgress(it){
   return 0;
 }
 function sectionProgress(sec){
+  if(sec.kind==="project"){ const r=pjProgress(sec.project); return r.total?r.pct:0; }
   if(sec.kind==="course"){ const t=cTotalSteps(); return t?cDoneSteps(sec.course)/t:0; }
   if(sec.kind==="sport"){ return spWeekCompliance(sec.sport); }
   /* Блоки на паузе исключены — так же, как в английском: приостановленное не должно
@@ -68,6 +69,7 @@ function sectionProgress(sec){
 function sectionTime(sec){
   const cb=cbWeekMin(sec,mondayOf(todayStr()));          // минуты привычек-блоков, у любого раздела
   if(sec.kind==="course") return cMinutes(sec.course)+cb;
+  if(sec.kind==="project") return pjWeekMin(sec.project,mondayOf(todayStr()))+cb;
   if(sec.kind==="sport") return cb;
   if(sec.kind==="career") return careerWeekMin(sec.career,mondayOf(todayStr()))+cb;
   if(sec.kind==="english") return engWeekMin(sec.english,mondayOf(todayStr()))+cb;
@@ -75,6 +77,7 @@ function sectionTime(sec){
   return sec.items.filter(it=>it.type==="time").reduce((a,it)=>a+(it.minutes||0),0);
 }
 function itemsMeta(sec){
+  if(sec.kind==="project"){ const r=pjProgress(sec.project); return r.total?r.done+"/"+r.total+" готово":"План пока пуст"; }
   if(sec.kind==="course"){ return cDoneSteps(sec.course)+"/"+cTotalSteps()+" этапов"; }
   if(sec.kind==="sport"){ const sp=sec.sport; if(!sp.config.startDate) return "Настрой цикл"; return "Неделя "+spCycleWeek(sp)+"/"+spWeeks(sp)+" · стрик "+spCurrentStreak(sp); }
   if(sec.kind==="career"){ const c=sec.career; if(!c.config.startDate) return "Настрой цикл"; const cur=mondayOf(todayStr());

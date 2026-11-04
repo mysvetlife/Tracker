@@ -15,6 +15,7 @@ function openSectionModal(id){
     <h3>${id?'Редактировать раздел':'Новый раздел · шаг 1 из 2'}</h3>
     <p class="mhint">${id?'Название, цвет и иконка.':'Сначала название и вид. После «Создать раздел» сразу откроется шаг 2 — выбор первого блока: задачи, привычки, счётчики или курс.'}</p>
     <label for="mName">Название</label><input id="mName" type="text" value="${esc(s.name)}" placeholder="Например, Спорт">
+    ${id?'':`<label for="mKind">Вид</label><select id="mKind"><option value="project">План обучения: этапы, задачи, подзадачи, канбан</option><option value="custom">Из блоков: чек-листы, привычки, счётчики</option></select>`}
     <label for="mSub">Подпись</label><input id="mSub" type="text" value="${esc(s.sub||'')}" placeholder="Короткое описание">
     <label>Цвет</label><div class="swatches" id="swColor">${sw}</div>
     <label>Иконка</label><div class="swatches" id="swIcon">${ic}</div>
@@ -26,7 +27,10 @@ function selIcon(n){ window.pickIcon=n; document.querySelectorAll("#swIcon .swat
 function saveSection(){ const name=document.getElementById("mName").value.trim(); if(!name){ alert("Введите название"); return; }
   const sub=document.getElementById("mSub").value.trim();
   if(editingSection){ editingSection.name=name; editingSection.sub=sub; editingSection.color=pickColor; editingSection.icon=pickIcon;
-    if(editingSection.kind==="custom") mstamp("cs:"+editingSection.id); }
+    if(editingSection.kind==="custom"||editingSection.kind==="project") mstamp("cs:"+editingSection.id); }
+  else if(document.getElementById("mKind")&&document.getElementById("mKind").value==="project"){
+    const ns=newProjectSection({name,sub,color:pickColor,icon:pickIcon}); data.sections.push(ns); data.active=ns.id; window.pjTask=null; window.pjTab="plan";
+    mstamp("cs:"+ns.id); evLog("block_new",{block:ns.id, kind:"section", name:name}); closeModal(); render(); toast("Направление создано"); return; }
   else{ const ns=ensureCustom({id:uid(),name,sub,color:pickColor,icon:pickIcon,kind:"custom"});
     data.sections.push(ns); data.active=ns.id; mstamp("cs:"+ns.id); evLog("block_new",{block:ns.id, kind:"section", name:name});
     closeModal(); render(); toast("Раздел создан");
