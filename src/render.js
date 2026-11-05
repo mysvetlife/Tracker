@@ -3,56 +3,22 @@
    Имена вывешиваются в window в конце файла: их зовут обработчики в разметке. */
 
 /* ================= Render ================= */
-function render(){ document.getElementById("appTitle").textContent=data.title; renderTabs(); renderView(); save(); }
-function renderTabs(){
-  let h=`<button class="tab ${data.active==='overview'?'active':''}" onclick="go('overview')">${svg('layers')} Главная</button>`;
-  h+=`<div class="tabcap">Направления</div>`;
-  data.sections.forEach(s=>{ h+=`<button class="tab ${data.active===s.id?'active':''}" onclick="go('${s.id}')"><span class="tdot" style="background:${s.color}"></span>${esc(s.name)}</button>`; });
-  h+=`<div class="tabsep"></div><button class="tab add" onclick="openSectionModal()">${svg('plus')} Новое направление</button>`;
-  document.getElementById("tabs").innerHTML=h;
-}
+function render(){ renderShell(); renderTabs(); renderView(); save(); }
 function renderView(){
   const v=document.getElementById("view");
-  v.className=data.active==="overview"?"":"narrow";
+  v.className=data.active==="overview"?"contents":"col";
   if(data.active==="overview"){ v.innerHTML=overviewHTML(); wireNotes(); return; }
+  if(data.active==="inbox"){ v.innerHTML=inboxHTML(); return; }
   const sec=data.sections.find(s=>s.id===data.active);
   if(!sec){ data.active="overview"; return renderView(); }
   /* Блоки конструктора и явная кнопка «Добавить блок» — в конце каждого раздела */
-  if(sec.kind==="project"){ v.className=""; v.innerHTML=projectHTML(sec); pjAfterRender(); return; }
+  if(sec.kind==="project"){ v.innerHTML=projectHTML(sec); pjAfterRender(); return; }
   if(sec.kind==="course"){ v.innerHTML=courseHTML(sec)+blocksHTML(sec)+addBlockCardHTML(sec); applyCardLayout(sec); return; }
   if(sec.kind==="sport"){ v.innerHTML=sportHTML(sec)+blocksHTML(sec)+addBlockCardHTML(sec); applyCardLayout(sec); wireSport(); return; }
   if(sec.kind==="career"){ v.innerHTML=careerHTML(sec)+blocksHTML(sec)+addBlockCardHTML(sec); applyCardLayout(sec); return; }
   if(sec.kind==="english"){ v.innerHTML=englishHTML(sec)+blocksHTML(sec)+addBlockCardHTML(sec); applyCardLayout(sec); return; }
   if(sec.kind==="custom"){ v.innerHTML=customHTML(sec); applyCardLayout(sec); return; }
   v.innerHTML=sectionHTML(sec); wireNotes();
-}
-
-function overviewHTML(){
-  const banner=`<div class="banner"><div class="b1"></div><div class="b2"><div class="big">Весь твой год может измениться.</div><div class="script">Пусть это будет он.</div></div><div class="b3"></div></div>`;
-  const cards=data.sections.map(s=>{
-    const p=sectionProgress(s), pct=Math.round((p===null?0:p)*100), t=sectionTime(s);
-    const meta=t>0?fmtMin(t):itemsMeta(s);
-    const pic=s.cover?` style="background-image:url('${esc(s.cover)}')"`:"";
-    return `<div class="dir" style="--accent:${s.color}; --accent-soft:${softColor(s.color)}" onclick="go('${s.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('${s.id}')">
-      <div class="dir-pic"${pic}>${s.cover?'':svg(s.icon||'star')}</div>
-      <div class="dir-body"><div class="dir-name">${esc(s.name)}</div><div class="dir-meta">${meta}</div>
-        <div class="dir-prog"><span>${pct}%</span><div class="track"><i style="width:${pct}%"></i></div></div></div>
-    </div>`;
-  }).join("");
-  const add=`<div class="dir add" onclick="openSectionModal()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openSectionModal()">＋ Добавить новое направление</div>`;
-  return banner+`<div class="home"><div class="col"><div class="card"><div class="band">Направления</div><div class="dirgrid">${cards}${add}</div></div></div>
-    <div class="col">${homeSportWidget()}</div></div>`;
-}
-/* Виджет «Спорт» на главной: только вес, ккал и белок за вчера */
-function homeSportWidget(){
-  const sec=data.sections.find(s=>s.kind==="sport"); if(!sec||!sec.sport) return "";
-  const sp=sec.sport, w=(sp.weight||[]).slice().sort((x,y)=>x.date<y.date?-1:1), last=w.length?w[w.length-1]:null;
-  const y=new Date(); y.setDate(y.getDate()-1); const d=(sp.days||{})[ymd(y)]||{}, g=(sp.config&&sp.config.goals)||{};
-  const rng=a=>a?` <small>/ ${a[0]}–${a[1]}</small>`:"";
-  return `<div class="card wgt"><div class="cap">Спорт</div>
-    <div class="wrow"><span>Вес</span><b>${last?String(last.kg).replace('.',',')+' кг':'—'}</b></div>
-    <div class="wrow"><span>Ккал вчера</span><span><b>${d.kcal||'—'}</b>${rng(g.kcal)}</span></div>
-    <div class="wrow"><span>Белок вчера</span><span><b>${d.protein?d.protein+' г':'—'}</b>${rng(g.protein)}</span></div></div>`;
 }
 
 /* ---- generic section ---- */
@@ -429,7 +395,7 @@ function renderCourseLessons(){
 
 /* ---- имена наружу ---- */
 Object.assign(window, {
-  render, renderTabs, renderView, overviewHTML, sectionHTML, itemHTML,
+  render, renderView, sectionHTML, itemHTML,
   wireNotes, cbFind, cbCardKey, cbDtWrap, cbWeekMin, cbcDay,
   cbcWeekSum, cbcFirstMon, customHTML, blocksHTML, addBlockCardHTML, cbBlockHTML,
   cbEditBtn, cbChecklistHTML, cbCheck, cbAddItemFrom, cbRenameItem, cbDelItem,

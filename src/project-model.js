@@ -7,6 +7,9 @@
            project:{ stages:[{id,name,tasks:[task]}], goals:[], time:[], del:[], exp:{} } }
    task = { id, name, status:"n|i|d|o", start, end, hours, doneOn, note, prac,
             subs:[{id,name,done,type}], blocks:{theory,practice,notes,questions,links} }
+   блок страницы задачи: {id, type:"p|h|ul|todo|quote|code|page", text, done?, kids?}
+   type:"page" - вложенная страница: text - название, kids - её блоки (те же типы, страницы вкладываются дальше),
+   done - галочка страницы. Всё вложенное лежит в списке своей вкладки и синхронизируется меткой pb: этой вкладки.
    type подзадачи: "" | v видео | a текст | r практика | q тест (как в course-program.js).
    exp: {id:1|0} - свёртка: 1 развёрнуто, 0 свёрнуто; нет ключа - по умолчанию (этап развёрнут, задача свёрнута).
         Для колонок канбана и карточек ключи "col:<статус>" и "k:<id задачи>".
@@ -63,6 +66,13 @@ function courseToProject(sec,M){ M=M||{}; const c=JSON.parse(JSON.stringify(sec.
 function newProjectSection(o){ o=o||{};
   return { id:o.id||uid(), name:o.name||"Новое направление", kind:"project", color:o.color||"var(--a-blue)", icon:o.icon||"star",
     sub:o.sub||"", cover:o.cover||"", goal:o.goal||"", project:ensureProject(o.project) }; }
+/* «Психология нарциссов»: заготовка из трёх разделов без выдуманных шагов (подробный план Света даст позже).
+   Номера фиксированные: два устройства, создавшие заготовку независимо, при слиянии не дублируют её.
+   Один раз: если раздел удалён (тумбстон в data.secDeleted), заново он не появляется. */
+const NARC_ID="pj-narc";
+function narcSeed(){ return newProjectSection({id:NARC_ID,name:"Психология нарциссов",sub:"Блог и книга",goal:"Цель: блог и книга",color:"var(--a-violet)",icon:"book",
+  project:{stages:[{id:"pj-narc-blog",name:"Блог",tasks:[]},{id:"pj-narc-ideas",name:"Идеи и темы",tasks:[]},{id:"pj-narc-book",name:"Книга",tasks:[]}],
+    goals:[{id:"pg-narc",kind:"global",title:"Блог и книга",date:"",pct:0}]}}); }
 function pjTasks(p){ const r=[]; (p.stages||[]).forEach(st=>(st.tasks||[]).forEach(t=>r.push(t))); return r; }
 function pjFind(p,id){ for(const st of p.stages){ const t=st.tasks.find(x=>x.id===id); if(t) return {task:t,stage:st}; } return null; }
 /* доля сделанного: подзадачи считаются поштучно, задача без подзадач - по статусу; «необязательно» не в счёт */
@@ -74,9 +84,15 @@ function pjProgress(p){ let d=0,t=0;
 /* минуты за неделю по записям времени (понедельник недели mon, строка YYYY-MM-DD) */
 function pjWeekMin(p,mon){ const e=new Date(mon+"T00:00:00"); e.setDate(e.getDate()+6); const to=ymd(e);
   return (p.time||[]).filter(x=>x.date>=mon&&x.date<=to).reduce((a,x)=>a+(+x.min||0),0); }
+/* записи страницы задачи считаются вместе со вложенными страницами (блок type:"page" хранит свои блоки в kids) */
+function pjBlkCount(list){ return (list||[]).reduce((a,b)=>a+(b&&String(b.text||"").trim()?1:0)+(b?pjBlkCount(b.kids):0),0); }
+/* галочки внутри страницы: чек-листы и страницы (у страницы всегда есть галочка), в том числе вложенные */
+function pjTodoCount(list){ let d=0,t=0; (list||[]).forEach(b=>{ if(!b) return;
+  if(b.type==="todo"||b.type==="page"){ t++; if(b.done) d++; }
+  const c=pjTodoCount(b.kids); d+=c.d; t+=c.t; }); return {d:d,t:t}; }
 function projectScore(p){ if(!p) return 0; let n=0;
   pjTasks(p).forEach(t=>{ if(t.status==="d") n++; n+=t.subs.filter(s=>s.done).length;
-    PJ_BLOCK_KEYS.forEach(k=>{ n+=(t.blocks[k]||[]).filter(b=>b&&String(b.text||"").trim()).length; }); });
+    PJ_BLOCK_KEYS.forEach(k=>{ n+=pjBlkCount(t.blocks[k]); }); });
   return n+(p.time||[]).length; }
 
 /* ---- слияние ---- */
@@ -124,6 +140,6 @@ function mergeProject(m,b,aM,bM){ const a=ensureProject(m.project), bb=ensurePro
   mKeepUnknown(a,bb); m.project=ensureProject(a); }
 
 Object.assign(window, {
-  PJ_BLOCK_KEYS, ensureTask, ensureProject, newProjectSection, pjTasks, pjFind, pjProgress,
-  projectScore, mergeProject, pjWeekMin, courseToProject, pjCourseStages,
+  PJ_BLOCK_KEYS, PJ_RANK, pjBlkCount, pjTodoCount, ensureTask, ensureProject, newProjectSection, pjTasks, pjFind, pjProgress,
+  projectScore, mergeProject, pjWeekMin, courseToProject, pjCourseStages, NARC_ID, narcSeed, pjHash,
 });

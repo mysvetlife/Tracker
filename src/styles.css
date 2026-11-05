@@ -682,3 +682,10 @@
   .pj-trow{display:flex; gap:12px; align-items:baseline; padding:6px 10px; border-bottom:1px solid var(--line); font-size:13.5px}
   .pj-tdate{width:64px; color:var(--muted-2); flex-shrink:0} .pj-tmin{width:70px; font-weight:600; flex-shrink:0} .pj-twhat{flex:1; min-width:0} .pj-twhat small{color:var(--muted-2)}
   .pj-trow:hover .pj-x{opacity:1}
+
+/* ---- Входящие (notes.js) ---- */
+.tcount{margin-left:auto; font-size:11px; font-weight:600; color:var(--muted); background:rgba(120,84,56,.10); padding:1px 8px; border-radius:20px}
+.tab.active .tcount{background:rgba(255,255,255,.55)}
+.nt-head{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.nt-item .nt-meta{font-size:12px; color:var(--muted-2); margin-bottom:6px}
+.nt-item .note-area{margin-top:0}

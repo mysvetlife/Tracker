@@ -18,7 +18,7 @@ function dataScore(d){ if(!d||!d.sections) return 0; let n=0;
       +Object.keys((e.twenty&&e.twenty.done)||{}).length+Object.keys((e.wdaily&&e.wdaily.days)||{}).length+Object.keys((e.hp&&e.hp.days)||{}).length+Object.keys((e.anki&&e.anki.days)||{}).length; }
     if(s.kind==="project") n+=projectScore(s.project);
     if(s.items){ s.items.forEach(it=>{ if(it.done||it.value||it.minutes) n++; }); }
-  }); return n; }
+  }); n+=(d.notes||[]).length; return n; }
 function loadSync(){ try{ const r=localStorage.getItem(SYNC_KEY); window.syncCfg=r?JSON.parse(r):null; }catch(e){ window.syncCfg=null; } return syncCfg; }
 function syncConfigured(){ return !!(syncCfg&&syncCfg.url&&syncCfg.key&&syncCfg.code); }
 function setSyncStatus(txt,color){ const el=document.getElementById("syncBtn"); if(el){ const s=el.querySelector(".slabel"); if(s) s.textContent=txt; if(color!==undefined) el.style.color=color; } }
@@ -161,6 +161,7 @@ function mergeData(A,B){ if(!A) return B; if(!B) return A; const M=JSON.parse(JS
   M.sections=M.sections.filter(s=>M.secDeleted.indexOf(s.id)<0);
   M.week=mergeWeek(M.week||A.week, B.week, aM, bM);
   M.plan=mergePlan(M.plan||A.plan, B.plan, aM, bM);
+  mergeNotes(M,B,aM,bM); mergeHabits(M,B,aM,bM);
   if(A.planTpl||(B&&B.planTpl)) M.planTpl=mTplT(A.planTpl, B.planTpl, aM, bM);
   M._m=M._m||{}; Object.keys(bM).forEach(p=>{ if((bM[p]||0)>(M._m[p]||0)) M._m[p]=bM[p]; });
   return M; }

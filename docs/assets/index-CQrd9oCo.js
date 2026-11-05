@@ -1362,6 +1362,28 @@ function migrate$1(d) {
 	d.secDeleted = d.secDeleted || [];
 	d.sections.forEach((s) => {
 		if (!s.kind) s.kind = s.course ? "course" : s.sport ? "sport" : "generic";
+	});
+	d.sections = d.sections.map((s) => s.kind === "course" ? courseToProject(s, d._m) : s);
+	{
+		const seen = {};
+		d.sections = d.sections.filter((s) => {
+			if (s.kind !== "project") return true;
+			const f = seen[s.id];
+			if (!f) {
+				seen[s.id] = s;
+				return true;
+			}
+			mergeProject(f, s, d._m, d._m);
+			return false;
+		});
+	}
+	seedPlans(d);
+	if (!d.sections.some((s) => s.id === NARC_ID) && d.secDeleted.indexOf(NARC_ID) < 0) d.sections.push(narcSeed());
+	orderSections(d);
+	ensureNotes(d);
+	ensureHabits(d);
+	d.sections.forEach((s) => {
+		if (!s.kind) s.kind = s.course ? "course" : s.sport ? "sport" : "generic";
 		if (s.kind === "custom") ensureCustom$1(s);
 		else ensureBlocks$1(s);
 		if (s.kind === "generic" && (s.name === "Учёба" || s.name === "Учеба")) {
@@ -1377,6 +1399,7 @@ function migrate$1(d) {
 			s.sub = "Яндекс.Практикум + практика речи";
 			delete s.items;
 		}
+		if (s.kind === "project") s.project = ensureProject(s.project);
 		if (s.kind === "sport") s.sport = ensureSport(s.sport);
 		if (s.kind === "career") s.career = ensureCareer(s.career);
 		if (s.kind === "english") s.english = ensureEnglish(s.english);
@@ -1409,7 +1432,7 @@ function load$1() {
 	const cur = lsGet(STORE_KEY$1);
 	const prev = lsGet("progress_tracker_v3") || lsGet("progress_tracker_v2");
 	if (!cur && !prev) return null;
-	const base = migrate$1(cur || defaultData$1());
+	const base = cur || defaultData$1();
 	if (prev && prev.sections) {
 		const pc = prev.sections.find((s) => s.course);
 		const bc = base.sections.find((s) => s.kind === "course");
@@ -1424,7 +1447,7 @@ function load$1() {
 			if (bs && (!bs.items || bs.items.every((i) => !i.done && !i.value && !i.minutes && !i.note))) bs.items = ps.items;
 		});
 	}
-	return base;
+	return migrate$1(base);
 }
 Object.assign(window, {
 	uid: uid$1,
@@ -1455,6 +1478,460 @@ Object.assign(window, {
 	PHASE_A_HOME: PHASE_A_HOME$1
 });
 //#endregion
+//#region src/project-model.js
+var PJ_BLOCK_KEYS$1 = [
+	"theory",
+	"practice",
+	"notes",
+	"questions",
+	"links"
+];
+var PJ_RANK = {
+	n: 0,
+	i: 1,
+	d: 3,
+	o: 2
+};
+function ensureTask$1(t) {
+	t.id = t.id || uid();
+	t.name = t.name || "";
+	t.status = t.status in PJ_RANK ? t.status : "n";
+	t.start = t.start || "";
+	t.end = t.end || "";
+	t.hours = +t.hours || 0;
+	t.doneOn = t.doneOn || "";
+	t.note = !!t.note;
+	t.prac = !!t.prac;
+	t.subs = t.subs || [];
+	t.subs.forEach((s) => {
+		s.id = s.id || uid();
+		s.name = s.name || "";
+		s.done = !!s.done;
+		s.type = s.type || "";
+	});
+	t.blocks = t.blocks || {};
+	PJ_BLOCK_KEYS$1.forEach((k) => {
+		t.blocks[k] = t.blocks[k] || [];
+	});
+	return t;
+}
+function ensureProject$1(p) {
+	p = p || {};
+	p.stages = p.stages || [];
+	p.goals = p.goals || [];
+	p.time = p.time || [];
+	p.del = p.del || [];
+	p.exp = p.exp || {};
+	p.moods = p.moods || [];
+	p.stages.forEach((st) => {
+		st.id = st.id || uid();
+		st.name = st.name || "";
+		st.tasks = st.tasks || [];
+		st.tasks.forEach(ensureTask$1);
+	});
+	p.goals.forEach((g) => {
+		g.id = g.id || uid();
+		g.kind = g.kind || "global";
+		g.title = g.title || "";
+		g.date = g.date || "";
+		g.pct = +g.pct || 0;
+	});
+	p.time.forEach((x) => {
+		x.id = x.id || uid();
+		x.task = x.task || "";
+		x.date = x.date || "";
+		x.min = +x.min || 0;
+		x.what = x.what || "";
+		x.src = x.src || "";
+	});
+	return p;
+}
+function pjHash$1(str) {
+	let h = 5381;
+	for (let i = 0; i < str.length; i++) h = (h << 5) + h + str.charCodeAt(i) | 0;
+	return (h >>> 0).toString(36);
+}
+function pjCourseStages() {
+	let cur = {
+		name: "Введение",
+		items: []
+	};
+	const out = [cur];
+	let mod = 0;
+	COURSE.forEach((l, li) => {
+		cur.items.push(li);
+		if (li === 1 || /^Обратная связь по модулю/.test(l.t)) {
+			mod++;
+			cur = {
+				name: "Модуль " + mod,
+				items: []
+			};
+			out.push(cur);
+		}
+	});
+	if (!cur.items.length) out.pop();
+	else if (cur.items.length === 1 && /^Заключение/.test(COURSE[cur.items[0]].t)) cur.name = "Заключение";
+	out.forEach((st, i) => {
+		st.id = "co-m" + i;
+	});
+	return out;
+}
+function courseToProject$1(sec, M) {
+	M = M || {};
+	const c = JSON.parse(JSON.stringify(sec.course || {})), done = c.done || {};
+	const stages = pjCourseStages().map((st) => ({
+		id: st.id,
+		name: st.name,
+		tasks: st.items.map((li) => {
+			const l = COURSE[li];
+			const subs = l.s.map((x, si) => {
+				const k = "l" + li + "s" + si, id = "co-l" + li + "s" + si;
+				if (M["co:" + k]) M["ps:" + id] = Math.max(M["ps:" + id] || 0, M["co:" + k]);
+				return {
+					id,
+					name: x[1],
+					type: x[0],
+					done: !!done[k]
+				};
+			});
+			const dn = subs.filter((x) => x.done).length;
+			return {
+				id: "co-l" + li,
+				name: l.t,
+				status: dn === subs.length ? "d" : dn ? "i" : "n",
+				subs
+			};
+		})
+	}));
+	const time = [], seen = {};
+	(c.timeLog || []).forEach((t) => {
+		const base = "tl-" + pjHash$1((t.d || "") + "|" + (t.m || 0) + "|" + (t.note || ""));
+		seen[base] = (seen[base] || 0) + 1;
+		time.push({
+			id: seen[base] > 1 ? base + "-" + seen[base] : base,
+			task: "",
+			date: t.d || "",
+			min: t.m || 0,
+			what: t.note || "",
+			src: ""
+		});
+	});
+	Object.keys(c.tlog || {}).forEach((k) => {
+		const ds = k.split("|")[1] || "";
+		if (c.tlog[k]) time.push({
+			id: "tlg-" + pjHash$1(k),
+			task: "",
+			date: ds,
+			min: c.tlog[k],
+			what: "",
+			src: "минуты по дням"
+		});
+		if (M["tl:" + k]) M["pt:tlg-" + pjHash$1(k)] = M["tl:" + k];
+	});
+	const exp = {};
+	Object.keys(c.exp || {}).forEach((li) => {
+		if (c.exp[li]) exp["co-l" + li] = 1;
+	});
+	const out = Object.assign({}, sec, {
+		kind: "project",
+		legacyKey: "course",
+		cover: sec.cover || "",
+		goal: sec.goal || sec.sub || "",
+		project: ensureProject$1({
+			stages,
+			time,
+			moods: c.moods || [],
+			exp,
+			legacy: { course: c }
+		})
+	});
+	delete out.course;
+	return out;
+}
+function newProjectSection$1(o) {
+	o = o || {};
+	return {
+		id: o.id || uid(),
+		name: o.name || "Новое направление",
+		kind: "project",
+		color: o.color || "var(--a-blue)",
+		icon: o.icon || "star",
+		sub: o.sub || "",
+		cover: o.cover || "",
+		goal: o.goal || "",
+		project: ensureProject$1(o.project)
+	};
+}
+var NARC_ID$1 = "pj-narc";
+function narcSeed$1() {
+	return newProjectSection$1({
+		id: NARC_ID$1,
+		name: "Психология нарциссов",
+		sub: "Блог и книга",
+		goal: "Цель: блог и книга",
+		color: "var(--a-violet)",
+		icon: "book",
+		project: {
+			stages: [
+				{
+					id: "pj-narc-blog",
+					name: "Блог",
+					tasks: []
+				},
+				{
+					id: "pj-narc-ideas",
+					name: "Идеи и темы",
+					tasks: []
+				},
+				{
+					id: "pj-narc-book",
+					name: "Книга",
+					tasks: []
+				}
+			],
+			goals: [{
+				id: "pg-narc",
+				kind: "global",
+				title: "Блог и книга",
+				date: "",
+				pct: 0
+			}]
+		}
+	});
+}
+function pjTasks$1(p) {
+	const r = [];
+	(p.stages || []).forEach((st) => (st.tasks || []).forEach((t) => r.push(t)));
+	return r;
+}
+function pjFind$1(p, id) {
+	for (const st of p.stages) {
+		const t = st.tasks.find((x) => x.id === id);
+		if (t) return {
+			task: t,
+			stage: st
+		};
+	}
+	return null;
+}
+function pjProgress$1(p) {
+	let d = 0, t = 0;
+	pjTasks$1(p).forEach((k) => {
+		if (k.status === "o") return;
+		if (k.subs.length) {
+			t += k.subs.length;
+			d += k.status === "d" ? k.subs.length : k.subs.filter((s) => s.done).length;
+		} else {
+			t++;
+			if (k.status === "d") d++;
+		}
+	});
+	return {
+		done: d,
+		total: t,
+		pct: t ? d / t : 0
+	};
+}
+function pjWeekMin$1(p, mon) {
+	const e = /* @__PURE__ */ new Date(mon + "T00:00:00");
+	e.setDate(e.getDate() + 6);
+	const to = ymd(e);
+	return (p.time || []).filter((x) => x.date >= mon && x.date <= to).reduce((a, x) => a + (+x.min || 0), 0);
+}
+function pjBlkCount$1(list) {
+	return (list || []).reduce((a, b) => a + (b && String(b.text || "").trim() ? 1 : 0) + (b ? pjBlkCount$1(b.kids) : 0), 0);
+}
+function pjTodoCount$1(list) {
+	let d = 0, t = 0;
+	(list || []).forEach((b) => {
+		if (!b) return;
+		if (b.type === "todo" || b.type === "page") {
+			t++;
+			if (b.done) d++;
+		}
+		const c = pjTodoCount$1(b.kids);
+		d += c.d;
+		t += c.t;
+	});
+	return {
+		d,
+		t
+	};
+}
+function projectScore$1(p) {
+	if (!p) return 0;
+	let n = 0;
+	pjTasks$1(p).forEach((t) => {
+		if (t.status === "d") n++;
+		n += t.subs.filter((s) => s.done).length;
+		PJ_BLOCK_KEYS$1.forEach((k) => {
+			n += pjBlkCount$1(t.blocks[k]);
+		});
+	});
+	return n + (p.time || []).length;
+}
+function pjPick(av, bv, p, aM, bM, tie) {
+	const ta = aM[p] || 0, tb = bM[p] || 0;
+	if (ta || tb) return tb > ta ? bv : av;
+	return tie ? tie(av, bv) : av;
+}
+function pjById(a, b) {
+	a = a || [];
+	b = b || [];
+	const seen = {}, out = [];
+	a.concat(b).forEach((x) => {
+		if (x && !seen[x.id]) {
+			seen[x.id] = 1;
+			out.push(x);
+		}
+	});
+	return out;
+}
+function pjMergeList(a, b, p, aM, bM) {
+	a = a || [];
+	b = b || [];
+	const ta = aM[p] || 0, tb = bM[p] || 0;
+	if (ta || tb) return JSON.parse(JSON.stringify(tb > ta ? b : a));
+	return JSON.parse(JSON.stringify(pjById(a, b)));
+}
+function pjMergeTask(a, b, aM, bM) {
+	const p = "pj:" + a.id, ta = aM[p] || 0, tb = bM[p] || 0, F = [
+		"name",
+		"status",
+		"start",
+		"end",
+		"hours",
+		"doneOn"
+	];
+	let src;
+	if (ta || tb) src = tb > ta ? b : a;
+	else src = (PJ_RANK[b.status] || 0) > (PJ_RANK[a.status] || 0) ? b : a;
+	F.forEach((f) => {
+		a[f] = src[f];
+	});
+	if (ta || tb) {
+		a.note = src.note;
+		a.prac = src.prac;
+	} else {
+		a.note = !!(a.note || b.note);
+		a.prac = !!(a.prac || b.prac);
+	}
+	const subs = [];
+	const bs = {};
+	(b.subs || []).forEach((s) => {
+		bs[s.id] = s;
+	});
+	(a.subs || []).forEach((s) => {
+		const o = bs[s.id];
+		if (o) {
+			const sp = "pj:" + s.id, sa = aM["ps:" + s.id] || 0, sb = bM["ps:" + s.id] || 0;
+			s.done = sa || sb ? sb > sa ? !!o.done : !!s.done : !!(s.done || o.done);
+			const meta = pjPick(s, o, sp, aM, bM);
+			s.name = meta.name;
+			s.type = meta.type;
+		}
+		subs.push(s);
+	});
+	(b.subs || []).forEach((s) => {
+		if (!(a.subs || []).some((x) => x.id === s.id)) subs.push(JSON.parse(JSON.stringify(s)));
+	});
+	a.subs = subs;
+	PJ_BLOCK_KEYS$1.forEach((k) => {
+		a.blocks[k] = pjMergeList(a.blocks[k], (b.blocks || {})[k], "pb:" + a.id + "." + k, aM, bM);
+	});
+	Object.keys(b.blocks || {}).forEach((k) => {
+		if (!(k in a.blocks)) a.blocks[k] = JSON.parse(JSON.stringify(b.blocks[k]));
+	});
+	mKeepUnknown(a, b);
+	return a;
+}
+function mergeProject$1(m, b, aM, bM) {
+	const a = ensureProject$1(m.project), bb = ensureProject$1(b.project);
+	bb.del.forEach((id) => {
+		if (a.del.indexOf(id) < 0) a.del.push(id);
+	});
+	const gone = (id) => a.del.indexOf(id) >= 0;
+	bb.stages.forEach((bs) => {
+		if (gone(bs.id)) return;
+		let ms = a.stages.find((x) => x.id === bs.id);
+		if (!ms) {
+			ms = {
+				id: bs.id,
+				name: bs.name,
+				tasks: []
+			};
+			a.stages.push(ms);
+		} else ms.name = pjPick(ms.name, bs.name, "pj:" + bs.id, aM, bM);
+		bs.tasks.forEach((bt) => {
+			if (gone(bt.id)) return;
+			const have = pjFind$1(a, bt.id);
+			if (!have) ms.tasks.push(JSON.parse(JSON.stringify(bt)));
+			else pjMergeTask(have.task, bt, aM, bM);
+		});
+	});
+	a.stages = a.stages.filter((st) => !gone(st.id));
+	a.stages.forEach((st) => {
+		st.tasks = st.tasks.filter((t) => !gone(t.id));
+		st.tasks.forEach((t) => {
+			t.subs = t.subs.filter((s) => !gone(s.id));
+		});
+	});
+	a.time = pjById(a.time, bb.time).filter((x) => !gone(x.id));
+	{
+		const bt = {};
+		bb.time.forEach((x) => {
+			bt[x.id] = x;
+		});
+		a.time = a.time.map((x) => bt[x.id] ? pjPick(x, bt[x.id], "pt:" + x.id, aM, bM) : x);
+	}
+	a.goals = pjById(a.goals, bb.goals).filter((x) => !gone(x.id));
+	{
+		const bg = {};
+		bb.goals.forEach((x) => {
+			bg[x.id] = x;
+		});
+		a.goals = a.goals.map((x) => bg[x.id] ? pjPick(x, bg[x.id], "pg:" + x.id, aM, bM) : x);
+	}
+	a.moods = mergeArr(a.moods, bb.moods, (x) => x.ts);
+	a.exp = Object.assign({}, bb.exp, a.exp);
+	const sp = "cs:" + b.id;
+	if ((bM[sp] || 0) > (aM[sp] || 0)) [
+		"name",
+		"sub",
+		"color",
+		"icon",
+		"cover",
+		"goal"
+	].forEach((f) => {
+		m[f] = b[f];
+	});
+	else ["cover", "goal"].forEach((f) => {
+		if (!m[f] && b[f]) m[f] = b[f];
+	});
+	mKeepUnknown(a, bb);
+	m.project = ensureProject$1(a);
+}
+Object.assign(window, {
+	PJ_BLOCK_KEYS: PJ_BLOCK_KEYS$1,
+	PJ_RANK,
+	pjBlkCount: pjBlkCount$1,
+	pjTodoCount: pjTodoCount$1,
+	ensureTask: ensureTask$1,
+	ensureProject: ensureProject$1,
+	newProjectSection: newProjectSection$1,
+	pjTasks: pjTasks$1,
+	pjFind: pjFind$1,
+	pjProgress: pjProgress$1,
+	projectScore: projectScore$1,
+	mergeProject: mergeProject$1,
+	pjWeekMin: pjWeekMin$1,
+	courseToProject: courseToProject$1,
+	pjCourseStages,
+	NARC_ID: NARC_ID$1,
+	narcSeed: narcSeed$1,
+	pjHash: pjHash$1
+});
+//#endregion
 //#region src/helpers.js
 function esc$1(s) {
 	return String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({
@@ -1479,7 +1956,7 @@ function fmtMin$1(m) {
 	const h = Math.floor(m / 60), mm = m % 60;
 	return mm ? `${h} ч ${mm} мин` : `${h} ч`;
 }
-function fmtDate(s) {
+function fmtDate$1(s) {
 	return (/* @__PURE__ */ new Date(s + "T00:00:00")).toLocaleDateString("ru-RU", {
 		day: "numeric",
 		month: "short"
@@ -1497,7 +1974,7 @@ function softColor$1(c) {
 function ring$1(pct, size, stroke, color, showText) {
 	const r = (size - stroke) / 2, c = 2 * Math.PI * r, off = c * (1 - pct), cx = size / 2;
 	return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
-    <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="${stroke}"/>
+    <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="rgba(120,84,56,.12)" stroke-width="${stroke}"/>
     <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round"
       stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 ${cx} ${cx})" style="transition:stroke-dashoffset .6s var(--ease)"/>
     ${showText ? `<text x="${cx}" y="${cx + size * .075}" text-anchor="middle" fill="var(--text)" font-family="Sora,sans-serif" font-size="${size * .24}" font-weight="700">${Math.round(pct * 100)}%</text>` : ""}
@@ -1536,6 +2013,10 @@ function itemProgress(it) {
 	return 0;
 }
 function sectionProgress$1(sec) {
+	if (sec.kind === "project") {
+		const r = pjProgress(sec.project);
+		return r.total ? r.pct : 0;
+	}
 	if (sec.kind === "course") {
 		const t = cTotalSteps$1();
 		return t ? cDoneSteps$1(sec.course) / t : 0;
@@ -1603,13 +2084,18 @@ function sectionProgress$1(sec) {
 function sectionTime$1(sec) {
 	const cb = cbWeekMin(sec, mondayOf(todayStr$1()));
 	if (sec.kind === "course") return cMinutes(sec.course) + cb;
+	if (sec.kind === "project") return pjWeekMin(sec.project, mondayOf(todayStr$1())) + cb;
 	if (sec.kind === "sport") return cb;
 	if (sec.kind === "career") return careerWeekMin(sec.career, mondayOf(todayStr$1())) + cb;
 	if (sec.kind === "english") return engWeekMin(sec.english, mondayOf(todayStr$1())) + cb;
 	if (sec.kind === "custom") return cb;
 	return sec.items.filter((it) => it.type === "time").reduce((a, it) => a + (it.minutes || 0), 0);
 }
-function itemsMeta$1(sec) {
+function itemsMeta(sec) {
+	if (sec.kind === "project") {
+		const r = pjProgress(sec.project);
+		return r.total ? r.done + "/" + r.total + " готово" : "План пока пуст";
+	}
 	if (sec.kind === "course") return cDoneSteps$1(sec.course) + "/" + cTotalSteps$1() + " этапов";
 	if (sec.kind === "sport") {
 		const sp = sec.sport;
@@ -1655,7 +2141,7 @@ Object.assign(window, {
 	esc: esc$1,
 	plural: plural$1,
 	fmtMin: fmtMin$1,
-	fmtDate,
+	fmtDate: fmtDate$1,
 	ymd: ymd$1,
 	todayStr: todayStr$1,
 	softColor: softColor$1,
@@ -1671,35 +2157,3422 @@ Object.assign(window, {
 	itemProgress,
 	sectionProgress: sectionProgress$1,
 	sectionTime: sectionTime$1,
-	itemsMeta: itemsMeta$1
+	itemsMeta
+});
+//#endregion
+//#region src/project.js
+window.pjTab = "plan";
+window.pjTask = null;
+window.pjBTab = "theory";
+window.pjPath = [];
+window.pjFocus = null;
+window.pjQuery = "";
+window.pjFilter = "all";
+var PJ_ST = {
+	n: "Не начато",
+	i: "Идёт",
+	d: "Готово",
+	o: "Необязательно"
+};
+var PJ_ORDER = [
+	"n",
+	"i",
+	"d",
+	"o"
+];
+var PJ_TYPE = {
+	"": "•",
+	v: "▶",
+	a: "≡",
+	r: "✎",
+	q: "?"
+};
+var PJ_TYPE_NEXT = {
+	"": "v",
+	v: "a",
+	a: "r",
+	r: "q",
+	q: ""
+};
+var PJ_TYPE_NAME = {
+	"": "без типа",
+	v: "видео",
+	a: "текст",
+	r: "практика",
+	q: "тест"
+};
+var PJ_BTABS = [
+	["theory", "Теория"],
+	["practice", "Практика"],
+	["notes", "Заметки"],
+	["questions", "Вопросы"],
+	["links", "Ссылки"]
+];
+var PJ_BLK = [
+	[
+		"p",
+		"Текст",
+		"¶"
+	],
+	[
+		"h",
+		"Заголовок",
+		"H"
+	],
+	[
+		"ul",
+		"Список",
+		"•"
+	],
+	[
+		"todo",
+		"Чек-лист",
+		"☑"
+	],
+	[
+		"quote",
+		"Цитата",
+		"❝"
+	],
+	[
+		"code",
+		"Код",
+		"</>"
+	],
+	[
+		"page",
+		"Страница",
+		"📄"
+	]
+];
+function pjSec$1(id) {
+	return data.sections.find((s) => s.id === id && s.kind === "project");
+}
+function pjSub$1(p, id) {
+	for (const t of pjTasks(p)) {
+		const s = t.subs.find((x) => x.id === id);
+		if (s) return {
+			sub: s,
+			task: t
+		};
+	}
+	return null;
+}
+function pjOpenState(p, id, def) {
+	const v = p.exp[id];
+	return v === void 0 ? def : !!v;
+}
+function pjEd$1(k, secId, id, text, ph, cls) {
+	return `<span class="pj-ed ${cls || ""}" contenteditable="plaintext-only" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}">${esc(text)}</span>`;
+}
+function pjDone(t) {
+	return t.status === "d";
+}
+function pjTouchTask(t) {
+	mstamp("pj:" + t.id);
+}
+function pjSetStatus(secId, taskId, st) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	const f = pjFind(sec.project, taskId);
+	if (!f) return;
+	const t = f.task;
+	if (t.status === st) return;
+	t.status = st;
+	t.doneOn = st === "d" ? todayStr() : "";
+	if (st === "d") t.subs.forEach((s) => {
+		if (!s.done) {
+			s.done = true;
+			mstamp("ps:" + s.id);
+		}
+	});
+	pjTouchTask(t);
+	render();
+}
+function pjCycle(secId, taskId) {
+	const sec = pjSec$1(secId);
+	const f = sec && pjFind(sec.project, taskId);
+	if (!f) return;
+	pjSetStatus(secId, taskId, PJ_ORDER[(PJ_ORDER.indexOf(f.task.status) + 1) % PJ_ORDER.length]);
+}
+function pjCheckTask(secId, taskId) {
+	const sec = pjSec$1(secId);
+	const f = sec && pjFind(sec.project, taskId);
+	if (!f) return;
+	pjSetStatus(secId, taskId, f.task.status === "d" ? "i" : "d");
+}
+function pjSetSubDone$1(s, t, v) {
+	if (s.done === v) return;
+	s.done = v;
+	mstamp("ps:" + s.id);
+	if (t.subs.every((x) => x.done) && t.status !== "d" && t.status !== "o") {
+		t.status = "d";
+		t.doneOn = todayStr();
+		pjTouchTask(t);
+	} else if (!v && t.status === "d") {
+		t.status = "i";
+		t.doneOn = "";
+		pjTouchTask(t);
+	} else if (v && t.status === "n") {
+		t.status = "i";
+		pjTouchTask(t);
+	}
+}
+function pjToggleSub(secId, subId) {
+	const sec = pjSec$1(secId);
+	const f = sec && pjSub$1(sec.project, subId);
+	if (!f) return;
+	pjSetSubDone$1(f.sub, f.task, !f.sub.done);
+	render();
+}
+function pjCycleType(secId, subId) {
+	const sec = pjSec$1(secId);
+	const f = sec && pjSub$1(sec.project, subId);
+	if (!f) return;
+	f.sub.type = PJ_TYPE_NEXT[f.sub.type || ""] || "";
+	mstamp("pj:" + f.sub.id);
+	render();
+}
+function pjField(secId, taskId, field, val) {
+	const sec = pjSec$1(secId);
+	const f = sec && pjFind(sec.project, taskId);
+	if (!f) return;
+	const t = f.task;
+	if (field === "hours") val = Math.max(0, parseFloat(String(val).replace(",", ".")) || 0);
+	if (field === "note" || field === "prac") val = !!val;
+	t[field] = val;
+	pjTouchTask(t);
+	save();
+	if (field === "note" || field === "prac") render();
+}
+function pjFold(secId, key, def) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	const p = sec.project;
+	p.exp[key] = pjOpenState(p, key, def) ? 0 : 1;
+	render();
+}
+function pjAddStage(secId) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	const st = {
+		id: uid(),
+		name: "Этап " + (sec.project.stages.length + 1),
+		tasks: []
+	};
+	sec.project.stages.push(st);
+	mstamp("pj:" + st.id);
+	window.pjFocus = st.id;
+	render();
+}
+function pjAddTask(secId, stageId) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	const p = sec.project;
+	let st = p.stages.find((x) => x.id === stageId);
+	if (!st) {
+		st = {
+			id: uid(),
+			name: "Этап 1",
+			tasks: []
+		};
+		p.stages.push(st);
+		mstamp("pj:" + st.id);
+	}
+	const t = ensureTask({
+		id: uid(),
+		name: "",
+		status: "n"
+	});
+	st.tasks.push(t);
+	pjTouchTask(t);
+	p.exp[st.id] = 1;
+	window.pjFocus = t.id;
+	render();
+}
+function pjAddSub(secId, taskId) {
+	const sec = pjSec$1(secId);
+	const f = sec && pjFind(sec.project, taskId);
+	if (!f) return;
+	const t = f.task;
+	const s = {
+		id: uid(),
+		name: "",
+		done: false,
+		type: ""
+	};
+	t.subs.push(s);
+	mstamp("pj:" + s.id);
+	if (t.status === "d") {
+		t.status = "i";
+		t.doneOn = "";
+		pjTouchTask(t);
+	}
+	sec.project.exp[t.id] = 1;
+	window.pjFocus = s.id;
+	render();
+}
+function pjDel(secId, kind, id) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	const p = sec.project;
+	if (kind === "stage") {
+		const st = p.stages.find((x) => x.id === id);
+		if (!st) return;
+		if (st.tasks.length && !confirm("Удалить этап «" + st.name + "» вместе с задачами (" + st.tasks.length + ")?")) return;
+		st.tasks.forEach((t) => p.del.push(t.id));
+		p.del.push(id);
+		p.stages = p.stages.filter((x) => x.id !== id);
+	} else if (kind === "task") {
+		const f = pjFind(p, id);
+		if (!f) return;
+		if ((f.task.subs.length || pjBlockCount(f.task)) && !confirm("Удалить задачу «" + (f.task.name || "без названия") + "» со всем содержимым?")) return;
+		p.del.push(id);
+		f.stage.tasks = f.stage.tasks.filter((x) => x.id !== id);
+		if (window.pjTask === id) window.pjTask = null;
+	} else if (kind === "sub") {
+		const f = pjSub$1(p, id);
+		if (!f) return;
+		p.del.push(id);
+		f.task.subs = f.task.subs.filter((x) => x.id !== id);
+	}
+	render();
+}
+function pjBlockCount(t) {
+	return PJ_BLOCK_KEYS.reduce((a, k) => a + pjBlkCount(t.blocks[k]), 0);
+}
+function pjRename(el, live) {
+	if (!el.isConnected) return;
+	const sec = pjSec$1(el.dataset.s);
+	if (!sec) return;
+	const p = sec.project, id = el.dataset.id, k = el.dataset.k;
+	const v = el.innerText.replace(/\s*\n\s*/g, " ").trim();
+	if (!live) el.textContent = v;
+	if (k === "proj") {
+		if (!v) {
+			if (!live) el.textContent = sec.name;
+			return;
+		}
+		if (sec.name === v) return;
+		sec.name = v;
+		mstamp("cs:" + sec.id);
+		save();
+		renderTabs();
+		return;
+	}
+	if (k === "goal") {
+		if (sec.goal === v) return;
+		sec.goal = v;
+		mstamp("cs:" + sec.id);
+		save();
+		return;
+	}
+	if (k === "stage") {
+		const st = p.stages.find((x) => x.id === id);
+		if (st && st.name !== v) {
+			st.name = v;
+			mstamp("pj:" + id);
+			save();
+		}
+		return;
+	}
+	if (k === "task") {
+		const f = pjFind(p, id);
+		if (f && f.task.name !== v) {
+			f.task.name = v;
+			pjTouchTask(f.task);
+			save();
+		}
+		return;
+	}
+	if (k === "sub") {
+		const f = pjSub$1(p, id);
+		if (f && f.sub.name !== v) {
+			f.sub.name = v;
+			mstamp("pj:" + id);
+			save();
+		}
+	}
+}
+function pjGo(secId, tab) {
+	data.active = secId;
+	window.pjTab = tab || window.pjTab;
+	window.pjTask = null;
+	window.pjPath = [];
+	render();
+}
+function pjOpenTask(secId, taskId) {
+	data.active = secId;
+	window.pjTask = taskId;
+	window.pjBTab = "theory";
+	window.pjPath = [];
+	render();
+	window.scrollTo(0, 0);
+}
+function pjBTabSet(k) {
+	window.pjBTab = k;
+	window.pjPath = [];
+	render();
+}
+function pjPathGo(n) {
+	window.pjPath = window.pjPath.slice(0, n);
+	render();
+	window.scrollTo(0, 0);
+}
+function pjResolve(t, key, path) {
+	let list = t.blocks[key] || (t.blocks[key] = []);
+	const chain = [];
+	for (const id of path || []) {
+		const b = list.find((x) => x.id === id && x.type === "page");
+		if (!b) break;
+		b.kids = b.kids || [];
+		chain.push(b);
+		list = b.kids;
+	}
+	return {
+		list,
+		chain
+	};
+}
+var PJ_TABS = [
+	["plan", "План"],
+	["kan", "Канбан"],
+	["gantt", "Гант"],
+	["notes", "Конспекты"],
+	["prac", "Практика"],
+	["time", "Время"],
+	["goals", "Цели"]
+];
+var PJ_GOAL_KIND = {
+	global: "Глобальная",
+	month: "Месяц",
+	year: "Год"
+};
+function pjDiff(a, b) {
+	return Math.round((/* @__PURE__ */ new Date(b + "T00:00:00") - /* @__PURE__ */ new Date(a + "T00:00:00")) / 864e5);
+}
+function pjTaskMin(p, id) {
+	return p.time.filter((x) => x.task === id).reduce((a, x) => a + (+x.min || 0), 0);
+}
+function pjStats(p) {
+	const ts = pjTasks(p), cnt = ts.filter((t) => t.status !== "o"), today = todayStr();
+	const next = ts.filter((t) => t.status !== "d" && t.status !== "o" && t.end).sort((a, b) => a.end < b.end ? -1 : 1)[0] || null;
+	return {
+		doneT: cnt.filter((t) => t.status === "d").length,
+		totalT: cnt.length,
+		going: ts.filter((t) => t.status === "i"),
+		next,
+		days: next ? pjDiff(today, next.end) : null,
+		wk: pjWeekMin(p, mondayOf(today)),
+		all: p.time.reduce((a, x) => a + (+x.min || 0), 0),
+		plan: Math.round(ts.reduce((a, t) => a + (+t.hours || 0), 0) * 10) / 10,
+		stagesDone: p.stages.filter((st) => st.tasks.length && st.tasks.every((t) => t.status === "d" || t.status === "o")).length
+	};
+}
+function projectHTML$1(sec) {
+	const p = sec.project;
+	if (window.pjTask) {
+		const f = pjFind(p, window.pjTask);
+		if (f) return pjTaskHTML(sec, f.task, f.stage);
+		window.pjTask = null;
+	}
+	const st = pjStats(p), pr = pjProgress(p), tab = window.pjTab;
+	todayStr();
+	const tilesH = `<div class="tiles">${[
+		[`${st.doneT}<small>/${st.totalT}</small>`, "задач сделано"],
+		[st.going.length, "задач идёт"],
+		[st.days == null ? "—" : st.days + "<small> дн.</small>", "до ближайшего срока"],
+		[fmtMin(st.wk), "за неделю"]
+	].map((t, i) => `<div class="tile t${i + 1}"><div class="n${String(t[0]).replace(/<[^>]*>/g, "").length > 6 ? " sm" : ""}">${t[0]}</div><div class="l">${t[1]}</div></div>`).join("")}</div>`;
+	const nowT = st.going.slice().sort((a, b) => (a.end || "9") < (b.end || "9") ? -1 : 1)[0];
+	const nowC = nowT ? `<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap"><div><a class="t serif" onclick="pjOpenTask('${sec.id}','${nowT.id}')" style="cursor:pointer">${esc(nowT.name || "Без названия")}</a>
+      <div class="meta">${nowT.end ? "до " + fmtDate(nowT.end) : "без срока"}${st.next && st.next !== nowT ? " · дальше: " + esc(st.next.name) : ""}</div></div>
+      <div style="width:240px;text-align:right;font-size:12px" class="muted">Времени записано: ${fmtMin(pjTaskMin(p, nowT.id))}${nowT.hours ? " из " + nowT.hours + " ч" : ""}<div class="bar" style="background:#f0dcc8"><i style="width:${nowT.hours ? Math.min(100, Math.round(pjTaskMin(p, nowT.id) / 60 / nowT.hours * 100)) : 0}%"></i></div></div></div>` : `<div class="muted">Сейчас нет задачи со статусом «Идёт». Нажми на статус задачи в плане, и она появится здесь.</div>`;
+	const g0 = p.goals[0];
+	const facts = `<div class="card" style="padding:10px 6px"><div class="facts"><div><b>${Math.round(pr.pct * 100)}%</b><span>прогресс</span></div><div><b>${fmtMin(st.all)}</b><span>записано всего</span></div><div><b>${st.plan} ч</b><span>по плану</span></div>
+    <div><b>${st.stagesDone} из ${p.stages.length}</b><span>этапов пройдено</span></div><div><b>${st.next ? fmtDate(st.next.end) : "—"}</b><span>ближайший срок</span></div><div><b>${g0 && g0.date ? fmtDate(g0.date) + " " + g0.date.slice(0, 4) : "—"}</b><span>срок цели</span></div></div></div>`;
+	const cnt = {
+		notes: pjTasks(p).filter((t) => t.note).length,
+		prac: pjTasks(p).filter((t) => t.prac).length
+	};
+	const tabsH = `<div class="tabs">${PJ_TABS.map(([k, n]) => `<a class="tab ${tab === k ? "on" : ""}" onclick="pjGo('${sec.id}','${k}')">${n}${cnt[k] != null ? ` <span class="c">${cnt[k]}</span>` : ""}</a>`).join("")}</div>`;
+	const body = tab === "kan" ? pjKanbanHTML(sec) : tab === "gantt" ? pjGanttHTML(sec) : tab === "notes" || tab === "prac" ? pjFlagList(sec, tab) : tab === "time" ? pjTimeHTML(sec) : tab === "goals" ? pjGoalsHTML(sec) : pjPlanHTML(sec);
+	return tilesH + `<div class="card now"><div class="cap">Сейчас</div>${nowC}</div>` + facts + `<div class="card">${tabsH}<div class="tabbody">${body}</div></div>`;
+}
+function pjSubHTML(sec, s) {
+	return `<div class="bl"><span class="ck ${s.done ? "d" : ""}" onclick="pjToggleSub('${sec.id}','${s.id}')" role="checkbox" aria-checked="${s.done}"></span>
+  <span class="muted" style="cursor:pointer;width:16px;text-align:center" onclick="pjCycleType('${sec.id}','${s.id}')" title="Тип: ${PJ_TYPE_NAME[s.type || ""]} (нажми, чтобы сменить)">${PJ_TYPE[s.type || ""]}</span>
+  ${pjEd$1("sub", sec.id, s.id, s.name, "Подзадача", s.done ? "strike" : "")}<span class="del" onclick="pjDel('${sec.id}','sub','${s.id}')" title="Удалить">×</span></div>`;
+}
+var PJ_STCLS = {
+	n: "st-n",
+	i: "st-i",
+	d: "st-d",
+	o: "st-o"
+};
+function pjStBadge(sec, t) {
+	return `<span class="tag ${PJ_STCLS[t.status]}" style="cursor:pointer" onclick="pjCycle('${sec.id}','${t.id}')" title="Нажми, чтобы сменить статус">${PJ_ST[t.status]}</span>`;
+}
+function pjPlanHTML(sec) {
+	if (!sec.project.stages.length) return `<div class="empty"><div class="serif" style="font-size:24px">Плана пока нет</div><p class="muted">${esc(sec.goal || "")}</p><p>Начни с первого этапа, потом добавь в него задачи.</p><a class="btn" onclick="pjAddStage('${sec.id}')">＋ Первый этап</a></div>`;
+	return `<div class="tbar"><a class="tab ${pjFilter === "all" ? "on" : ""}" onclick="pjSetFilter('${sec.id}','all')">Все</a><a class="tab ${pjFilter === "left" ? "on" : ""}" onclick="pjSetFilter('${sec.id}','left')">Незавершённые</a>
+    <input class="di search" data-s="${sec.id}" placeholder="Поиск по задачам и подзадачам…" value="${esc(pjQuery)}" oninput="pjSearch(this)"><a class="tab" onclick="pjFoldAll('${sec.id}')">Свернуть / развернуть</a></div><div id="pjPlanBody">${pjPlanBody(sec)}</div><div class="addrow" onclick="pjAddStage('${sec.id}')" style="margin-top:12px">＋ Этап</div>`;
+}
+function pjPlanBody(sec) {
+	const p = sec.project, q = pjQuery.trim().toLowerCase(), narrow = !!q || pjFilter === "left", has = (s) => String(s || "").toLowerCase().includes(q);
+	const cg = "<colgroup><col style=\"width:70px\"><col><col style=\"width:116px\"><col style=\"width:136px\"><col style=\"width:84px\"><col style=\"width:28px\"></colgroup>";
+	return p.stages.map((st) => {
+		const dn = st.tasks.filter((t) => t.status === "d").length, open = narrow ? true : pjOpenState(p, st.id, true);
+		const items = st.tasks.map((t) => {
+			let subs = t.subs, force = false;
+			if (q) {
+				const own = has(t.name), ms = t.subs.filter((x) => has(x.name));
+				if (!own && !ms.length) return null;
+				if (!own) {
+					subs = ms;
+					force = true;
+				}
+			}
+			if (pjFilter === "left") {
+				if (t.status === "d" || t.status === "o") return null;
+				subs = subs.filter((x) => !x.done);
+			}
+			return {
+				t,
+				subs,
+				force
+			};
+		}).filter(Boolean);
+		if (narrow && !items.length) return "";
+		const rows = items.map(({ t, subs, force }) => {
+			const sopen = force || pjOpenState(p, t.id, false), sd = t.subs.filter((s) => s.done).length;
+			let r = `<tr><td><span class="ck ${pjDone(t) ? "d" : ""}" onclick="pjCheckTask('${sec.id}','${t.id}')" role="checkbox" aria-checked="${pjDone(t)}"></span></td>
+        <td>${t.subs.length ? `<span class="pj-chev ${sopen ? "open" : ""}" onclick="pjFold('${sec.id}','${t.id}',false)" style="cursor:pointer">›</span> ` : ""}${pjEd$1("task", sec.id, t.id, t.name, "Название задачи", pjDone(t) ? "strike" : "")}
+          <a class="open" onclick="pjOpenTask('${sec.id}','${t.id}')" title="Открыть страницу задачи" style="cursor:pointer">↗</a>${t.subs.length ? ` <span class="muted" style="font-size:11.5px">${sd}/${t.subs.length}</span>` : ""}${t.note ? " <span class=\"muted\" style=\"font-size:11px\" title=\"Есть конспект\">📝</span>" : ""}${t.prac ? " <span class=\"muted\" style=\"font-size:11px\" title=\"Практика сделана\">🛠</span>" : ""}</td>
+        <td>${pjStBadge(sec, t)}</td><td><input type="date" class="di" value="${esc(t.end)}" onchange="pjField('${sec.id}','${t.id}','end',this.value)"></td>
+        <td><input type="number" class="di num" min="0" step="0.5" value="${t.hours || ""}" placeholder="0" onchange="pjField('${sec.id}','${t.id}','hours',this.value)" style="width:60px"></td>
+        <td class="x"><span class="del" onclick="pjDel('${sec.id}','task','${t.id}')" title="Удалить задачу">×</span></td></tr>`;
+			if (sopen) r += subs.map((s) => `<tr class="subrow"><td></td><td colspan="4"><div style="padding-left:22px">${pjSubHTML(sec, s)}</div></td><td></td></tr>`).join("") + `<tr class="subrow"><td></td><td colspan="5"><div class="addrow" style="padding-left:30px" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></td></tr>`;
+			return r;
+		}).join("");
+		return `<div class="stage"><span><span class="pj-chev ${open ? "open" : ""}" onclick="pjFold('${sec.id}','${st.id}',true)" style="cursor:pointer">›</span> ${pjEd$1("stage", sec.id, st.id, st.name, "Название этапа")}</span><span class="muted" style="font-weight:400">${dn} из ${st.tasks.length} <span class="del" onclick="pjDel('${sec.id}','stage','${st.id}')" title="Удалить этап">×</span></span></div>` + (open ? `<table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table>` + (narrow ? "" : `<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">＋ Задача в этот этап</div>`) : "");
+	}).join("") || `<div class="empty"><p class="muted">Ничего не найдено.</p></div>`;
+}
+function pjSetFilter(secId, f) {
+	window.pjFilter = f;
+	render();
+}
+function pjSearch(el) {
+	window.pjQuery = el.value;
+	const sec = pjSec$1(el.dataset.s), box = document.getElementById("pjPlanBody");
+	if (sec && box) box.innerHTML = pjPlanBody(sec);
+}
+function pjFoldAll(secId) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	const p = sec.project, ts = pjTasks(p).filter((t) => t.subs.length);
+	const anyOpen = ts.some((t) => pjOpenState(p, t.id, false));
+	ts.forEach((t) => {
+		p.exp[t.id] = anyOpen ? 0 : 1;
+	});
+	render();
+}
+function pjKanbanHTML(sec) {
+	const p = sec.project, all = [];
+	p.stages.forEach((st) => st.tasks.forEach((t) => all.push({
+		t,
+		st
+	})));
+	if (!all.length) return `<div class="empty"><p class="muted">Задач пока нет. Добавь их на вкладке «План».</p></div>`;
+	return `<div class="kan">${PJ_ORDER.map((k) => {
+		const items = all.filter((x) => x.t.status === k).sort((a, b) => (a.t.end || "9") < (b.t.end || "9") ? -1 : 1), open = pjOpenState(p, "col:" + k, true);
+		const cards = open ? items.map(({ t, st }) => {
+			const kopen = pjOpenState(p, "k:" + t.id, false), sd = t.subs.filter((s) => s.done).length;
+			return `<div class="kcard" draggable="true" data-s="${sec.id}" data-id="${t.id}"><div style="display:flex;justify-content:space-between;gap:6px"><a onclick="pjOpenTask('${sec.id}','${t.id}')">${esc(t.name || "Без названия")}</a>${t.subs.length ? `<span class="pj-chev ${kopen ? "open" : ""}" onclick="pjFold('${sec.id}','k:${t.id}',false)" style="cursor:pointer">›</span>` : ""}</div>
+        <small>${esc(st.name)} · ${t.end ? "до " + fmtDate(t.end) : "без срока"}${t.hours ? " · " + t.hours + " ч" : ""}${t.subs.length ? " · " + sd + "/" + t.subs.length : ""}</small>
+        ${kopen ? `<div style="margin-top:6px">${t.subs.map((s) => `<div class="bl" style="padding:2px 0"><span class="ck ${s.done ? "d" : ""}" onclick="pjToggleSub('${sec.id}','${s.id}')"></span><span class="${s.done ? "strike" : ""}" style="font-size:12.5px">${esc(s.name || "Подзадача")}</span></div>`).join("")}</div>` : ""}</div>`;
+		}).join("") || "<div class=\"muted\" style=\"font-size:12px;padding:6px\">пусто</div>" : "";
+		return `<div class="kcol" data-s="${sec.id}" data-st="${k}"><div class="kh" onclick="pjFold('${sec.id}','col:${k}',true)" style="cursor:pointer"><b><span class="pj-chev ${open ? "open" : ""}">›</span> ${PJ_ST[k]}</b><span class="muted">${items.length}</span></div>${cards}</div>`;
+	}).join("")}</div><div class="muted" style="font-size:12px;margin-top:10px">Перетащи карточку в другую колонку, и статус задачи изменится. Стрелка сворачивает колонку или карточку.</div>`;
+}
+function pjGanttHTML(sec) {
+	const p = sec.project, ts = pjTasks(p).filter((t) => t.end);
+	if (!ts.length) return `<div class="empty"><p class="muted">Нет задач со сроком. Добавь срок в плане, и задача появится на шкале.</p></div>`;
+	const today = todayStr(), starts = ts.map((t) => t.start || dateAddDays(t.end, -3)).concat(today), ax = mondayOf(starts.sort()[0]), endMax = ts.map((t) => t.end).sort().pop();
+	const weeks = Math.min(14, Math.max(8, Math.ceil((pjDiff(ax, endMax) + 1) / 7))), total = weeks * 7;
+	const col = {
+		n: "background:#ece4dc;border:1px solid #d3c3b3",
+		i: "background:var(--yellow);border:1px solid #e0c97f",
+		d: "background:var(--sage);border:1px solid #adc19a",
+		o: "background:var(--lilac);border:1px solid #cdbfd6"
+	};
+	return `<div class="gnt" style="--n:${weeks}"><div class="gntrow gnthead"><div class="gntl"></div><div class="gntt"><div class="gntweeks">${Array.from({ length: weeks }, (_, i) => `<span>${fmtDate(dateAddDays(ax, i * 7))}</span>`).join("")}</div></div></div>
+    <div class="gntbody">${ts.map((t) => {
+		const a = t.start || dateAddDays(t.end, -3), l = pjDiff(ax, a) / total * 100, w = (pjDiff(a, t.end) + 1) / total * 100;
+		return `<div class="gntrow"><div class="gntl"><a onclick="pjOpenTask('${sec.id}','${t.id}')" style="cursor:pointer">${esc(t.name || "Без названия")}</a></div><div class="gntt"><div class="gb" style="left:${l}%;width:${w}%;${col[t.status]}" title="${esc(t.name)}: ${fmtDate(a)} — ${fmtDate(t.end)}"></div></div></div>`;
+	}).join("")}<div class="gntgrid"><div class="gnttoday" style="left:${pjDiff(ax, today) / total * 100}%"><i>сегодня</i></div></div></div></div>
+    <div class="muted" style="font-size:12px;margin-top:10px">Жёлтое идёт, серое не начато, зелёное готово. Срок меняется в плане или на странице задачи.</div>`;
+}
+function pjFlagList(sec, tab) {
+	const f = tab === "notes" ? "note" : "prac";
+	const items = sec.project.stages.flatMap((st) => st.tasks.filter((t) => t[f]).map((t) => ({
+		t,
+		st
+	})));
+	const hint = `<p class="muted" style="margin-bottom:8px">${f === "note" ? "Задачи с галочкой «Конспект есть»." : "Задачи с галочкой «Практика сделана»."} Галочки ставятся на странице задачи.</p>`;
+	if (!items.length) return hint + `<div class="empty"><p class="muted">Пока ни одной. Открой задачу и поставь галочку.</p></div>`;
+	return hint + `<table>${items.map(({ t, st }) => `<tr><td><a class="serif" style="font-size:18px;cursor:pointer" onclick="pjOpenTask('${sec.id}','${t.id}')">${esc(t.name || "Без названия")}</a><div class="muted" style="font-size:12px">${esc(st.name)}</div></td><td>${pjStBadge(sec, t)}</td><td class="muted">${t.end ? "до " + fmtDate(t.end) : ""}</td></tr>`).join("")}</table>`;
+}
+function pjTimeHTML(sec) {
+	const p = sec.project, opts = pjTasks(p);
+	const rows = p.time.slice().sort((a, b) => a.date < b.date ? 1 : -1).map((x) => `<tr><td><input type="date" class="di" value="${esc(x.date)}" onchange="pjTimeField('${sec.id}','${x.id}','date',this.value)"></td>
+    <td><input class="di" style="width:100%" value="${esc(x.what)}" placeholder="Что делала" onchange="pjTimeField('${sec.id}','${x.id}','what',this.value)"></td>
+    <td><select class="di" onchange="pjTimeField('${sec.id}','${x.id}','task',this.value)"><option value="">—</option>${opts.map((t) => `<option value="${t.id}" ${t.id === x.task ? "selected" : ""}>${esc(t.name || "Без названия")}</option>`).join("")}</select></td>
+    <td><input type="number" class="di num" min="0" value="${x.min || ""}" placeholder="0" style="width:64px" onchange="pjTimeField('${sec.id}','${x.id}','min',this.value)"></td>
+    <td><input class="di" style="width:100%" value="${esc(x.src)}" placeholder="Источник" onchange="pjTimeField('${sec.id}','${x.id}','src',this.value)"></td>
+    <td class="x"><span class="del" onclick="pjDelTime('${sec.id}','${x.id}')" title="Удалить">×</span></td></tr>`).join("");
+	const sum = p.time.reduce((a, x) => a + (+x.min || 0), 0);
+	return `<table style="table-layout:fixed"><colgroup><col style="width:130px"><col><col style="width:190px"><col style="width:80px"><col style="width:130px"><col style="width:28px"></colgroup><tr><th>Дата</th><th>Что делала</th><th>Задача</th><th>Минут</th><th>Источник</th><th></th></tr>${rows}</table>
+  <div class="addrow" onclick="pjAddTime('${sec.id}')">＋ Запись времени</div><div class="muted" style="font-size:12px;margin-top:8px">Всего записано: ${fmtMin(sum)}</div>`;
+}
+function pjAddTime(secId) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	const x = {
+		id: uid(),
+		task: "",
+		date: todayStr(),
+		min: 0,
+		what: "",
+		src: ""
+	};
+	sec.project.time.push(x);
+	mstamp("pt:" + x.id);
+	render();
+}
+function pjTimeField(secId, id, f, v) {
+	const sec = pjSec$1(secId);
+	const x = sec && sec.project.time.find((y) => y.id === id);
+	if (!x) return;
+	x[f] = f === "min" ? Math.max(0, parseInt(v, 10) || 0) : v;
+	mstamp("pt:" + id);
+	save();
+	if (f === "min" || f === "date") render();
+}
+function pjDelTime(secId, id) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	sec.project.del.push(id);
+	sec.project.time = sec.project.time.filter((x) => x.id !== id);
+	render();
+}
+function pjGoalsHTML(sec) {
+	return sec.project.goals.map((g) => `<div class="goal"><b><span>${PJ_GOAL_KIND[g.kind] || "Цель"}: <input class="di" style="width:60%;font-weight:600;color:var(--text)" value="${esc(g.title)}" placeholder="Название цели" onchange="pjGoalField('${sec.id}','${g.id}','title',this.value)"></span><span>${g.pct}%</span></b>
+    <div class="bar" style="margin:6px 0"><i style="width:${g.pct}%"></i></div>
+    <div style="display:flex;gap:12px;align-items:center"><input type="range" min="0" max="100" value="${g.pct}" class="rg" style="flex:1" onchange="pjGoalField('${sec.id}','${g.id}','pct',this.value)"> <span class="muted" style="font-size:12px">срок</span>
+      <input type="date" class="di" value="${esc(g.date)}" onchange="pjGoalField('${sec.id}','${g.id}','date',this.value)"><span class="del" onclick="pjDelGoal('${sec.id}','${g.id}')" title="Удалить цель">×</span></div></div>`).join("") + `<div class="addrow" onclick="pjAddGoal('${sec.id}','month')">＋ Цель месяца</div><div class="addrow" onclick="pjAddGoal('${sec.id}','year')">＋ Цель года</div><div class="muted" style="font-size:12px;margin-top:8px">Процент ставится вручную ползунком.</div>`;
+}
+function pjAddGoal(secId, kind) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	const g = {
+		id: uid(),
+		kind,
+		title: "",
+		date: "",
+		pct: 0
+	};
+	sec.project.goals.push(g);
+	mstamp("pg:" + g.id);
+	render();
+}
+function pjGoalField(secId, id, f, v) {
+	const sec = pjSec$1(secId);
+	const g = sec && sec.project.goals.find((x) => x.id === id);
+	if (!g) return;
+	g[f] = f === "pct" ? Math.max(0, Math.min(100, parseInt(v, 10) || 0)) : v;
+	mstamp("pg:" + id);
+	save();
+	if (f === "pct") render();
+}
+function pjDelGoal(secId, id) {
+	const sec = pjSec$1(secId);
+	if (!sec) return;
+	sec.project.del.push(id);
+	sec.project.goals = sec.project.goals.filter((x) => x.id !== id);
+	render();
+}
+function pjTaskHTML(sec, t, st) {
+	const key = window.pjBTab, p = sec.project, R = pjResolve(t, key, window.pjPath), list = R.list;
+	window.pjPath = R.chain.map((b) => b.id);
+	if (R.chain.length) return pjPageHTML(sec, t, key, R);
+	const tabs = PJ_BTABS.map(([k, n]) => {
+		const c = pjBlkCount(t.blocks[k]);
+		return `<a class="tab ${key === k ? "on" : ""}" onclick="pjBTabSet('${k}')">${n}${c ? ` <span class="c">${c}</span>` : ""}</a>`;
+	}).join("");
+	return `<div class="card sheet">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:6px">${pjStBadge(sec, t)}
+      <span class="muted">с</span><input type="date" class="di" value="${esc(t.start)}" onchange="pjField('${sec.id}','${t.id}','start',this.value)">
+      <span class="muted">до</span><input type="date" class="di" value="${esc(t.end)}" onchange="pjField('${sec.id}','${t.id}','end',this.value)">
+      <span class="muted">план</span><input type="number" class="di num" min="0" step="0.5" value="${t.hours || ""}" placeholder="0" style="width:60px" onchange="pjField('${sec.id}','${t.id}','hours',this.value)"><span class="muted">ч · записано ${fmtMin(pjTaskMin(p, t.id))}</span>
+      <span style="margin-left:auto"><span class="ck ${t.note ? "d" : ""}" onclick="pjField('${sec.id}','${t.id}','note',${!t.note})"></span> Конспект есть &nbsp; <span class="ck ${t.prac ? "d" : ""}" onclick="pjField('${sec.id}','${t.id}','prac',${!t.prac})"></span> Практика сделана</span></div>
+    <div class="sec"><h3>Подзадачи</h3>${t.subs.map((s) => pjSubHTML(sec, s)).join("")}<div class="addrow" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></div>
+    <div class="sec"><div class="tabs" style="margin-bottom:8px">${tabs}</div>
+      <div class="pj-blocks" id="pjBlocks" data-s="${sec.id}" data-t="${t.id}" data-k="${key}" data-p="">${pjBlocksInner(list, key)}</div></div>
+    <div class="muted" style="font-size:12px;margin-top:10px">Enter - новая строка, «/» в пустой строке - выбор типа блока. Кнопка «＋ Страница» создаёт страницу: назови её и нажми «Открыть ›», внутри пишешь дальше.</div></div>`;
+}
+function pjPageHTML(sec, t, key, R) {
+	const cur = R.chain[R.chain.length - 1], tabName = (PJ_BTABS.find((x) => x[0] === key) || ["", ""])[1], path = R.chain.map((b) => b.id).join(","), n = R.chain.length;
+	const nm = (b) => esc(b.text || "Без названия");
+	const crumbs = [`<a onclick="pjPathGo(0)">${esc(t.name || "Задача")}</a>`, `<a onclick="pjPathGo(0)">${tabName}</a>`].concat(R.chain.map((b, i) => i < n - 1 ? `<a onclick="pjPathGo(${i + 1})">${nm(b)}</a>` : `<span>${nm(b)}</span>`)).join("<i>›</i>");
+	const td = pjTodoCount(cur.kids), at = `data-s="${sec.id}" data-t="${t.id}" data-k="${key}" data-p="${path}"`;
+	return `<div class="card sheet"><div class="pj-crumbs"><a class="pj-back" onclick="pjPathGo(${n - 1})">‹ Назад</a>${crumbs}</div>
+    <div class="pj-ptitle" contenteditable="plaintext-only" data-ph="Название страницы" ${at}>${esc(cur.text)}</div>
+    ${td.t ? `<div class="muted" style="margin:-4px 0 10px">Сделано ${td.d} из ${td.t}</div>` : ""}
+    <div class="pj-blocks" id="pjBlocks" ${at}>${pjBlocksInner(cur.kids, key)}</div>
+    <div class="muted" style="font-size:12px;margin-top:10px">«＋ Страница» создаёт ещё одну страницу внутри этой.</div></div>`;
+}
+function pjBlocksInner(list, key) {
+	if (!list.length) return "<div class=\"pj-ghost\" onclick=\"pjAddBlock(null)\">Нажми и начни писать</div><div class=\"pj-addrow\"><span class=\"pj-add\" onclick=\"pjAddBlock(null)\">＋ Блок</span><span class=\"pj-add\" onclick=\"pjAddBlock(null,'page')\">📄 ＋ Страница</span></div>";
+	return list.map((b) => {
+		const ph = {
+			h: "Заголовок",
+			ul: "Пункт списка",
+			todo: "Задача",
+			quote: "Цитата",
+			code: "Код",
+			page: "Страница без названия"
+		}[b.type] || "Пиши текст или нажми «/»";
+		const ck = `<span class="pj-ck ${b.done ? "on" : ""}" data-ck="${b.id}"></span>`;
+		const mark = b.type === "ul" ? "<span class=\"pj-dot\">•</span>" : b.type === "todo" || b.type === "page" ? ck : "";
+		const strike = (b.type === "todo" || b.type === "page") && b.done ? "strike" : "";
+		let tail = "";
+		const u = b.type === "page" ? null : String(b.text || "").match(/https?:\/\/[^\s)]+/);
+		if (u) tail = `<a class="pj-lnk" href="${esc(u[0])}" target="_blank" rel="noopener" title="Открыть ссылку">↗</a>`;
+		if (b.type === "page") {
+			const c = pjTodoCount(b.kids);
+			return `<div class="pj-b t-page" data-b="${b.id}">${mark}<span class="pj-pico" data-open="${b.id}" title="Открыть страницу">📄</span><div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${c.t ? `<span class="muted pj-pc">${c.d}/${c.t}</span>` : ""}<a class="pj-po" data-open="${b.id}">Открыть ›</a><span class="del" data-delb="${b.id}" title="Удалить страницу">×</span></div>`;
+		}
+		return `<div class="pj-b t-${b.type}" data-b="${b.id}">${mark}<div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${tail}</div>`;
+	}).join("") + `<div class="pj-addrow"><span class="pj-add" onclick="pjAddBlock(null)">＋ Блок</span><span class="pj-add" onclick="pjAddBlock(null,'page')">📄 ＋ Страница</span></div>`;
+}
+function pjBlkEnv(el) {
+	const box = el.closest("#pjBlocks,.pj-ptitle");
+	if (!box) return null;
+	const sec = pjSec$1(box.dataset.s);
+	const f = sec && pjFind(sec.project, box.dataset.t);
+	if (!f) return null;
+	const key = box.dataset.k, R = pjResolve(f.task, key, (box.dataset.p || "").split(",").filter(Boolean));
+	return {
+		sec,
+		task: f.task,
+		key,
+		list: R.list,
+		chain: R.chain,
+		box
+	};
+}
+function pjBlkStamp(env) {
+	mstamp("pb:" + env.task.id + "." + env.key);
+	save();
+}
+function pjBlocksRefresh(env, focusId, atEnd) {
+	env.box.innerHTML = pjBlocksInner(env.list, env.key);
+	if (focusId) {
+		const el = env.box.querySelector(`[data-b="${focusId}"] .pj-bt`);
+		if (el) {
+			el.focus();
+			if (atEnd !== false) {
+				const r = document.createRange();
+				r.selectNodeContents(el);
+				r.collapse(false);
+				const s = getSelection();
+				s.removeAllRanges();
+				s.addRange(r);
+			}
+		}
+	}
+}
+function pjAddBlock(afterId, type) {
+	const box = document.getElementById("pjBlocks");
+	if (!box) return;
+	const env = pjBlkEnv(box.firstElementChild || box);
+	if (!env) return;
+	const b = {
+		id: uid(),
+		type: type || "p",
+		text: ""
+	};
+	if (b.type === "todo" || b.type === "page") b.done = false;
+	if (b.type === "page") b.kids = [];
+	const i = afterId ? env.list.findIndex((x) => x.id === afterId) : env.list.length - 1;
+	env.list.splice(i + 1, 0, b);
+	pjBlkStamp(env);
+	pjBlocksRefresh(env, b.id);
+}
+document.addEventListener("input", (e) => {
+	const el = e.target;
+	if (el.classList && el.classList.contains("pj-ed")) {
+		pjRename(el, true);
+		return;
+	}
+	if (el.classList && el.classList.contains("pj-ptitle")) {
+		const env = pjBlkEnv(el), cur = env && env.chain[env.chain.length - 1];
+		if (!cur) return;
+		cur.text = el.innerText.replace(/\s*\n\s*/g, " ").trim();
+		pjBlkStamp(env);
+		return;
+	}
+	if (!el.classList || !el.classList.contains("pj-bt")) return;
+	const env = pjBlkEnv(el);
+	if (!env) return;
+	const b = env.list.find((x) => x.id === el.parentNode.dataset.b);
+	if (!b) return;
+	b.text = el.innerText.replace(/\n$/, "");
+	pjBlkStamp(env);
+});
+document.addEventListener("keydown", (e) => {
+	const el = e.target;
+	if (!el.classList) return;
+	if (el.classList.contains("pj-ed") && (e.key === "Enter" || e.key === "Escape")) {
+		e.preventDefault();
+		el.blur();
+		return;
+	}
+	if (el.classList.contains("pj-ptitle") && e.key === "Enter") {
+		e.preventDefault();
+		const first = document.querySelector("#pjBlocks .pj-bt");
+		if (first) first.focus();
+		else pjAddBlock(null);
+		return;
+	}
+	if (!el.classList.contains("pj-bt")) return;
+	const env = pjBlkEnv(el);
+	if (!env) return;
+	const id = el.parentNode.dataset.b, i = env.list.findIndex((x) => x.id === id), b = env.list[i];
+	if (!b) return;
+	if (e.key === "Enter" && !e.shiftKey) {
+		e.preventDefault();
+		pjMenuClose();
+		if (!el.innerText.trim() && (b.type === "ul" || b.type === "todo")) {
+			b.type = "p";
+			delete b.done;
+			pjBlkStamp(env);
+			pjBlocksRefresh(env, b.id);
+			return;
+		}
+		const nb = {
+			id: uid(),
+			type: b.type === "ul" || b.type === "todo" ? b.type : "p",
+			text: ""
+		};
+		if (nb.type === "todo") nb.done = false;
+		env.list.splice(i + 1, 0, nb);
+		pjBlkStamp(env);
+		pjBlocksRefresh(env, nb.id);
+		return;
+	}
+	if (e.key === "Backspace" && !el.innerText.length) {
+		e.preventDefault();
+		pjMenuClose();
+		if (b.type === "page" && pjBlkCount(b.kids)) return;
+		if (b.type !== "p") {
+			b.type = "p";
+			delete b.done;
+			delete b.kids;
+			pjBlkStamp(env);
+			pjBlocksRefresh(env, b.id);
+			return;
+		}
+		env.list.splice(i, 1);
+		pjBlkStamp(env);
+		pjBlocksRefresh(env, i > 0 ? env.list[i - 1].id : null);
+		return;
+	}
+	if (e.key === "/" && !el.innerText.trim()) {
+		e.preventDefault();
+		pjMenuOpen(el, b.id);
+		return;
+	}
+	if (e.key === "Escape") pjMenuClose();
+});
+document.addEventListener("click", (e) => {
+	const op = e.target.closest && e.target.closest("[data-open]");
+	if (op) {
+		const env = pjBlkEnv(op);
+		if (!env) return;
+		window.pjPath = env.chain.map((b) => b.id).concat(op.dataset.open);
+		render();
+		window.scrollTo(0, 0);
+		return;
+	}
+	const db = e.target.closest && e.target.closest("[data-delb]");
+	if (db) {
+		const env = pjBlkEnv(db);
+		if (!env) return;
+		const i = env.list.findIndex((x) => x.id === db.dataset.delb), b = env.list[i];
+		if (!b) return;
+		if (pjBlkCount(b.kids) && !confirm("Удалить страницу «" + (b.text || "без названия") + "» со всем, что внутри?")) return;
+		env.list.splice(i, 1);
+		pjBlkStamp(env);
+		pjBlocksRefresh(env, null);
+		return;
+	}
+	const ck = e.target.closest && e.target.closest("[data-ck]");
+	if (ck) {
+		const env = pjBlkEnv(ck);
+		if (!env) return;
+		const b = env.list.find((x) => x.id === ck.dataset.ck);
+		if (!b) return;
+		b.done = !b.done;
+		pjBlkStamp(env);
+		if (env.chain.length) render();
+		else pjBlocksRefresh(env, null);
+		return;
+	}
+	const mi = e.target.closest && e.target.closest(".pj-menu [data-t]");
+	if (mi) {
+		const m = document.querySelector(".pj-menu"), env = pjBlkEnv(document.querySelector(`#pjBlocks [data-b="${m.dataset.b}"] .pj-bt`) || document.getElementById("pjBlocks"));
+		if (!env) return;
+		const b = env.list.find((x) => x.id === m.dataset.b), t = mi.dataset.t;
+		if (b) {
+			if (b.type === "page" && t !== "page" && pjBlkCount(b.kids) && !confirm("Внутри страницы есть записи, они пропадут. Сменить тип?")) {
+				pjMenuClose();
+				return;
+			}
+			if (t === "page") {
+				b.type = "page";
+				b.kids = b.kids || [];
+				if (b.done === void 0) b.done = false;
+			} else {
+				b.type = t;
+				delete b.kids;
+				if (t === "todo") {
+					if (b.done === void 0) b.done = false;
+				} else delete b.done;
+			}
+			pjBlkStamp(env);
+			pjBlocksRefresh(env, b.id);
+		}
+		pjMenuClose();
+		return;
+	}
+	if (!(e.target.closest && e.target.closest(".pj-menu"))) pjMenuClose();
+});
+document.addEventListener("focusout", (e) => {
+	const el = e.target;
+	if (el.classList && el.classList.contains("pj-ed")) pjRename(el);
+});
+function pjMenuOpen(el, bid) {
+	pjMenuClose();
+	const m = document.createElement("div");
+	m.className = "pj-menu";
+	m.dataset.b = bid;
+	m.innerHTML = PJ_BLK.map(([t, n, g]) => `<div data-t="${t}"><b>${g}</b> ${n}</div>`).join("");
+	el.parentNode.appendChild(m);
+}
+function pjMenuClose() {
+	document.querySelectorAll(".pj-menu").forEach((m) => m.remove());
+}
+document.addEventListener("dragstart", (e) => {
+	const c = e.target.closest && e.target.closest(".kcard[data-s]");
+	if (!c) return;
+	e.dataTransfer.setData("text/plain", c.dataset.s + "|" + c.dataset.id);
+	e.dataTransfer.effectAllowed = "move";
+});
+document.addEventListener("dragover", (e) => {
+	const c = e.target.closest && e.target.closest(".kcol[data-s]");
+	if (c) {
+		e.preventDefault();
+		c.classList.add("over");
+	}
+});
+document.addEventListener("dragleave", (e) => {
+	const c = e.target.closest && e.target.closest(".kcol[data-s]");
+	if (c && !c.contains(e.relatedTarget)) c.classList.remove("over");
+});
+document.addEventListener("drop", (e) => {
+	const c = e.target.closest && e.target.closest(".kcol[data-s]");
+	if (!c) return;
+	e.preventDefault();
+	c.classList.remove("over");
+	const [s, id] = (e.dataTransfer.getData("text/plain") || "").split("|");
+	if (s && id && s === c.dataset.s) pjSetStatus(s, id, c.dataset.st);
+});
+function pjAfterRender$1() {
+	const id = window.pjFocus;
+	if (!id) return;
+	window.pjFocus = null;
+	const el = document.querySelector(`.pj-ed[data-id="${id}"]`);
+	if (el) {
+		el.focus();
+		const r = document.createRange();
+		r.selectNodeContents(el);
+		const s = getSelection();
+		s.removeAllRanges();
+		s.addRange(r);
+	}
+}
+Object.assign(window, {
+	projectHTML: projectHTML$1,
+	pjAfterRender: pjAfterRender$1,
+	pjSetStatus,
+	pjCycle,
+	pjCheckTask,
+	pjToggleSub,
+	pjCycleType,
+	pjField,
+	pjFold,
+	pjAddStage,
+	pjAddTask,
+	pjAddSub,
+	pjDel,
+	pjGo,
+	pjOpenTask,
+	pjBTabSet,
+	pjPathGo,
+	pjResolve,
+	pjAddBlock,
+	pjSec: pjSec$1,
+	pjSub: pjSub$1,
+	pjSetSubDone: pjSetSubDone$1,
+	pjSetFilter,
+	pjSearch,
+	pjFoldAll,
+	pjAddTime,
+	pjDelTime,
+	pjTimeField,
+	pjAddGoal,
+	pjGoalField,
+	pjDelGoal,
+	pjEd: pjEd$1,
+	pjPlanBody,
+	pjStats,
+	pjTaskMin,
+	pjStBadge,
+	pjSubHTML,
+	pjTaskHTML,
+	PJ_TABS
+});
+var plans_default = { directions: [{
+	"id": "pj-analyst",
+	"name": "Аналитик данных",
+	"goal": "Стать аналитиком данных: первая оплачиваемая работа по данным (junior, trainee, стажёр). Расчёт на 6 часов в неделю.",
+	"source": [
+		"Роадмап.md",
+		"Аналитика данных.md",
+		"program/PROGRAM.md"
+	],
+	"stages": [
+		{
+			"name": "Подготовка (до 09.11)",
+			"tasks": [{
+				"name": "Программы для работы установлены (Python, JupyterLab)",
+				"status": "d",
+				"start": "2026-11-02",
+				"end": "2026-11-08",
+				"hours": 0,
+				"note": "Со слов 05.11 установлены; к обучению ещё не приступала. В неделе 1 проверим запуск «Запустить Jupyter.bat».",
+				"out": "Готово, когда: JupyterLab открывается и ноутбук сохраняется (проверка в неделе 1)",
+				"subs": [],
+				"links": [],
+				"theory": "",
+				"questions": [],
+				"vpn": false,
+				"week": 0,
+				"source": "слова владельца 2026-11-05"
+			}]
+		},
+		{
+			"name": "Ф0 Python (09.11.2026 - 24.01.2027)",
+			"tasks": [
+				{
+					"name": "Нед. 1 · Семинар 1 ВШЭ · знакомство с Python, git",
+					"status": "n",
+					"start": "2026-11-09",
+					"end": "2026-11-15",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара 1 (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): sem01_intro: запуск «Запустить Jupyter.bat», ноутбук, import this; в «Аналитика данных.md» запиши уровень, дату и сколько ушло времени",
+						"Сб (2 ч): повтор sem01: запуск, сохранение, закрытие без помощи; задачи на ввод-вывод"
+					],
+					"note": "⚠ Сайты РФ (pythontutor.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): смотри запись семинара 1 (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): sem01_intro: запуск «Запустить Jupyter.bat», ноутбук, import this; в «Аналитика данных.md» запиши уровень, дату и сколько ушло времени. Сб (2 ч): повтор sem01: запуск, сохранение, закрытие без помощи; задачи на ввод-вывод. Если Jupyter не запустится - скажи, починим. Если останется время: DSFB урок 1 «Определение науки о данных».",
+					"out": "Что умею на выходе: Запускаю JupyterLab, открываю и сохраняю ноутбук, пишу import this; записан уровень. Доказательство: запись об уровне в «Аналитика данных.md» и 5 решённых задач на ввод-вывод",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem01_intro",
+						"https://pythontutor.ru/lessons/inout_and_arithmetic_operations/ (нужен VPN)",
+						"https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"
+					],
+					"theory": "смотри запись семинара 1 (плейлисты в README курса, нужный подбери сама). Бонус: DSFB урок 1 «Определение науки о данных»",
+					"questions": [],
+					"vpn": true,
+					"week": 1,
+					"source": "program/_build.py, неделя 1; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 2 · Семинар 2 ВШЭ · условия, циклы, списки",
+					"status": "n",
+					"start": "2026-11-16",
+					"end": "2026-11-22",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «условия, циклы, списки» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem02_forif в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): задачи pythontutor на условия, while и for; потом вариант _201…_204"
+					],
+					"note": "⚠ Сайты РФ (pythontutor.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): смотри запись семинара «условия, циклы, списки» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem02_forif в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): задачи pythontutor на условия, while и for; потом вариант _201…_204. В конце недели запиши, сколько часов ушло на 2 семинара. Если останется время: DSFB урок 2 «Этика».",
+					"out": "Что умею на выходе: Пишу if/elif/else, циклы for и while, работаю со списками. Доказательство: копия ноутбука sem02_forif в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem02_forif",
+						"https://pythontutor.ru/lessons/ifelse/ (нужен VPN)",
+						"https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"
+					],
+					"theory": "смотри запись семинара «условия, циклы, списки» (плейлисты в README курса, нужный подбери сама). Бонус: DSFB урок 2 «Этика»",
+					"questions": [],
+					"vpn": true,
+					"week": 2,
+					"source": "program/_build.py, неделя 2; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 3 · Семинар 3 ВШЭ · задачи на условия и циклы",
+					"status": "n",
+					"start": "2026-11-23",
+					"end": "2026-11-29",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «задачи на условия и циклы» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem03_functions в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): дорешать задачи посложнее на циклы и условия; потом вариант _201…_204"
+					],
+					"note": "⚠ Сайты РФ (pythontutor.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): смотри запись семинара «задачи на условия и циклы» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem03_functions в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): дорешать задачи посложнее на циклы и условия; потом вариант _201…_204. Пересчитаем план по факту двух семинаров. Что помогло или нет - в «Что работает». Если останется время: DSFB урок 3 «Определение данных».",
+					"out": "Что умею на выходе: Решаю задачи средней сложности на условия, циклы и списки без подсказок. Доказательство: копия ноутбука sem03_functions в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem03_functions",
+						"https://pythontutor.ru/lessons/while/ (нужен VPN)",
+						"https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"
+					],
+					"theory": "смотри запись семинара «задачи на условия и циклы» (плейлисты в README курса, нужный подбери сама). Бонус: DSFB урок 3 «Определение данных»",
+					"questions": [],
+					"vpn": true,
+					"week": 3,
+					"source": "program/_build.py, неделя 3; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 4 · Семинар 4 ВШЭ · функции",
+					"status": "n",
+					"start": "2026-11-30",
+					"end": "2026-12-06",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «функции» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem04_forif в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): задачи на функции; по желанию задачи LeetCode (easy) из README семинара; потом вариант _201…_204"
+					],
+					"note": "⚠ Сайты РФ (pythontutor.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): смотри запись семинара «функции» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem04_forif в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): задачи на функции; по желанию задачи LeetCode (easy) из README семинара; потом вариант _201…_204.",
+					"out": "Что умею на выходе: Пишу функции с аргументами и return, читаю чужую функцию. Доказательство: копия ноутбука sem04_forif в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem04_forif",
+						"http://pythontutor.ru/lessons/functions/ (нужен VPN)"
+					],
+					"theory": "смотри запись семинара «функции» (плейлисты в README курса, нужный подбери сама)",
+					"questions": [],
+					"vpn": true,
+					"week": 4,
+					"source": "program/_build.py, неделя 4; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 5 · Семинар 5 ВШЭ · словари и множества",
+					"status": "n",
+					"start": "2026-12-07",
+					"end": "2026-12-13",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «словари и множества» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem05_dict в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): задачи на множества и словари; потом вариант _201…_204"
+					],
+					"note": "⚠ Сайты РФ (pythontutor.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): смотри запись семинара «словари и множества» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem05_dict в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): задачи на множества и словари; потом вариант _201…_204.",
+					"out": "Что умею на выходе: Использую словари и множества: счётчики, поиск, уникальные значения. Доказательство: копия ноутбука sem05_dict в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem05_dict",
+						"http://pythontutor.ru/lessons/dicts/ (нужен VPN)"
+					],
+					"theory": "смотри запись семинара «словари и множества» (плейлисты в README курса, нужный подбери сама)",
+					"questions": [],
+					"vpn": true,
+					"week": 5,
+					"source": "program/_build.py, неделя 5; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 6 · Семинар 6 ВШЭ · задачи на словари и множества",
+					"status": "n",
+					"start": "2026-12-14",
+					"end": "2026-12-20",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «задачи на словари и множества» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem06_dict в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): дорешать задачи на словари и множества; потом вариант _201…_204"
+					],
+					"note": "⚠ Сайты РФ (pythontutor.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): смотри запись семинара «задачи на словари и множества» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem06_dict в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): дорешать задачи на словари и множества; потом вариант _201…_204.",
+					"out": "Что умею на выходе: Решаю задачи на словари и множества: частоты слов, группировка. Доказательство: копия ноутбука sem06_dict в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem06_dict",
+						"http://pythontutor.ru/lessons/dicts/ (нужен VPN)"
+					],
+					"theory": "смотри запись семинара «задачи на словари и множества» (плейлисты в README курса, нужный подбери сама)",
+					"questions": [],
+					"vpn": true,
+					"week": 6,
+					"source": "program/_build.py, неделя 6; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 7 · Семинар 7 ВШЭ · numpy",
+					"status": "n",
+					"start": "2026-12-21",
+					"end": "2026-12-27",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «numpy» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem07_numpy в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): numpy-100: первые 20 задач без решений; потом вариант _201…_204"
+					],
+					"note": "Вт и Пт (по 45 мин): смотри запись семинара «numpy» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem07_numpy в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): numpy-100: первые 20 задач без решений; потом вариант _201…_204. Неделя праздничная, план мягкий. Туториал cs231n (английский) рядом.",
+					"out": "Что умею на выходе: Создаю массивы numpy, делаю срезы и агрегаты по осям. Доказательство: копия ноутбука sem07_numpy в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem07_numpy",
+						"https://github.com/rougier/numpy-100"
+					],
+					"theory": "смотри запись семинара «numpy» (плейлисты в README курса, нужный подбери сама)",
+					"questions": [],
+					"vpn": false,
+					"week": 7,
+					"source": "program/_build.py, неделя 7; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 8 · Семинар 8 ВШЭ · pandas: файлы и пути",
+					"status": "n",
+					"start": "2026-12-28",
+					"end": "2027-01-03",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «pandas: файлы и пути» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem08_pandas в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): повторять операции из «Введения в pandas» на sem08_pandas/diamonds.csv; потом вариант _201…_204"
+					],
+					"note": "⚠ Сайты РФ (khashtamov.com): открывай только с включённым VPN. Вт и Пт (по 45 мин): смотри запись семинара «pandas: файлы и пути» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem08_pandas в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): повторять операции из «Введения в pandas» на sem08_pandas/diamonds.csv; потом вариант _201…_204. Неделя праздничная, план мягкий. Шпаргалка pandas и 10 minutes to pandas (английский) из README семинара.",
+					"out": "Что умею на выходе: Читаю CSV в pandas (diamonds.csv), смотрю, фильтрую, сортирую. Доказательство: копия ноутбука sem08_pandas в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem08_pandas",
+						"https://khashtamov.com/ru/pandas-introduction/ (нужен VPN)"
+					],
+					"theory": "смотри запись семинара «pandas: файлы и пути» (плейлисты в README курса, нужный подбери сама)",
+					"questions": [],
+					"vpn": true,
+					"week": 8,
+					"source": "program/_build.py, неделя 8; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 9 · Семинар 9 ВШЭ · pandas, продвинутое",
+					"status": "n",
+					"start": "2027-01-04",
+					"end": "2027-01-10",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «pandas, продвинутое» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem09_pandas в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): статья про pandas на Habr (необязательное ДЗ семинара) и свои примеры; потом вариант _201…_204"
+					],
+					"note": "⚠ Сайты РФ (habr.com): открывай только с включённым VPN. Вт и Пт (по 45 мин): смотри запись семинара «pandas, продвинутое» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem09_pandas в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): статья про pandas на Habr (необязательное ДЗ семинара) и свои примеры; потом вариант _201…_204. По Роадмап.md в субботу этой недели проверка рынка № 1 (30 вакансий, ~2 ч): делаем её в сессии про найм, здесь только место. Если останется время: DSFB урок 8 «Подготовка данных».",
+					"out": "Что умею на выходе: Использую groupby, merge и даты (datetime) в pandas. Доказательство: копия ноутбука sem09_pandas в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem09_pandas",
+						"https://habr.com/ru/company/ods/blog/322626/ (нужен VPN)",
+						"https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"
+					],
+					"theory": "смотри запись семинара «pandas, продвинутое» (плейлисты в README курса, нужный подбери сама). Бонус: DSFB урок 8 «Подготовка данных»",
+					"questions": [],
+					"vpn": true,
+					"week": 9,
+					"source": "program/_build.py, неделя 9; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 10 · Семинар 10 ВШЭ · графики: matplotlib и seaborn",
+					"status": "n",
+					"start": "2027-01-11",
+					"end": "2027-01-17",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): смотри запись семинара «графики: matplotlib и seaborn» (плейлисты в README курса, нужный подбери сама)",
+						"Ср (2,5 ч): копия ноутбука sem10_visual в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку",
+						"Сб (2 ч): ноутбуки sem10_seaborn_manual и sem_10_visual_ex; первый график на своих данных; потом вариант _201…_204"
+					],
+					"note": "Вт и Пт (по 45 мин): смотри запись семинара «графики: matplotlib и seaborn» (плейлисты в README курса, нужный подбери сама). Ср (2,5 ч): копия ноутбука sem10_visual в «Мои работы» (скажи мне «следующий семинар»), проходи по порядку. Сб (2 ч): ноутбуки sem10_seaborn_manual и sem_10_visual_ex; первый график на своих данных; потом вариант _201…_204. README семинара 10 пустой в самом репозитории: ориентируйся на ноутбуки в папке. Если останется время: DSFB PythonDataScienceHandbook, Ch.4 Matplotlib (английский).",
+					"out": "Что умею на выходе: Строю графики matplotlib и seaborn, подписываю оси, выбираю тип графика. Доказательство: копия ноутбука sem10_visual в «Мои работы» с твоими решениями и 5 решённых задач",
+					"links": [
+						"https://github.com/hse-econ-data-science/dap_2021_spring",
+						"https://github.com/hse-econ-data-science/dap_2021_spring/tree/main/sem10_visual",
+						"https://github.com/jakevdp/PythonDataScienceHandbook/blob/master/notebooks/Index.ipynb"
+					],
+					"theory": "смотри запись семинара «графики: matplotlib и seaborn» (плейлисты в README курса, нужный подбери сама). Бонус: DSFB PythonDataScienceHandbook, Ch.4 Matplotlib (английский)",
+					"questions": [],
+					"vpn": false,
+					"week": 10,
+					"source": "program/_build.py, неделя 10; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 11 · Мини-проект Ф0 и контрольная точка 1",
+					"status": "n",
+					"start": "2027-01-18",
+					"end": "2027-01-24",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): повтор слабых тем по записям семинаров; выбрать незнакомый CSV (например из Awesome DS, раздел Datasets)",
+						"Ср (2,5 ч): мини-проект: от вопроса до вывода на выбранном CSV, ноутбук в «Мои работы»",
+						"Сб (2 ч): дорешать, сохранить ноутбук; запас недели"
+					],
+					"note": "Вт и Пт (по 45 мин): повтор слабых тем по записям семинаров; выбрать незнакомый CSV (например из Awesome DS, раздел Datasets). Ср (2,5 ч): мини-проект: от вопроса до вывода на выбранном CSV, ноутбук в «Мои работы». Сб (2 ч): дорешать, сохранить ноутбук; запас недели. В понедельник: КТ1: 10 вопросов от Claude по Python и pandas; критерий выхода Ф0 - без подсказки. Нужно найти заранее (материалы к более поздним неделям): Проверить с VPN: SQL Academy и SQL-EX (цена, Premium, порядок тем) - нужно к неделе 12.",
+					"out": "Что умею на выходе: От вопроса до вывода на одном CSV: загрузка, очистка, группировка, график, вывод двумя фразами. Доказательство: ноутбук в «Мои работы» с выводом двумя фразами",
+					"links": ["https://github.com/hse-econ-data-science/dap_2021_spring", "https://github.com/academic/awesome-datascience"],
+					"theory": "повтор слабых тем по записям семинаров; выбрать незнакомый CSV (например из Awesome DS, раздел Datasets)",
+					"questions": [],
+					"vpn": false,
+					"week": 11,
+					"source": "program/_build.py, неделя 11; этапы и даты - Роадмап.md"
+				}
+			]
+		},
+		{
+			"name": "Ф1 SQL (25.01.2027 - 21.03.2027)",
+			"tasks": [
+				{
+					"name": "Нед. 12 · SQL Academy: первые темы",
+					"status": "n",
+					"start": "2027-01-25",
+					"end": "2027-01-31",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): теория SQL с телефона в SQL Academy (раздел с теорией)",
+						"Ср (2,5 ч): SQL Academy: регистрация и первые темы (SELECT, фильтры)",
+						"Сб (2 ч): SQL-EX: первые учебные SELECT-задачи"
+					],
+					"note": "⚠ Сайты РФ (sql-academy.org, sql-ex.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): теория SQL с телефона в SQL Academy (раздел с теорией). Ср (2,5 ч): SQL Academy: регистрация и первые темы (SELECT, фильтры). Сб (2 ч): SQL-EX: первые учебные SELECT-задачи. В Ф1 выбираем СУБД для проекта 2 (Claude проверит, что ставится бесплатно). Если останется время: DSFB урок 5 «Работа с реляционными данными».",
+					"out": "Что умею на выходе: Объясняю, что такое таблица, строка, ключ; пишу SELECT с условием. Доказательство: скриншот прогресса и 5 запросов в файле .sql",
+					"links": [
+						"https://sql-academy.org/ru (нужен VPN)",
+						"https://www.sql-ex.ru/ (нужен VPN)",
+						"https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"
+					],
+					"theory": "теория SQL с телефона в SQL Academy (раздел с теорией). Бонус: DSFB урок 5 «Работа с реляционными данными»",
+					"questions": [],
+					"vpn": true,
+					"week": 12,
+					"source": "program/_build.py, неделя 12; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 13 · SQL Academy: сортировка, агрегаты, группировки",
+					"status": "n",
+					"start": "2027-02-01",
+					"end": "2027-02-07",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): теория следующей темы SQL Academy с телефона",
+						"Ср (2,5 ч): SQL Academy: сортировка, агрегаты, группировки (порядок тем бери с сайта курса)",
+						"Сб (2 ч): SQL-EX: задачи на агрегаты и группировки"
+					],
+					"note": "⚠ Сайты РФ (sql-academy.org, sql-ex.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): теория следующей темы SQL Academy с телефона. Ср (2,5 ч): SQL Academy: сортировка, агрегаты, группировки (порядок тем бери с сайта курса). Сб (2 ч): SQL-EX: задачи на агрегаты и группировки. Эталонные решения смотри только после своей попытки. Если нужное закрыто Premium - запасной курс Stepik 63054. Если останется время: DSFB урок 6 «Работа с NoSQL данными».",
+					"out": "Что умею на выходе: Пишу запросы: сортировка, агрегаты, группировки. Доказательство: скриншот прогресса + 5 запросов в .sql",
+					"links": [
+						"https://sql-academy.org/ru (нужен VPN)",
+						"https://www.sql-ex.ru/ (нужен VPN)",
+						"https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"
+					],
+					"theory": "теория следующей темы SQL Academy с телефона. Бонус: DSFB урок 6 «Работа с NoSQL данными»",
+					"questions": [],
+					"vpn": true,
+					"week": 13,
+					"source": "program/_build.py, неделя 13; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 14 · SQL Academy: соединения таблиц (JOIN)",
+					"status": "n",
+					"start": "2027-02-08",
+					"end": "2027-02-14",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): теория следующей темы SQL Academy с телефона",
+						"Ср (2,5 ч): SQL Academy: соединения таблиц (JOIN) (порядок тем бери с сайта курса)",
+						"Сб (2 ч): SQL-EX: задачи на JOIN"
+					],
+					"note": "⚠ Сайты РФ (sql-academy.org, sql-ex.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): теория следующей темы SQL Academy с телефона. Ср (2,5 ч): SQL Academy: соединения таблиц (JOIN) (порядок тем бери с сайта курса). Сб (2 ч): SQL-EX: задачи на JOIN. Эталонные решения смотри только после своей попытки. Если нужное закрыто Premium - запасной курс Stepik 63054.",
+					"out": "Что умею на выходе: Пишу запросы: соединения таблиц (JOIN). Доказательство: скриншот прогресса + 5 запросов в .sql",
+					"links": ["https://sql-academy.org/ru (нужен VPN)", "https://www.sql-ex.ru/ (нужен VPN)"],
+					"theory": "теория следующей темы SQL Academy с телефона",
+					"questions": [],
+					"vpn": true,
+					"week": 14,
+					"source": "program/_build.py, неделя 14; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 15 · SQL Academy: подзапросы и составные условия",
+					"status": "n",
+					"start": "2027-02-15",
+					"end": "2027-02-21",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): теория следующей темы SQL Academy с телефона",
+						"Ср (2,5 ч): SQL Academy: подзапросы и составные условия (порядок тем бери с сайта курса)",
+						"Сб (2 ч): SQL-EX: задачи на подзапросы"
+					],
+					"note": "⚠ Сайты РФ (sql-academy.org, sql-ex.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): теория следующей темы SQL Academy с телефона. Ср (2,5 ч): SQL Academy: подзапросы и составные условия (порядок тем бери с сайта курса). Сб (2 ч): SQL-EX: задачи на подзапросы. Эталонные решения смотри только после своей попытки. Если нужное закрыто Premium - запасной курс Stepik 63054.",
+					"out": "Что умею на выходе: Пишу запросы: подзапросы и составные условия. Доказательство: скриншот прогресса + 5 запросов в .sql",
+					"links": ["https://sql-academy.org/ru (нужен VPN)", "https://www.sql-ex.ru/ (нужен VPN)"],
+					"theory": "теория следующей темы SQL Academy с телефона",
+					"questions": [],
+					"vpn": true,
+					"week": 15,
+					"source": "program/_build.py, неделя 15; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 16 · SQL Academy: продолжение курса: оставшиеся темы",
+					"status": "n",
+					"start": "2027-02-22",
+					"end": "2027-02-28",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): теория следующей темы SQL Academy с телефона",
+						"Ср (2,5 ч): SQL Academy: продолжение курса: оставшиеся темы (порядок тем бери с сайта курса)",
+						"Сб (2 ч): SQL-EX: серия учебных задач"
+					],
+					"note": "⚠ Сайты РФ (sql-academy.org, sql-ex.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): теория следующей темы SQL Academy с телефона. Ср (2,5 ч): SQL Academy: продолжение курса: оставшиеся темы (порядок тем бери с сайта курса). Сб (2 ч): SQL-EX: серия учебных задач. Эталонные решения смотри только после своей попытки. Если нужное закрыто Premium - запасной курс Stepik 63054. Нужно найти заранее (материалы к более поздним неделям): Бесплатная СУБД для проекта 2 - нужно к неделе 33.",
+					"out": "Что умею на выходе: Пишу запросы: продолжение курса: оставшиеся темы. Доказательство: скриншот прогресса + 5 запросов в .sql",
+					"links": ["https://sql-academy.org/ru (нужен VPN)", "https://www.sql-ex.ru/ (нужен VPN)"],
+					"theory": "теория следующей темы SQL Academy с телефона",
+					"questions": [],
+					"vpn": true,
+					"week": 16,
+					"source": "program/_build.py, неделя 16; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 17 · SQL Academy: завершение, повтор SQLBolt",
+					"status": "n",
+					"start": "2027-03-01",
+					"end": "2027-03-07",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): теория: обзор SELECT и уроки SQLBolt (английский)",
+						"Ср (2,5 ч): SQL Academy: завершить курс",
+						"Сб (2 ч): SQLBolt: уроки с упражнениями (бесплатно, без регистрации, проверено 05.11)"
+					],
+					"note": "⚠ Сайты РФ (sql-academy.org): открывай только с включённым VPN. Вт и Пт (по 45 мин): теория: обзор SELECT и уроки SQLBolt (английский). Ср (2,5 ч): SQL Academy: завершить курс. Сб (2 ч): SQLBolt: уроки с упражнениями (бесплатно, без регистрации, проверено 05.11). Нужно найти заранее (материалы к более поздним неделям): Части 1-3 Stepik «Практический SQL для аналитика» - нужно к неделе 18.",
+					"out": "Что умею на выходе: Закрыт курс SQL Academy; читаю чужой запрос. Доказательство: скриншот завершения курса и 3 урока SQLBolt",
+					"links": ["https://sqlbolt.com/", "https://sql-academy.org/ru (нужен VPN)"],
+					"theory": "теория: обзор SELECT и уроки SQLBolt (английский)",
+					"questions": [],
+					"vpn": true,
+					"week": 17,
+					"source": "program/_build.py, неделя 17; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 18 · Оконные функции",
+					"status": "n",
+					"start": "2027-03-08",
+					"end": "2027-03-14",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): теория оконных функций из курса",
+						"Ср (2,5 ч): Stepik «Практический SQL, часть 4: оконные функции»",
+						"Сб (2 ч): SQL-EX и задачи на оконные функции"
+					],
+					"note": "⚠ Сайты РФ (sql-ex.ru, stepik.org): открывай только с включённым VPN. Вт и Пт (по 45 мин): теория оконных функций из курса. Ср (2,5 ч): Stepik «Практический SQL, часть 4: оконные функции». Сб (2 ч): SQL-EX и задачи на оконные функции. Перед стартом проверь, нужны ли части 1-3 курса (в разведке не проверено): если да, пройдём SQL Academy и Stepik 63054.",
+					"out": "Что умею на выходе: Использую оконные функции (ROW_NUMBER, SUM OVER, RANK). Доказательство: решённые задачи и 3 запроса с оконными функциями",
+					"links": ["https://stepik.org/282517 (нужен VPN)", "https://www.sql-ex.ru/ (нужен VPN)"],
+					"theory": "теория оконных функций из курса",
+					"questions": [],
+					"vpn": true,
+					"week": 18,
+					"source": "program/_build.py, неделя 18; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 19 · 10 запросов к одной таблице и контрольная точка 2",
+					"status": "n",
+					"start": "2027-03-15",
+					"end": "2027-03-21",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): выбрать таблицу и записать 10 вопросов к ней",
+						"Ср (2,5 ч): 10 запросов: вопрос, запрос, ответ словами (3 с оконными - задел под проект 2)",
+						"Сб (2 ч): закрыть серию задач SQL-EX Ф1"
+					],
+					"note": "⚠ Сайты РФ (sql-ex.ru): открывай только с включённым VPN. Вт и Пт (по 45 мин): выбрать таблицу и записать 10 вопросов к ней. Ср (2,5 ч): 10 запросов: вопрос, запрос, ответ словами (3 с оконными - задел под проект 2). Сб (2 ч): закрыть серию задач SQL-EX Ф1. В понедельник: КТ2: 10 вопросов по SQL; критерий выхода Ф1. Нужно найти заранее (материалы к более поздним неделям): Бесплатный русский курс по Excel или Google Sheets - нужно к неделе 20.",
+					"out": "Что умею на выходе: 10 запросов к одной таблице с вопросом и ответом. Доказательство: файл .sql с вопросами и ответами",
+					"links": ["https://www.sql-ex.ru/ (нужен VPN)"],
+					"theory": "выбрать таблицу и записать 10 вопросов к ней",
+					"questions": [],
+					"vpn": true,
+					"week": 19,
+					"source": "program/_build.py, неделя 19; этапы и даты - Роадмап.md"
+				}
+			]
+		},
+		{
+			"name": "Ф2 Excel и статистика (22.03.2027 - 25.04.2027)",
+			"tasks": [
+				{
+					"name": "Нед. 20 · Excel: основы и подбор русского курса",
+					"status": "n",
+					"start": "2027-03-22",
+					"end": "2027-03-28",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): справка Microsoft по Excel на русском: «Начало работы», «Формулы и функции»",
+						"Ср (2,5 ч): формулы, функции, фильтры; вместе подбираем русский курс (кандидаты Stepik 250657, 114097 - после проверки с VPN)",
+						"Сб (2 ч): упражнения на данных мини-проекта Ф0"
+					],
+					"note": "Вт и Пт (по 45 мин): справка Microsoft по Excel на русском: «Начало работы», «Формулы и функции». Ср (2,5 ч): формулы, функции, фильтры; вместе подбираем русский курс (кандидаты Stepik 250657, 114097 - после проверки с VPN). Сб (2 ч): упражнения на данных мини-проекта Ф0. Полноценный бесплатный русский курс Excel пока не выбран: бесплатного учебного репозитория на GitHub не нашлось.",
+					"out": "Что умею на выходе: Формулы, функции, фильтры и сортировка в таблице. Доказательство: таблица с формулами и фильтрами",
+					"links": ["https://support.microsoft.com/ru-ru/office/видеоуроки-по-excel-9bc05390-e94c-46af-a5b3-d7c22f6990bb"],
+					"theory": "справка Microsoft по Excel на русском: «Начало работы», «Формулы и функции»",
+					"questions": [],
+					"vpn": false,
+					"week": 20,
+					"source": "program/_build.py, неделя 20; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 21 · Excel: сводные таблицы, ПРОСМОТРX, ВПР",
+					"status": "n",
+					"start": "2027-03-29",
+					"end": "2027-04-04",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): статьи Microsoft: сводные таблицы, ПРОСМОТРX",
+						"Ср (2,5 ч): сводная таблица по данным мини-проекта Ф0",
+						"Сб (2 ч): ПРОСМОТРX и ВПР на двух таблицах"
+					],
+					"note": "Вт и Пт (по 45 мин): статьи Microsoft: сводные таблицы, ПРОСМОТРX. Ср (2,5 ч): сводная таблица по данным мини-проекта Ф0. Сб (2 ч): ПРОСМОТРX и ВПР на двух таблицах. Ссылки статей ведут на английскую часть сайта support.microsoft.com; переключи язык страницы на русский. Если останется время: DSFB урок 4 «Введение в статистику и вероятность». Нужно найти заранее (материалы к более поздним неделям): Stepik по статистике: цена, автор, содержание - нужно к неделе 22.",
+					"out": "Что умею на выходе: Собираю сводную таблицу, ищу значения ПРОСМОТРX и ВПР. Доказательство: файл с 3 сводными таблицами и примером поиска значений",
+					"links": [
+						"https://support.microsoft.com/Excel/get-started/create-a-pivottable-to-analyze-worksheet-data",
+						"https://support.microsoft.com/Excel/get-started/xlookup-function",
+						"https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"
+					],
+					"theory": "статьи Microsoft: сводные таблицы, ПРОСМОТРX. Бонус: DSFB урок 4 «Введение в статистику и вероятность»",
+					"questions": [],
+					"vpn": false,
+					"week": 21,
+					"source": "program/_build.py, неделя 21; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 22 · Статистика: описательная, часть 1",
+					"status": "n",
+					"start": "2027-04-05",
+					"end": "2027-04-11",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): видео и конспект курса «Основы статистики», первая половина",
+						"Ср (2,5 ч): тесты и задачи первой половины курса",
+						"Сб (2 ч): повтор: те же понятия на своих данных"
+					],
+					"note": "⚠ Сайты РФ (stepik.org): открывай только с включённым VPN. Вт и Пт (по 45 мин): видео и конспект курса «Основы статистики», первая половина. Ср (2,5 ч): тесты и задачи первой половины курса. Сб (2 ч): повтор: те же понятия на своих данных.",
+					"out": "Что умею на выходе: Среднее, медиана, разброс, корреляция; выборка и совокупность. Доказательство: конспект + решённые тесты",
+					"links": ["https://stepik.org/76 (нужен VPN)"],
+					"theory": "видео и конспект курса «Основы статистики», первая половина",
+					"questions": [],
+					"vpn": true,
+					"week": 22,
+					"source": "program/_build.py, неделя 22; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 23 · Статистика: описательная, часть 2",
+					"status": "n",
+					"start": "2027-04-12",
+					"end": "2027-04-18",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): видео и конспект курса, вторая половина",
+						"Ср (2,5 ч): тесты и задачи второй половины курса",
+						"Сб (2 ч): пример «среднее обманывает» на данных мини-проекта Ф0"
+					],
+					"note": "⚠ Сайты РФ (stepik.org): открывай только с включённым VPN. Вт и Пт (по 45 мин): видео и конспект курса, вторая половина. Ср (2,5 ч): тесты и задачи второй половины курса. Сб (2 ч): пример «среднее обманывает» на данных мини-проекта Ф0.",
+					"out": "Что умею на выходе: Читаю распределение; объясняю, почему среднее может обмануть. Доказательство: конспект + тесты + ноутбук с примером",
+					"links": ["https://stepik.org/76 (нужен VPN)"],
+					"theory": "видео и конспект курса, вторая половина",
+					"questions": [],
+					"vpn": true,
+					"week": 23,
+					"source": "program/_build.py, неделя 23; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 24 · Проверка гипотез, A/B-тесты и контрольная точка 3",
+					"status": "n",
+					"start": "2027-04-19",
+					"end": "2027-04-25",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): видео курса по проверке гипотез (проверь цену и содержание страницы; запасной Stepik 250393)",
+						"Ср (2,5 ч): тесты и разбор одного A/B-теста",
+						"Сб (2 ч): таблица-отчёт в Excel по реальным данным: сводные, график, вывод"
+					],
+					"note": "⚠ Сайты РФ (stepik.org): открывай только с включённым VPN. Вт и Пт (по 45 мин): видео курса по проверке гипотез (проверь цену и содержание страницы; запасной Stepik 250393). Ср (2,5 ч): тесты и разбор одного A/B-теста. Сб (2 ч): таблица-отчёт в Excel по реальным данным: сводные, график, вывод. В понедельник: КТ3: 10 вопросов по Excel и статистике; критерий выхода Ф2. Нужно найти заранее (материалы к более поздним неделям): Бесплатный путь обучения BI и выбор инструмента - нужно к неделе 25.",
+					"out": "Что умею на выходе: Объясняю p-value и доверительный интервал своими словами; собрала таблицу-отчёт. Доказательство: таблица-отчёт + абзац вывода",
+					"links": ["https://stepik.org/204287 (нужен VPN)", "https://support.microsoft.com/ru-ru/office/видеоуроки-по-excel-9bc05390-e94c-46af-a5b3-d7c22f6990bb"],
+					"theory": "видео курса по проверке гипотез (проверь цену и содержание страницы; запасной Stepik 250393)",
+					"questions": [],
+					"vpn": true,
+					"week": 24,
+					"source": "program/_build.py, неделя 24; этапы и даты - Роадмап.md"
+				}
+			]
+		},
+		{
+			"name": "Ф3 BI и графики (26.04.2027 - 30.05.2027)",
+			"tasks": [
+				{
+					"name": "Нед. 25 · BI: выбор инструмента и первый отчёт",
+					"status": "n",
+					"start": "2027-04-26",
+					"end": "2027-05-02",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): что умеет аналитик Power BI: руководство к PL-300 (английский)",
+						"Ср (2,5 ч): выбор инструмента: Power BI Desktop, Looker Studio или Tableau Public (бесплатность проверит Claude), установка",
+						"Сб (2 ч): первый отчёт на данных проекта"
+					],
+					"note": "Вт и Пт (по 45 мин): что умеет аналитик Power BI: руководство к PL-300 (английский). Ср (2,5 ч): выбор инструмента: Power BI Desktop, Looker Studio или Tableau Public (бесплатность проверит Claude), установка. Сб (2 ч): первый отчёт на данных проекта. Если останется время: DSFB урок 9 «Визуализация количеств».",
+					"out": "Что умею на выходе: Выбран один BI-инструмент и установлен; знаю, какой график под какой вопрос. Доказательство: скриншот первого отчёта",
+					"links": ["https://aka.ms/pl300-StudyGuide", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "что умеет аналитик Power BI: руководство к PL-300 (английский). Бонус: DSFB урок 9 «Визуализация количеств»",
+					"questions": [],
+					"vpn": false,
+					"week": 25,
+					"source": "program/_build.py, неделя 25; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 26 · BI: данные и модель",
+					"status": "n",
+					"start": "2027-05-03",
+					"end": "2027-05-09",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): материалы по инструменту: импорт и модель данных",
+						"Ср (2,5 ч): импорт данных проекта, связи таблиц",
+						"Сб (2 ч): отчёт с 2-3 визуализациями"
+					],
+					"note": "Вт и Пт (по 45 мин): материалы по инструменту: импорт и модель данных. Ср (2,5 ч): импорт данных проекта, связи таблиц. Сб (2 ч): отчёт с 2-3 визуализациями. По Роадмап.md на этой неделе (около 03.05) проверка рынка № 2: делаем в сессии про найм, здесь только место. Если останется время: DSFB урок 10 «Визуализация распределений».",
+					"out": "Что умею на выходе: Импортирую данные и связываю таблицы в BI. Доказательство: скриншот модели данных и отчёта",
+					"links": ["https://aka.ms/pl300-StudyGuide", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "материалы по инструменту: импорт и модель данных. Бонус: DSFB урок 10 «Визуализация распределений»",
+					"questions": [],
+					"vpn": false,
+					"week": 26,
+					"source": "program/_build.py, неделя 26; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 27 · BI: показатели и фильтры",
+					"status": "n",
+					"start": "2027-05-10",
+					"end": "2027-05-16",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): материалы по расчётным полям и фильтрам",
+						"Ср (2,5 ч): расчётные поля, фильтры, срезы",
+						"Сб (2 ч): черновик дашборда из 3-5 показателей"
+					],
+					"note": "Вт и Пт (по 45 мин): материалы по расчётным полям и фильтрам. Ср (2,5 ч): расчётные поля, фильтры, срезы. Сб (2 ч): черновик дашборда из 3-5 показателей. Если останется время: DSFB урок 11 «Визуализация пропорций».",
+					"out": "Что умею на выходе: Считаю показатели и добавляю фильтры. Доказательство: файл или скриншот черновика",
+					"links": ["https://aka.ms/pl300-StudyGuide", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "материалы по расчётным полям и фильтрам. Бонус: DSFB урок 11 «Визуализация пропорций»",
+					"questions": [],
+					"vpn": false,
+					"week": 27,
+					"source": "program/_build.py, неделя 27; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 28 · BI: дашборд, версия 2",
+					"status": "n",
+					"start": "2027-05-17",
+					"end": "2027-05-23",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): правила читаемого дашборда",
+						"Ср (2,5 ч): переработка черновика",
+						"Сб (2 ч): подписи, цвета, порядок блоков"
+					],
+					"note": "Вт и Пт (по 45 мин): правила читаемого дашборда. Ср (2,5 ч): переработка черновика. Сб (2 ч): подписи, цвета, порядок блоков. Если останется время: DSFB урок 12 «Визуализация взаимосвязей».",
+					"out": "Что умею на выходе: Дашборд читается за 30 секунд. Доказательство: скриншот второй версии",
+					"links": ["https://aka.ms/pl300-StudyGuide", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "правила читаемого дашборда. Бонус: DSFB урок 12 «Визуализация взаимосвязей»",
+					"questions": [],
+					"vpn": false,
+					"week": 28,
+					"source": "program/_build.py, неделя 28; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 29 · Дашборд опубликован и контрольная точка 4",
+					"status": "n",
+					"start": "2027-05-24",
+					"end": "2027-05-30",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): проверка доступности: контраст, подписи, не только цвет (у тебя есть опыт доступности как у дизайнера)",
+						"Ср (2,5 ч): публикация или PDF и описание: вопрос, показатели, вывод",
+						"Сб (2 ч): доводка по замечаниям"
+					],
+					"note": "Вт и Пт (по 45 мин): проверка доступности: контраст, подписи, не только цвет (у тебя есть опыт доступности как у дизайнера). Ср (2,5 ч): публикация или PDF и описание: вопрос, показатели, вывод. Сб (2 ч): доводка по замечаниям. В понедельник: КТ4: показ дашборда Claude; критерий выхода Ф3. Если останется время: DSFB урок 13 «Значимые визуализации». Нужно найти заранее (материалы к более поздним неделям): Наборы данных для трёх проектов - нужно к неделе 30.",
+					"out": "Что умею на выходе: Дашборд с доступными подписями и контрастом; опубликован по ссылке или PDF. Доказательство: ссылка или PDF + описание",
+					"links": ["https://aka.ms/pl300-StudyGuide", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "проверка доступности: контраст, подписи, не только цвет (у тебя есть опыт доступности как у дизайнера). Бонус: DSFB урок 13 «Значимые визуализации»",
+					"questions": [],
+					"vpn": false,
+					"week": 29,
+					"source": "program/_build.py, неделя 29; этапы и даты - Роадмап.md"
+				}
+			]
+		},
+		{
+			"name": "Ф4 Три проекта (31.05.2027 - 08.08.2027)",
+			"tasks": [
+				{
+					"name": "Нед. 30 · Проект 1 (Python): вопрос и данные",
+					"status": "n",
+					"start": "2027-05-31",
+					"end": "2027-06-06",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): выбрать набор на data.gov.lv",
+						"Ср (2,5 ч): ТЗ на 1 страницу по образцу «The Spec»: вопрос, данные, метрики успеха",
+						"Сб (2 ч): загрузка данных в pandas"
+					],
+					"note": "Вт и Пт (по 45 мин): выбрать набор на data.gov.lv. Ср (2,5 ч): ТЗ на 1 страницу по образцу «The Spec»: вопрос, данные, метрики успеха. Сб (2 ч): загрузка данных в pandas. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла. Если останется время: DSFB урок 14 «Жизненный цикл науки о данных».",
+					"out": "Что умею на выходе: Сформулирован вопрос, выбран набор данных data.gov.lv. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://data.gov.lv/eng/about", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "выбрать набор на data.gov.lv. Бонус: DSFB урок 14 «Жизненный цикл науки о данных»",
+					"questions": [],
+					"vpn": false,
+					"week": 30,
+					"source": "program/_build.py, неделя 30; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 31 · Проект 1 (Python): очистка",
+					"status": "n",
+					"start": "2027-06-07",
+					"end": "2027-06-13",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): повтор очистки данных (семинар 9)",
+						"Ср (2,5 ч): очистка данных в ноутбуке",
+						"Сб (2 ч): описание найденных проблем данных"
+					],
+					"note": "Вт и Пт (по 45 мин): повтор очистки данных (семинар 9). Ср (2,5 ч): очистка данных в ноутбуке. Сб (2 ч): описание найденных проблем данных. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла. Если останется время: DSFB урок 15 «Анализ».",
+					"out": "Что умею на выходе: Данные очищены, проблемы описаны. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://data.gov.lv/eng/about", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "повтор очистки данных (семинар 9). Бонус: DSFB урок 15 «Анализ»",
+					"questions": [],
+					"vpn": false,
+					"week": 31,
+					"source": "program/_build.py, неделя 31; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 32 · Проект 1 (Python): графики, выводы, GitHub",
+					"status": "n",
+					"start": "2027-06-14",
+					"end": "2027-06-20",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): повтор графиков (семинар 10)",
+						"Ср (2,5 ч): графики и выводы словами",
+						"Сб (2 ч): README и публикация в GitHub"
+					],
+					"note": "Вт и Пт (по 45 мин): повтор графиков (семинар 10). Ср (2,5 ч): графики и выводы словами. Сб (2 ч): README и публикация в GitHub. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла. Если останется время: DSFB урок 16 «Коммуникация».",
+					"out": "Что умею на выходе: Проект 1 опубликован: вопрос -> данные -> что сделала -> вывод -> ограничения. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://data.gov.lv/eng/about", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "повтор графиков (семинар 10). Бонус: DSFB урок 16 «Коммуникация»",
+					"questions": [],
+					"vpn": false,
+					"week": 32,
+					"source": "program/_build.py, неделя 32; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 33 · Проект 2 (SQL): база и вопросы",
+					"status": "n",
+					"start": "2027-06-21",
+					"end": "2027-06-27",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): выбрать набор данных (второй data.gov.lv или Kaggle)",
+						"Ср (2,5 ч): загрузка в выбранную СУБД",
+						"Сб (2 ч): список вопросов"
+					],
+					"note": "Вт и Пт (по 45 мин): выбрать набор данных (второй data.gov.lv или Kaggle). Ср (2,5 ч): загрузка в выбранную СУБД. Сб (2 ч): список вопросов. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла.",
+					"out": "Что умею на выходе: Выбрана СУБД, данные загружены, записаны 10-15 вопросов. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://data.gov.lv/eng/about"],
+					"theory": "выбрать набор данных (второй data.gov.lv или Kaggle)",
+					"questions": [],
+					"vpn": false,
+					"week": 33,
+					"source": "program/_build.py, неделя 33; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 34 · Проект 2 (SQL): запросы",
+					"status": "n",
+					"start": "2027-06-28",
+					"end": "2027-07-04",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): повтор тем SQL",
+						"Ср (2,5 ч): запросы, первая половина",
+						"Сб (2 ч): запросы, вторая половина"
+					],
+					"note": "Вт и Пт (по 45 мин): повтор тем SQL. Ср (2,5 ч): запросы, первая половина. Сб (2 ч): запросы, вторая половина. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла.",
+					"out": "Что умею на выходе: 10-15 запросов с вопросом и ответом. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://data.gov.lv/eng/about"],
+					"theory": "повтор тем SQL",
+					"questions": [],
+					"vpn": false,
+					"week": 34,
+					"source": "program/_build.py, неделя 34; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 35 · Проект 2 (SQL): оконные функции и GitHub",
+					"status": "n",
+					"start": "2027-07-05",
+					"end": "2027-07-11",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): повтор оконных функций",
+						"Ср (2,5 ч): оконные запросы",
+						"Сб (2 ч): README и публикация"
+					],
+					"note": "Вт и Пт (по 45 мин): повтор оконных функций. Ср (2,5 ч): оконные запросы. Сб (2 ч): README и публикация. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла.",
+					"out": "Что умею на выходе: 3 запроса с оконными функциями, README, публикация. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://data.gov.lv/eng/about"],
+					"theory": "повтор оконных функций",
+					"questions": [],
+					"vpn": false,
+					"week": 35,
+					"source": "program/_build.py, неделя 35; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 36 · Проект 3 (дашборд): данные и показатели",
+					"status": "n",
+					"start": "2027-07-12",
+					"end": "2027-07-18",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): выбрать данные (stat.gov.lv или dane.gov.pl - не проверено)",
+						"Ср (2,5 ч): ТЗ на 1 страницу",
+						"Сб (2 ч): подготовка данных"
+					],
+					"note": "Вт и Пт (по 45 мин): выбрать данные (stat.gov.lv или dane.gov.pl - не проверено). Ср (2,5 ч): ТЗ на 1 страницу. Сб (2 ч): подготовка данных. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла. Нужно найти заранее (материалы к более поздним неделям): Резюме, LinkedIn, правила найма, проверка рынка (сессия про найм) - нужно к неделе 40.",
+					"out": "Что умею на выходе: Выбран набор данных, определены 3-5 показателей. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://aka.ms/pl300-StudyGuide"],
+					"theory": "выбрать данные (stat.gov.lv или dane.gov.pl - не проверено)",
+					"questions": [],
+					"vpn": false,
+					"week": 36,
+					"source": "program/_build.py, неделя 36; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 37 · Проект 3 (дашборд): черновик",
+					"status": "n",
+					"start": "2027-07-19",
+					"end": "2027-07-25",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): макет на бумаге",
+						"Ср (2,5 ч): сборка черновика в BI",
+						"Сб (2 ч): правка по макету"
+					],
+					"note": "Вт и Пт (по 45 мин): макет на бумаге. Ср (2,5 ч): сборка черновика в BI. Сб (2 ч): правка по макету. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла.",
+					"out": "Что умею на выходе: Черновик дашборда из 3-5 показателей. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://aka.ms/pl300-StudyGuide"],
+					"theory": "макет на бумаге",
+					"questions": [],
+					"vpn": false,
+					"week": 37,
+					"source": "program/_build.py, неделя 37; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 38 · Проект 3 (дашборд): доступность",
+					"status": "n",
+					"start": "2027-07-26",
+					"end": "2027-08-01",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): чек-лист доступности",
+						"Ср (2,5 ч): доводка дашборда",
+						"Сб (2 ч): проверка доступности"
+					],
+					"note": "Вт и Пт (по 45 мин): чек-лист доступности. Ср (2,5 ч): доводка дашборда. Сб (2 ч): проверка доступности. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла.",
+					"out": "Что умею на выходе: Контраст, подписи, не только цвет. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://aka.ms/pl300-StudyGuide"],
+					"theory": "чек-лист доступности",
+					"questions": [],
+					"vpn": false,
+					"week": 38,
+					"source": "program/_build.py, неделя 38; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 39 · Проект 3 (дашборд): публикация и контрольная точка 5",
+					"status": "n",
+					"start": "2027-08-02",
+					"end": "2027-08-08",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): текст «что видно и чего не видно»",
+						"Ср (2,5 ч): публикация и описание",
+						"Сб (2 ч): страница с тремя проектами"
+					],
+					"note": "Вт и Пт (по 45 мин): текст «что видно и чего не видно». Ср (2,5 ч): публикация и описание. Сб (2 ч): страница с тремя проектами. Личные данные в проекты не вносим. Описание проекта: вопрос -> данные (ссылка, дата загрузки) -> что сделала -> вывод -> чего не учла. В понедельник: КТ5: защита трёх проектов; критерий выхода Ф4. Если останется время: DSFB урок 20 «Наука о данных в реальном мире».",
+					"out": "Что умею на выходе: Дашборд и текст «что видно и чего не видно»; три проекта на одной странице. Доказательство: ссылка на репозиторий или файл",
+					"links": ["https://aka.ms/pl300-StudyGuide", "https://github.com/microsoft/Data-Science-For-Beginners/blob/main/translations/ru/README.md"],
+					"theory": "текст «что видно и чего не видно». Бонус: DSFB урок 20 «Наука о данных в реальном мире»",
+					"questions": [],
+					"vpn": false,
+					"week": 39,
+					"source": "program/_build.py, неделя 39; этапы и даты - Роадмап.md"
+				}
+			]
+		},
+		{
+			"name": "Ф5 Резюме и отклики (09.08.2027 - 05.09.2027)",
+			"tasks": [
+				{
+					"name": "Нед. 40 · Резюме и отклики (другая сессия), неделя 1",
+					"status": "n",
+					"start": "2027-08-09",
+					"end": "2027-08-15",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): место в плане: резюме, LinkedIn, GitHub",
+						"Ср (2,5 ч): место в плане: отклики",
+						"Сб (2 ч): место в плане: SQL-задачи для собеседований"
+					],
+					"note": "Вт и Пт (по 45 мин): место в плане: резюме, LinkedIn, GitHub. Ср (2,5 ч): место в плане: отклики. Сб (2 ч): место в плане: SQL-задачи для собеседований. Содержание не готовим здесь: решение 05.11. Часы можно использовать на повтор слабых тем.",
+					"out": "Что умею на выходе: Делается в сессии про найм. Доказательство: по плану сессии про найм",
+					"links": [],
+					"theory": "место в плане: резюме, LinkedIn, GitHub",
+					"questions": [],
+					"vpn": false,
+					"week": 40,
+					"source": "program/_build.py, неделя 40; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 41 · Резюме и отклики (другая сессия), неделя 2",
+					"status": "n",
+					"start": "2027-08-16",
+					"end": "2027-08-22",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): место в плане: резюме, LinkedIn, GitHub",
+						"Ср (2,5 ч): место в плане: отклики",
+						"Сб (2 ч): место в плане: SQL-задачи для собеседований"
+					],
+					"note": "Вт и Пт (по 45 мин): место в плане: резюме, LinkedIn, GitHub. Ср (2,5 ч): место в плане: отклики. Сб (2 ч): место в плане: SQL-задачи для собеседований. Содержание не готовим здесь: решение 05.11. Часы можно использовать на повтор слабых тем.",
+					"out": "Что умею на выходе: Делается в сессии про найм. Доказательство: по плану сессии про найм",
+					"links": [],
+					"theory": "место в плане: резюме, LinkedIn, GitHub",
+					"questions": [],
+					"vpn": false,
+					"week": 41,
+					"source": "program/_build.py, неделя 41; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 42 · Резюме и отклики (другая сессия), неделя 3",
+					"status": "n",
+					"start": "2027-08-23",
+					"end": "2027-08-29",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): место в плане: резюме, LinkedIn, GitHub",
+						"Ср (2,5 ч): место в плане: отклики",
+						"Сб (2 ч): место в плане: SQL-задачи для собеседований"
+					],
+					"note": "Вт и Пт (по 45 мин): место в плане: резюме, LinkedIn, GitHub. Ср (2,5 ч): место в плане: отклики. Сб (2 ч): место в плане: SQL-задачи для собеседований. Содержание не готовим здесь: решение 05.11. Часы можно использовать на повтор слабых тем.",
+					"out": "Что умею на выходе: Делается в сессии про найм. Доказательство: по плану сессии про найм",
+					"links": [],
+					"theory": "место в плане: резюме, LinkedIn, GitHub",
+					"questions": [],
+					"vpn": false,
+					"week": 42,
+					"source": "program/_build.py, неделя 42; этапы и даты - Роадмап.md"
+				},
+				{
+					"name": "Нед. 43 · Резюме и отклики (другая сессия), неделя 4",
+					"status": "n",
+					"start": "2027-08-30",
+					"end": "2027-09-05",
+					"hours": 6,
+					"subs": [
+						"Вт и Пт (1,5 ч): место в плане: резюме, LinkedIn, GitHub",
+						"Ср (2,5 ч): место в плане: отклики",
+						"Сб (2 ч): место в плане: SQL-задачи для собеседований"
+					],
+					"note": "Вт и Пт (по 45 мин): место в плане: резюме, LinkedIn, GitHub. Ср (2,5 ч): место в плане: отклики. Сб (2 ч): место в плане: SQL-задачи для собеседований. Содержание не готовим здесь: решение 05.11. Часы можно использовать на повтор слабых тем. Нужно найти заранее (материалы к более поздним неделям): Материалы для собеседований - нужно к неделе 44.",
+					"out": "Что умею на выходе: Делается в сессии про найм. Доказательство: по плану сессии про найм",
+					"links": [],
+					"theory": "место в плане: резюме, LinkedIn, GitHub",
+					"questions": [],
+					"vpn": false,
+					"week": 43,
+					"source": "program/_build.py, неделя 43; этапы и даты - Роадмап.md"
+				}
+			]
+		},
+		{
+			"name": "Ф6 Собеседования (06.09.2027 - 12.09.2027)",
+			"tasks": [{
+				"name": "Нед. 44 · Собеседования (другая сессия)",
+				"status": "n",
+				"start": "2027-09-06",
+				"end": "2027-09-12",
+				"hours": 6,
+				"subs": [
+					"Вт и Пт (1,5 ч): место в плане",
+					"Ср (2,5 ч): место в плане",
+					"Сб (2 ч): место в плане"
+				],
+				"note": "Вт и Пт (по 45 мин): место в плане. Ср (2,5 ч): место в плане. Сб (2 ч): место в плане. После этого шага включаются необязательные ML и инженерия данных (см. backlog). Нужно найти заранее (материалы к более поздним неделям): Перед ML и инженерией данных: проверить материалы - нужно к неделе 45.",
+				"out": "Что умею на выходе: Делается в сессии про найм; шаг повторяется до первой работы. Доказательство: по плану сессии про найм",
+				"links": [],
+				"theory": "место в плане",
+				"questions": [],
+				"vpn": false,
+				"week": 44,
+				"source": "program/_build.py, неделя 44; этапы и даты - Роадмап.md"
+			}]
+		},
+		{
+			"name": "Что нужно найти (пробелы материалов)",
+			"tasks": [
+				{
+					"name": "Найти: Плейлисты записей семинаров ВШЭ: какой к какому семинару",
+					"status": "n",
+					"start": "2026-11-02",
+					"end": "2026-11-08",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Соответствие плейлист - семинар для семинаров 1-10 (в README курса шесть плейлистов, у разных групп). Нужно к неделе 1 (09.11.2026). Уже пробовали: README курса читали, соответствие не проверено; на YouTube VPN не нужен.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Проверить с включённым VPN: pythontutor.ru, Habr, Яндекс.Контест",
+					"status": "n",
+					"start": "2026-11-02",
+					"end": "2026-11-08",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Открываются ли страницы, не платные ли; доступны ли без логина задачи Яндекс.Контеста из README семинаров. Нужно к неделе 1 (09.11.2026). Уже пробовали: Не открывали: нужен VPN. Контесты выдавались студентам по логинам, доступность посторонним не проверена.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": true,
+					"week": 0,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Проверить с VPN: SQL Academy и SQL-EX (цена, Premium, порядок тем)",
+					"status": "n",
+					"start": "2027-01-18",
+					"end": "2027-01-24",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Что бесплатно, что в Premium; список тем SQL Academy по порядку; сколько задач в SQL-EX без оплаты. Нужно к неделе 12 (25.01.2027). Уже пробовали: По разведке 02.11 (пересказ): в основном бесплатно, есть Premium; страницы не открывали.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": true,
+					"week": 11,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Части 1-3 Stepik «Практический SQL для аналитика»",
+					"status": "n",
+					"start": "2027-03-01",
+					"end": "2027-03-07",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Ссылки и бесплатность частей 1-3 (нужны для части 4 про оконные функции) или замена: Stepik 63054. Нужно к неделе 18 (08.03.2027). Уже пробовали: Часть 4 найдена (обновлена 29.10.2026), части 1-3 не искали.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": true,
+					"week": 17,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Бесплатная СУБД для проекта 2",
+					"status": "n",
+					"start": "2027-02-22",
+					"end": "2027-02-28",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Что ставится на Windows бесплатно и без сложной настройки (кандидаты: SQLite, PostgreSQL), как подключить к SQL-задачам. Нужно к неделе 33 (21.06.2027). Уже пробовали: Не искали; по Роадмап.md выбор делается в Ф1.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 16,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Бесплатный русский курс по Excel или Google Sheets",
+					"status": "n",
+					"start": "2027-03-15",
+					"end": "2027-03-21",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Курс с видео на русском: формулы, сводные таблицы, ПРОСМОТРX, по возможности Power Query. Бесплатный, современная версия Excel. Нужно к неделе 20 (22.03.2027). Уже пробовали: GitHub: бесплатного учебного репозитория нет (библиотеки и платный курс excel4pro). Справка Microsoft (ru-ru): только статьи. Stepik 250657, 114097, 70842: названия из поиска, не проверены.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": true,
+					"week": 19,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Stepik по статистике: цена, автор, содержание",
+					"status": "n",
+					"start": "2027-03-29",
+					"end": "2027-04-04",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Бесплатность и состав курсов 76 «Основы статистики» и 204287 «Проверка гипотез»; запасной Stats Basic (stepik.org/course/250393). Нужно к неделе 22 (05.04.2027). Уже пробовали: Только названия и ссылки из разведки и поиска.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": true,
+					"week": 21,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Бесплатный путь обучения BI и выбор инструмента",
+					"status": "n",
+					"start": "2027-04-19",
+					"end": "2027-04-25",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Бесплатность Power BI Desktop, Looker Studio, Tableau Public; бесплатный учебный путь на русском или английском с практикой. Нужно к неделе 25 (26.04.2027). Уже пробовали: Страница сертификации PL-300: экзамен платный, на русском его нет, бесплатного пути обучения на странице не нашли.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 24,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Наборы данных для трёх проектов",
+					"status": "n",
+					"start": "2027-05-24",
+					"end": "2027-05-30",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Конкретные наборы на data.gov.lv, stat.gov.lv, dane.gov.pl: открытые форматы, свежесть, лицензия. Не Titanic и не Iris. Нужно к неделе 30 (31.05.2027). Уже пробовали: data.gov.lv известен по вторичным источникам (900+ наборов); конкретный набор не выбирали, stat.gov.lv и dane.gov.pl не искали.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 29,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Резюме, LinkedIn, правила найма, проверка рынка (сессия про найм)",
+					"status": "n",
+					"start": "2027-07-12",
+					"end": "2027-07-18",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: Материалы по резюме и откликам, правила найма для твоего статуса, проверки рынка № 1 и № 2 (30 вакансий, Роадмап.md раздел 5). Нужно к неделе 40 (09.08.2027). Уже пробовали: По решению 05.11 в этой сессии не делаем; в разведке материалов по резюме не нашли.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 36,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Материалы для собеседований",
+					"status": "n",
+					"start": "2027-08-30",
+					"end": "2027-09-05",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: SQL-задачи с собеседований, шаблон рассказа о проекте за 3 минуты, пробные собеседования. Нужно к неделе 44 (06.09.2027). Уже пробовали: Не искали (сессия про найм).",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 43,
+					"source": "program/_build.py, GAPS"
+				},
+				{
+					"name": "Найти: Перед ML и инженерией данных: проверить материалы",
+					"status": "n",
+					"start": "2027-09-06",
+					"end": "2027-09-12",
+					"hours": 1,
+					"subs": [],
+					"note": "Что нужно: mlcourse.ai (ссылки, версии библиотек), Zoomcamp (даты потока 2027, нужен ли WSL и Docker, платный ли GCP), русские субтитры 3Blue1Brown. Нужно к неделе 45 (13.09.2027). Уже пробовали: По разведке 05.11: репозитории живые; цену GCP, субтитры и совместимость версий не проверяли.",
+					"out": "Готово, когда: найдено, ссылки записаны в нужную неделю плана",
+					"links": [],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 44,
+					"source": "program/_build.py, GAPS"
+				}
+			]
+		},
+		{
+			"name": "После первой работы (ML, инженерия данных, по желанию)",
+			"tasks": [
+				{
+					"name": "mlcourse.ai, тема 3 «Деревья решений и kNN» и задание 3",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 9,
+					"subs": [],
+					"note": "Группа: Ф7 ML. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://mlcourse.ai"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "mlcourse.ai, тема 4 «Линейные модели» (части 1-5) и задание 4",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 14,
+					"subs": [],
+					"note": "Группа: Ф7 ML. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://mlcourse.ai"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "mlcourse.ai, тема 5 «Бэггинг и случайный лес» и задание 5",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 9,
+					"subs": [],
+					"note": "Группа: Ф7 ML. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://mlcourse.ai"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "mlcourse.ai, тема 6 «Признаки» и задание 6",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 9,
+					"subs": [],
+					"note": "Группа: Ф7 ML. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://mlcourse.ai"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "mlcourse.ai, тема 7 «PCA и кластеризация» и задание 7",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 9,
+					"subs": [],
+					"note": "Группа: Ф7 ML. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://mlcourse.ai"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "3Blue1Brown «Essence of Linear Algebra» (английский)",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 3,
+					"subs": [],
+					"note": "Группа: Ф7 ML. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "ML-проект: baseline, валидация, README",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 14,
+					"subs": [],
+					"note": "Группа: Ф7 ML. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://mlcourse.ai"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "100-Days-Of-ML-Code, дни 1-7 (по желанию; код чинить под современный scikit-learn)",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 8,
+					"subs": [],
+					"note": "Группа: Ф7 ML. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/Avik-Jain/100-Days-Of-ML-Code"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "Zoomcamp: Docker, Postgres, SQL (перед стартом WSL2 и Docker)",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 12,
+					"subs": [],
+					"note": "Группа: Ф8 Данные. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/DataTalksClub/data-engineering-zoomcamp"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "Zoomcamp: хранилище данных / BigQuery (может требовать платёжный аккаунт, не проверено)",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 12,
+					"subs": [],
+					"note": "Группа: Ф8 Данные. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/DataTalksClub/data-engineering-zoomcamp"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "Zoomcamp: dbt",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 12,
+					"subs": [],
+					"note": "Группа: Ф8 Данные. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/DataTalksClub/data-engineering-zoomcamp"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "Zoomcamp: воркшоп dlt и мини-проект CSV/API -> Postgres -> dbt -> дашборд",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 15,
+					"subs": [],
+					"note": "Группа: Ф8 Данные. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/DataTalksClub/data-engineering-zoomcamp"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "ВШЭ семинары 11-14: парсер, plotly, API, бот (по желанию; для аналитики не обязательны)",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 0,
+					"subs": [],
+					"note": "Группа: Backlog. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/hse-econ-data-science/dap_2021_spring"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "DSFB уроки 17-19 «Наука о данных в облаке» (нужен аккаунт Azure)",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 9,
+					"subs": [],
+					"note": "Группа: Backlog. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/microsoft/Data-Science-For-Beginners"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "mlcourse.ai, темы 9 «Временные ряды» и 10 «Градиентный бустинг»",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 16,
+					"subs": [],
+					"note": "Группа: Backlog. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://mlcourse.ai"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "Zoomcamp: Kestra, Bruin, Spark, Kafka",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 0,
+					"subs": [],
+					"note": "Группа: Backlog. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/DataTalksClub/data-engineering-zoomcamp"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "OSSU: Statistical Learning with Python (ISLP, английский) как теория к ML",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 0,
+					"subs": [],
+					"note": "Группа: Backlog. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/ossu/data-science"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				},
+				{
+					"name": "DS Masters: другие Specialty (NLP, Graph Analysis, Deep Learning, Causation)",
+					"status": "o",
+					"start": "",
+					"end": "",
+					"hours": 0,
+					"subs": [],
+					"note": "Группа: Backlog. После первой работы или по желанию.",
+					"out": "",
+					"links": ["https://github.com/datasciencemasters/go"],
+					"theory": "",
+					"questions": [],
+					"vpn": false,
+					"week": 0,
+					"source": "program/_build.py, BACKLOG"
+				}
+			]
+		}
+	]
+}] };
+//#endregion
+//#region src/plan-seed.js
+var PLAN_META = {
+	"pj-analyst": {
+		color: "var(--a-blue)",
+		icon: "star",
+		replaces: "",
+		ver: 2
+	},
+	"pj-english": {
+		color: "var(--a-green)",
+		icon: "lang",
+		replaces: "english"
+	},
+	"pj-ai": {
+		color: "var(--a-violet)",
+		icon: "sparkle",
+		replaces: ""
+	},
+	"pj-ux": {
+		color: "var(--a-rose)",
+		icon: "target",
+		replaces: "career"
+	}
+};
+var PLAN_ST = {
+	n: 1,
+	i: 1,
+	d: 1,
+	o: 1
+};
+function planSection(dir) {
+	const used = {}, ver = (PLAN_META[dir.id] || {}).ver || 1, sp = ver > 1 ? "-v" + ver : "";
+	const stages = (dir.stages || []).map((st, si) => ({
+		id: dir.id + sp + "-s" + si,
+		name: st.name,
+		tasks: (st.tasks || []).map((r, ri) => {
+			let id = dir.id + "-t" + pjHash(st.name + "|" + r.name);
+			if (used[id]) id += "-" + ri;
+			used[id] = 1;
+			const status = PLAN_ST[r.status] ? r.status : "n";
+			const t = ensureTask({
+				id,
+				name: r.name,
+				status,
+				start: r.start || "",
+				end: r.end || "",
+				hours: r.hours || 0
+			});
+			if (status === "d") t.doneOn = r.end || r.start || "";
+			t.subs = (r.subs || []).map((n, i) => ({
+				id: id + "-u" + i,
+				name: n,
+				done: false,
+				type: ""
+			}));
+			const para = (k, arr) => {
+				if (arr.length) t.blocks[k] = arr.map((x, i) => ({
+					id: id + "-" + k.charAt(0) + i,
+					type: "p",
+					text: x
+				}));
+			};
+			para("notes", r.note ? [r.note] : []);
+			para("practice", r.out ? [r.out] : []);
+			para("links", r.links || []);
+			para("theory", r.theory ? [r.theory] : []);
+			para("questions", r.questions || []);
+			return t;
+		})
+	}));
+	const meta = PLAN_META[dir.id] || {};
+	const full = (dir.goal || "").replace(/\s*\([^()]*\.md[^()]*\)/g, "").replace(/^Цель[^:]{0,40}:\s*/, "").replace(/[«»]/g, "").replace(/^[\s;.]+|[\s;]+$/g, "").trim();
+	const m = full.match(/^(.{20,}?[.;])\s/), short = m ? m[1].replace(/[.;]$/, "") : full;
+	const goals = short !== full ? [{
+		id: dir.id + "-g0",
+		kind: "global",
+		title: full,
+		date: "",
+		pct: 0
+	}] : [];
+	const sec = newProjectSection({
+		id: dir.id,
+		name: dir.name,
+		goal: short,
+		color: meta.color,
+		icon: meta.icon,
+		project: {
+			stages,
+			goals
+		}
+	});
+	if (meta.ver > 1) sec.planVer = meta.ver;
+	return sec;
+}
+function upgradePlan(d, old, fresh) {
+	const op = ensureProject(old.project), np = fresh.project, del = op.del.slice();
+	op.stages.forEach((st) => {
+		del.push(st.id);
+		st.tasks.forEach((t) => {
+			del.push(t.id);
+			t.subs.forEach((s) => {
+				del.push(s.id);
+			});
+		});
+	});
+	const live = {};
+	np.stages.forEach((st) => {
+		live[st.id] = 1;
+		st.tasks.forEach((t) => {
+			live[t.id] = 1;
+			t.subs.forEach((s) => {
+				live[s.id] = 1;
+			});
+		});
+	});
+	np.del = del.filter((id) => !live[id]);
+	np.time = op.time;
+	np.moods = op.moods;
+	const i = d.sections.indexOf(old);
+	d.sections[i] = Object.assign({}, old, {
+		project: np,
+		planVer: fresh.planVer
+	});
+}
+function seedPlans$1(d) {
+	d.secDeleted = d.secDeleted || [];
+	(plans_default.directions || []).forEach((dir) => {
+		const have = PLAN_META[dir.id] && d.sections.find((s) => s.id === dir.id);
+		if (have && have.kind === "project" && (have.planVer || 1) < (PLAN_META[dir.id].ver || 1)) {
+			upgradePlan(d, have, planSection(dir));
+			return;
+		}
+		if (!PLAN_META[dir.id] || have || d.secDeleted.indexOf(dir.id) >= 0) return;
+		const sec = planSection(dir), rep = PLAN_META[dir.id].replaces;
+		let at = d.sections.length;
+		if (rep) {
+			const i = d.sections.findIndex((s) => s.kind === rep);
+			if (i >= 0) {
+				const old = d.sections[i], lg = {};
+				lg[rep] = JSON.parse(JSON.stringify(old[rep] || {}));
+				if (old.blocks && old.blocks.length) lg.blocks = JSON.parse(JSON.stringify(old.blocks));
+				sec.project.legacy = lg;
+				sec.legacyKey = rep;
+				at = i;
+				d.sections.splice(i, 1);
+				if (d.secDeleted.indexOf(old.id) < 0) d.secDeleted.push(old.id);
+			}
+		}
+		d.sections.splice(at, 0, sec);
+	});
+}
+function orderSections$1(d) {
+	if (d.navOrder) return;
+	d.navOrder = 1;
+	const rank = (s) => s.id === "pj-analyst" ? 0 : s.id === "pj-english" ? 1 : s.id === "pj-ai" ? 2 : s.id === "pj-ux" ? 3 : s.id === NARC_ID ? 4 : s.kind === "sport" ? 5 : s.legacyKey === "course" || /понедельн/i.test(s.name) ? 6 : 7;
+	d.sections = d.sections.map((s, i) => [
+		rank(s),
+		i,
+		s
+	]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
+}
+Object.assign(window, {
+	planSection,
+	seedPlans: seedPlans$1,
+	orderSections: orderSections$1
+});
+//#endregion
+//#region src/notes.js
+function ensureNotes$1(d) {
+	d.notes = d.notes || [];
+	d.notesDel = d.notesDel || [];
+	d.notes.forEach((n) => {
+		n.id = n.id || uid();
+		n.text = String(n.text || "");
+		n.ts = n.ts || Date.now();
+	});
+	return d;
+}
+function mergeNotes$1(M, B, aM, bM) {
+	ensureNotes$1(M);
+	const bn = B.notes || [];
+	(B.notesDel || []).forEach((id) => {
+		if (M.notesDel.indexOf(id) < 0) M.notesDel.push(id);
+	});
+	bn.forEach((b) => {
+		const m = M.notes.find((x) => x.id === b.id);
+		if (!m) {
+			M.notes.push(JSON.parse(JSON.stringify(b)));
+			return;
+		}
+		const p = "nt:" + b.id;
+		if ((bM[p] || 0) > (aM[p] || 0)) m.text = b.text;
+	});
+	M.notes = M.notes.filter((n) => M.notesDel.indexOf(n.id) < 0).sort((x, y) => (y.ts || 0) - (x.ts || 0));
+}
+function ntFind(id) {
+	return (data.notes || []).find((n) => n.id === id);
+}
+function ntWhen(ts) {
+	const d = new Date(ts);
+	return d.toLocaleDateString("ru-RU", {
+		day: "numeric",
+		month: "short"
+	}) + ", " + d.toLocaleTimeString("ru-RU", {
+		hour: "2-digit",
+		minute: "2-digit"
+	});
+}
+function openNoteModal() {
+	document.getElementById("modal").innerHTML = `<h3>Новая заметка</h3>
+    <p class="mhint">Запиши мысль сразу, как есть. Она попадёт во «Входящие», оттуда её можно переложить в направление.</p>
+    <textarea class="note-area" id="ntNew" rows="5" style="margin-top:0" placeholder="Что хочешь не потерять?" onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();ntSave()}"></textarea>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="ntSave()">Сохранить</button></div>`;
+	showModal();
+	setTimeout(() => {
+		const e = document.getElementById("ntNew");
+		if (e) e.focus();
+	}, 50);
+}
+function ntSave() {
+	const el = document.getElementById("ntNew"), text = el ? el.value.trim() : "";
+	if (!text) {
+		if (el) el.focus();
+		return;
+	}
+	ensureNotes$1(data);
+	const n = {
+		id: uid(),
+		text,
+		ts: Date.now()
+	};
+	data.notes.unshift(n);
+	mstamp("nt:" + n.id);
+	closeModal();
+	toast("Заметка во «Входящих»");
+	render();
+}
+function ntEdit(id, el) {
+	const n = ntFind(id);
+	if (!n) return;
+	n.text = el.value;
+	mstamp("nt:" + id);
+	save();
+}
+function ntRemove(id) {
+	ensureNotes$1(data);
+	if (data.notesDel.indexOf(id) < 0) data.notesDel.push(id);
+	data.notes = data.notes.filter((n) => n.id !== id);
+}
+function ntDel(id) {
+	const n = ntFind(id);
+	if (!n) return;
+	if (n.text.trim() && !confirm("Удалить заметку?")) return;
+	ntRemove(id);
+	render();
+}
+function openNoteMove(id) {
+	if (!ntFind(id)) return;
+	const projs = data.sections.filter((s) => s.kind === "project");
+	if (!projs.length) {
+		toast("Пока нет направления с планом, куда можно переложить");
+		return;
+	}
+	window.ntMoving = id;
+	document.getElementById("modal").innerHTML = `<h3>Переместить в…</h3>
+    <p class="mhint">Заметка станет страницей задачи в выбранном этапе, а её текст окажется во вкладке «Заметки».</p>
+    <label for="ntDir">Направление</label><select id="ntDir" onchange="ntFillStages()">${projs.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select>
+    <label for="ntStage">Этап</label><select id="ntStage"></select>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="ntMoveGo()">Переместить</button></div>`;
+	ntFillStages();
+	showModal();
+}
+function ntFillStages() {
+	const sec = pjSec(document.getElementById("ntDir").value), box = document.getElementById("ntStage");
+	if (!sec || !box) return;
+	const st = sec.project.stages;
+	box.innerHTML = st.length ? st.map((x) => `<option value="${x.id}">${esc(x.name || "Без названия")}</option>`).join("") : `<option value="">Новый этап «Заметки»</option>`;
+}
+function ntMoveGo() {
+	const n = ntFind(window.ntMoving);
+	const sec = pjSec(document.getElementById("ntDir").value);
+	if (!n || !sec) return;
+	const p = sec.project;
+	let st = p.stages.find((x) => x.id === document.getElementById("ntStage").value);
+	if (!st) {
+		st = {
+			id: uid(),
+			name: "Заметки",
+			tasks: []
+		};
+		p.stages.push(st);
+		mstamp("pj:" + st.id);
+	}
+	const lines = n.text.split("\n").map((s) => s.trim()).filter(Boolean), first = lines[0] || "Заметка";
+	const t = ensureTask({
+		id: uid(),
+		name: first.slice(0, 80),
+		status: "n"
+	});
+	if (lines.length > 1 || first.length > 80) {
+		t.blocks.notes = lines.map((s) => ({
+			id: uid(),
+			type: "p",
+			text: s
+		}));
+		mstamp("pb:" + t.id + ".notes");
+	}
+	st.tasks.push(t);
+	mstamp("pj:" + t.id);
+	p.exp[st.id] = 1;
+	ntRemove(n.id);
+	window.ntMoving = null;
+	data.active = sec.id;
+	window.pjTask = null;
+	window.pjTab = "plan";
+	closeModal();
+	toast("Перенесено в «" + sec.name + "»");
+	render();
+}
+function inboxHTML$1() {
+	ensureNotes$1(data);
+	const head = `<div class="card nt-head"><div><h2 class="sec-title">Входящие</h2><p class="sec-sub">Быстрые записи. Когда будет время, переложи их в направление.</p></div>
+    <button class="btn primary" onclick="openNoteModal()">${svg("plus")} Создать заметку</button></div>`;
+	if (!data.notes.length) return head + `<div class="card pj-empty"><p style="color:var(--muted)">Заметок пока нет. Нажми «Создать заметку», чтобы записать первую мысль.</p></div>`;
+	return head + data.notes.map((n) => `<div class="card nt-item"><div class="nt-meta">${ntWhen(n.ts)}</div>
+    <textarea class="note-area nt-text" rows="${Math.min(12, n.text.split("\n").length + 1)}" aria-label="Текст заметки" oninput="ntEdit('${n.id}',this)">${esc(n.text)}</textarea>
+    <div class="row-actions"><button class="link" onclick="openNoteMove('${n.id}')">${svg("chev")} Переместить в…</button><button class="link danger" onclick="ntDel('${n.id}')">${svg("trash")} Удалить</button></div></div>`).join("");
+}
+Object.assign(window, {
+	ensureNotes: ensureNotes$1,
+	mergeNotes: mergeNotes$1,
+	ntFind,
+	openNoteModal,
+	ntSave,
+	ntEdit,
+	ntRemove,
+	ntDel,
+	openNoteMove,
+	ntFillStages,
+	ntMoveGo,
+	inboxHTML: inboxHTML$1
+});
+//#endregion
+//#region src/art.js
+var ART = {
+	analyst: `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ece6d6"/><stop offset="1" stop-color="#cfd8c0"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><circle cx="325" cy="46" r="26" fill="#f6e8cf" opacity=".9"/><path d="M0 150 C80 120 140 165 220 135 S340 112 400 138 V200 H0Z" fill="#b9c7a6" opacity=".75"/><g fill="#9fb08b"><rect x="70" y="112" width="24" height="60" rx="5"/><rect x="106" y="92" width="24" height="80" rx="5"/><rect x="142" y="122" width="24" height="50" rx="5"/><rect x="178" y="72" width="24" height="100" rx="5"/><rect x="214" y="100" width="24" height="72" rx="5"/></g><polyline points="60,102 118,80 154,104 190,58 226,84 262,50" fill="none" stroke="#8a6a52" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><g fill="#8a6a52"><circle cx="118" cy="80" r="5"/><circle cx="190" cy="58" r="5"/><circle cx="262" cy="50" r="5"/></g>`,
+	english: `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e5d3"/><stop offset="1" stop-color="#e8c8ae"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><path d="M95 152 Q150 124 200 148 Q250 124 305 152 V72 Q250 46 200 70 Q150 46 95 72Z" fill="#fff6ea" stroke="#c99b78" stroke-width="3" stroke-linejoin="round"/><path d="M200 70 V148" stroke="#c99b78" stroke-width="3"/><g stroke="#e3c6aa" stroke-width="3.5" stroke-linecap="round" fill="none"><path d="M118 90 Q150 80 182 94"/><path d="M118 108 Q150 98 182 112"/><path d="M118 126 Q150 116 182 130"/><path d="M218 94 Q250 80 282 90"/><path d="M218 112 Q250 98 282 108"/></g><rect x="268" y="22" width="92" height="46" rx="16" fill="#fff6ea" stroke="#d9b496" stroke-width="2.5"/><path d="M292 68 l-8 18 l26 -18z" fill="#fff6ea" stroke="#d9b496" stroke-width="2.5" stroke-linejoin="round"/><text x="314" y="52" font-family="Georgia,serif" font-size="22" fill="#b98562" text-anchor="middle">Hello</text>`,
+	ai: `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6e3ee"/><stop offset="1" stop-color="#c8cedb"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><g stroke="#9aa3b8" stroke-width="2.2" opacity=".85" fill="none"><path d="M70 130 L140 70 L220 112 L300 56 L340 120"/><path d="M140 70 L170 160 L220 112 L330 160"/><path d="M70 130 L170 160"/><path d="M220 112 L260 40 L300 56"/></g><g fill="#fff"><circle cx="70" cy="130" r="11"/><circle cx="140" cy="70" r="13"/><circle cx="220" cy="112" r="15"/><circle cx="300" cy="56" r="12"/><circle cx="340" cy="120" r="10"/><circle cx="170" cy="160" r="10"/></g><g fill="#b3a6c9"><circle cx="140" cy="70" r="6"/><circle cx="220" cy="112" r="8"/><circle cx="300" cy="56" r="5"/></g>`,
+	ux: `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1e5d5"/><stop offset="1" stop-color="#dcc8b2"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><rect x="80" y="36" width="190" height="130" rx="12" fill="#fff8ee" stroke="#c9a888" stroke-width="3"/><rect x="96" y="54" width="64" height="34" rx="6" fill="#e8cdb5"/><rect x="170" y="54" width="86" height="12" rx="5" fill="#ecd9c4"/><rect x="170" y="74" width="56" height="10" rx="5" fill="#ecd9c4"/><rect x="96" y="102" width="160" height="48" rx="8" fill="#f3e4d2"/><path d="M290 92 l0 56 l16 -14 l12 28 l12 -6 l-12 -27 l21 -2z" fill="#8a6a52"/><g><circle cx="318" cy="48" r="11" fill="#e2b9a0"/><circle cx="346" cy="48" r="11" fill="#c9b78f"/><circle cx="374" cy="48" r="11" fill="#b4bfa0"/></g>`,
+	narc: `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2ddd8"/><stop offset="1" stop-color="#d8b9b6"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><circle cx="165" cy="100" r="54" fill="#f9ebe6" opacity=".9"/><circle cx="232" cy="100" r="54" fill="#c99da0" opacity=".5"/><ellipse cx="336" cy="100" rx="27" ry="48" fill="#fbefea" opacity=".55" stroke="#fff3ee" stroke-width="5"/><path d="M322 74 Q330 66 340 68" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".9"/>`,
+	sport: `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e5e9d6"/><stop offset="1" stop-color="#c0cba8"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><circle cx="302" cy="56" r="28" fill="#f6edcb"/><path d="M0 142 Q100 92 200 132 T400 112 V200 H0Z" fill="#aebd94"/><path d="M0 172 Q120 132 230 167 T400 152 V200 H0Z" fill="#8fa577"/><path d="M150 200 Q190 172 232 152 T302 124" stroke="#f4ebd7" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="2 13"/>`,
+	monday: `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7edcd"/><stop offset="1" stop-color="#e8d8a6"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><rect x="118" y="38" width="164" height="132" rx="13" fill="#fffaf0" stroke="#cdb26f" stroke-width="3"/><path d="M118 52 a13 13 0 0 1 13 -14 h138 a13 13 0 0 1 13 14 v18 h-164z" fill="#e2c978"/><g fill="#eadfc1"><rect x="136" y="86" width="22" height="18" rx="4"/><rect x="170" y="86" width="22" height="18" rx="4"/><rect x="204" y="86" width="22" height="18" rx="4"/><rect x="238" y="86" width="22" height="18" rx="4"/><rect x="136" y="114" width="22" height="18" rx="4"/><rect x="170" y="114" width="22" height="18" rx="4"/><rect x="238" y="114" width="22" height="18" rx="4"/></g><rect x="204" y="114" width="22" height="18" rx="4" fill="#b9c7a6"/><path d="M209 123 l5 5 l9 -10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+	def: `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eee3e6"/><stop offset="1" stop-color="#d7c9c8"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><g fill="#c5b3a0" opacity=".7"><ellipse cx="170" cy="110" rx="26" ry="54" transform="rotate(-25 170 110)"/><ellipse cx="230" cy="110" rx="26" ry="54" transform="rotate(25 230 110)"/><ellipse cx="200" cy="96" rx="24" ry="58"/></g><circle cx="320" cy="50" r="22" fill="#f4e8d3"/>`
+};
+function artURL(kind) {
+	const svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 200\" preserveAspectRatio=\"xMidYMid slice\">" + (ART[kind] || ART.def) + "</svg>";
+	return "url('data:image/svg+xml," + encodeURIComponent(svg).replace(/'/g, "%27") + "')";
+}
+function secArtKind(s) {
+	const n = (s.name || "").toLowerCase();
+	if (s.kind === "sport" || /спорт/.test(n)) return "sport";
+	if (s.kind === "english" || /англ/.test(n)) return "english";
+	if (/нарцисс/.test(n)) return "narc";
+	if (/понедельн/.test(n) || s.legacyKey === "course") return "monday";
+	if (/(^|[^а-яё])ии([^а-яё]|$)|нейро/.test(n)) return "ai";
+	if (/ux|ui|дизайн/.test(n)) return "ux";
+	if (/аналит|данн/.test(n)) return "analyst";
+	return "def";
+}
+var ART_EMOJI = {
+	analyst: "📊",
+	english: "🔤",
+	ai: "🤖",
+	ux: "🎨",
+	narc: "🧠",
+	sport: "💪",
+	monday: "🗓",
+	def: "✨"
+};
+function secEmoji$1(s) {
+	return s.emoji || ART_EMOJI[secArtKind(s)];
+}
+function secCoverStyle$1(s) {
+	const c = s.cover || "";
+	return "background-image:" + (/^(https?:|data:|\.?\/|img\/)/.test(c) ? "url('" + c + "')" : artURL(secArtKind(s))) + ";background-size:cover;background-position:center";
+}
+Object.assign(window, {
+	ART,
+	artURL,
+	secArtKind,
+	secEmoji: secEmoji$1,
+	secCoverStyle: secCoverStyle$1,
+	ART_EMOJI
+});
+//#endregion
+//#region src/habits.js
+var HAB_SEED = [
+	[
+		"hb-warm",
+		"Зарядка с планкой",
+		[
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1
+		],
+		"warmup"
+	],
+	[
+		"hb-steps",
+		"10 000 шагов",
+		[
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1
+		],
+		"steps"
+	],
+	[
+		"hb-physio",
+		"Мини-физио",
+		[
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1
+		],
+		"reha"
+	],
+	[
+		"hb-care",
+		"Душ, крем, уход",
+		[
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1
+		],
+		""
+	],
+	[
+		"hb-book",
+		"Книга на ночь",
+		[
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1
+		],
+		""
+	],
+	[
+		"hb-mind",
+		"Практика осознанности",
+		[
+			1,
+			1,
+			1,
+			1,
+			1,
+			0,
+			0
+		],
+		""
+	]
+];
+var DOW$1 = [
+	"Пн",
+	"Вт",
+	"Ср",
+	"Чт",
+	"Пт",
+	"Сб",
+	"Вс"
+];
+function ensureHabits$1(d) {
+	if (!d.habits) d.habits = HAB_SEED.map((x) => ({
+		id: x[0],
+		name: x[1],
+		sched: x[2].slice(),
+		src: x[3],
+		days: {}
+	}));
+	d.habitsDel = d.habitsDel || [];
+	d.today = d.today || [];
+	d.todayDel = d.todayDel || [];
+	d.habits.forEach((h) => {
+		h.id = h.id || uid();
+		h.name = h.name || "";
+		h.sched = (h.sched || [
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1
+		]).slice(0, 7).map((x) => x ? 1 : 0);
+		while (h.sched.length < 7) h.sched.push(1);
+		h.src = h.src || "";
+		h.days = h.days || {};
+	});
+	d.today.forEach((t) => {
+		t.id = t.id || uid();
+		t.text = String(t.text || "");
+		t.done = !!t.done;
+	});
+	return d;
+}
+function mergeHabits$1(M, B, aM, bM) {
+	ensureHabits$1(M);
+	const cl = (x) => JSON.parse(JSON.stringify(x));
+	(B.habitsDel || []).forEach((id) => {
+		if (M.habitsDel.indexOf(id) < 0) M.habitsDel.push(id);
+	});
+	(B.habits || []).forEach((b) => {
+		const m = M.habits.find((x) => x.id === b.id);
+		if (!m) {
+			M.habits.push(cl(b));
+			return;
+		}
+		const p = "hbc:" + b.id;
+		if ((bM[p] || 0) > (aM[p] || 0)) {
+			m.name = b.name;
+			m.sched = (b.sched || m.sched).slice();
+		}
+		m.days = mmT(m.days, b.days, "hb:" + b.id + ".", aM, bM);
+	});
+	M.habits = M.habits.filter((h) => M.habitsDel.indexOf(h.id) < 0);
+	(B.todayDel || []).forEach((id) => {
+		if (M.todayDel.indexOf(id) < 0) M.todayDel.push(id);
+	});
+	(B.today || []).forEach((b) => {
+		const m = M.today.find((x) => x.id === b.id);
+		if (!m) {
+			M.today.push(cl(b));
+			return;
+		}
+		if ((bM["tt:" + b.id] || 0) > (aM["tt:" + b.id] || 0)) m.text = b.text;
+		if ((bM["td:" + b.id] || 0) > (aM["td:" + b.id] || 0)) m.done = !!b.done;
+	});
+	M.today = M.today.filter((t) => M.todayDel.indexOf(t.id) < 0);
+}
+function habSport() {
+	const s = data.sections.find((x) => x.kind === "sport");
+	return s && s.sport ? s.sport : null;
+}
+function habDone(h, ds) {
+	if (h.src) {
+		const sp = habSport();
+		return !!(sp && sp.days[ds] && sp.days[ds][h.src]);
+	}
+	return !!h.days[ds];
+}
+function habToggle(id, ds) {
+	const h = data.habits.find((x) => x.id === id);
+	if (!h) return;
+	if (h.src) {
+		const sp = habSport();
+		if (!sp) return;
+		const d = sp.days[ds] || (sp.days[ds] = {});
+		d[h.src] = !d[h.src];
+		mstamp("sd:" + ds + "." + h.src);
+	} else {
+		if (h.days[ds]) delete h.days[ds];
+		else h.days[ds] = 1;
+		mstamp("hb:" + id + "." + ds);
+	}
+	render();
+}
+function habWeek(h, ws) {
+	const days = [
+		0,
+		1,
+		2,
+		3,
+		4,
+		5,
+		6
+	].map((i) => dateAddDays(ws, i));
+	const goal = h.sched.filter(Boolean).length;
+	const dn = days.reduce((a, ds, i) => a + (h.sched[i] && habDone(h, ds) ? 1 : 0), 0);
+	return {
+		goal,
+		done: dn,
+		pct: goal ? Math.round(dn / goal * 100) : 0
+	};
+}
+function habitsTable$1(ws) {
+	const rows = data.habits.map((h) => {
+		const w = habWeek(h, ws);
+		const cells = h.sched.map((s, i) => {
+			const ds = dateAddDays(ws, i);
+			return s ? `<td><span class="ck ${habDone(h, ds) ? "d" : ""}" onclick="habToggle('${h.id}','${ds}')"></span></td>` : `<td><span class="ck off" title="В этот день привычки нет"></span></td>`;
+		}).join("");
+		return `<tr><td><span class="ed" contenteditable="plaintext-only" data-ph="Привычка" onblur="habRename('${h.id}',this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${esc(h.name)}</span> <span class="del" onclick="habDel('${h.id}')" title="Удалить привычку">×</span></td>
+      <td class="muted"><span class="goalch" onclick="openHabDays('${h.id}')" title="Выбрать дни недели">${w.goal} ${plural(w.goal, "день", "дня", "дней")}</span></td>
+      <td><div class="pg"><span>${w.pct}%</span><div class="bar"><i style="width:${w.pct}%"></i></div></div></td>${cells}</tr>`;
+	}).join("");
+	return `<table class="hab"><colgroup><col><col style="width:72px"><col style="width:128px">${"<col style=\"width:33px\">".repeat(7)}</colgroup><tr><th>Привычка</th><th>Цель</th><th>Прогресс</th>${DOW$1.map((d) => `<th>${d}</th>`).join("")}</tr>${rows}</table>`;
+}
+function habRename(id, el) {
+	const h = data.habits.find((x) => x.id === id);
+	if (!h) return;
+	const v = el.innerText.replace(/\s*\n\s*/g, " ").trim();
+	if (!v) {
+		el.textContent = h.name;
+		return;
+	}
+	if (v === h.name) return;
+	h.name = v;
+	mstamp("hbc:" + id);
+	save();
+}
+function habAdd() {
+	const name = prompt("Название привычки:");
+	if (!name || !name.trim()) return;
+	const h = {
+		id: uid(),
+		name: name.trim(),
+		sched: [
+			1,
+			1,
+			1,
+			1,
+			1,
+			1,
+			1
+		],
+		src: "",
+		days: {}
+	};
+	data.habits.push(h);
+	mstamp("hbc:" + h.id);
+	render();
+}
+function habDel(id) {
+	const h = data.habits.find((x) => x.id === id);
+	if (!h || !confirm("Удалить привычку «" + h.name + "»? Отметки в ней тоже удалятся.")) return;
+	if (data.habitsDel.indexOf(id) < 0) data.habitsDel.push(id);
+	data.habits = data.habits.filter((x) => x.id !== id);
+	render();
+}
+function openHabDays(id) {
+	const h = data.habits.find((x) => x.id === id);
+	if (!h) return;
+	window.habEditing = id;
+	document.getElementById("modal").innerHTML = `<h3>Дни привычки</h3><p class="mhint">«${esc(h.name)}»: в какие дни недели она есть. В остальные дни клетка серая.</p>
+    <div class="daychips">${DOW$1.map((d, i) => `<span class="dchip ${h.sched[i] ? "on" : ""}" onclick="habDayFlip(${i},this)">${d}</span>`).join("")}</div>
+    <div class="modal-actions"><button class="btn primary" onclick="closeModal();render()">Готово</button></div>`;
+	showModal();
+}
+function habDayFlip(i, el) {
+	const h = data.habits.find((x) => x.id === window.habEditing);
+	if (!h) return;
+	h.sched[i] = h.sched[i] ? 0 : 1;
+	if (!h.sched.some(Boolean)) h.sched[i] = 1;
+	el.classList.toggle("on", !!h.sched[i]);
+	mstamp("hbc:" + h.id);
+	save();
+}
+function todayHTML$1() {
+	ensureHabits$1(data);
+	return data.today.map((t) => `<div class="bl"><span class="ck ${t.done ? "d" : ""}" onclick="tdToggle('${t.id}')"></span><span class="ed ${t.done ? "strike" : ""}" contenteditable="plaintext-only" data-ph="Пункт" onblur="tdRename('${t.id}',this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${esc(t.text)}</span><span class="del" onclick="tdDel('${t.id}')" title="Удалить">×</span></div>`).join("") + `<div class="addrow" onclick="tdAdd()">＋ Пункт</div>`;
+}
+function tdAdd() {
+	const t = {
+		id: uid(),
+		text: "",
+		done: false
+	};
+	data.today.push(t);
+	mstamp("tt:" + t.id);
+	render();
+	setTimeout(() => {
+		const els = document.querySelectorAll("[data-sid=\"w-today\"] .ed");
+		const e = els[els.length - 1];
+		if (e) e.focus();
+	}, 30);
+}
+function tdToggle(id) {
+	const t = data.today.find((x) => x.id === id);
+	if (!t) return;
+	t.done = !t.done;
+	mstamp("td:" + id);
+	render();
+}
+function tdRename(id, el) {
+	const t = data.today.find((x) => x.id === id);
+	if (!t) return;
+	const v = el.innerText.replace(/\s*\n\s*/g, " ").trim();
+	if (!v) {
+		tdDel(id, true);
+		return;
+	}
+	if (v === t.text) return;
+	t.text = v;
+	mstamp("tt:" + id);
+	save();
+}
+function tdDel(id, quiet) {
+	if (data.todayDel.indexOf(id) < 0) data.todayDel.push(id);
+	data.today = data.today.filter((x) => x.id !== id);
+	render();
+}
+Object.assign(window, {
+	HAB_SEED,
+	DOW: DOW$1,
+	ensureHabits: ensureHabits$1,
+	mergeHabits: mergeHabits$1,
+	habDone,
+	habToggle,
+	habWeek,
+	habitsTable: habitsTable$1,
+	habRename,
+	habAdd,
+	habDel,
+	openHabDays,
+	habDayFlip,
+	todayHTML: todayHTML$1,
+	tdAdd,
+	tdToggle,
+	tdRename,
+	tdDel
+});
+//#endregion
+//#region src/home.js
+var mkBanner = (a, b, h) => `<div class="banner" style="height:${h || 120}px"><div class="b1"></div><div class="b2"><div class="big" style="font-size:${h > 140 ? 27 : 24}px">${a}</div><div class="script" style="font-size:${h > 140 ? 25 : 20}px">${b}</div></div><div class="b3"></div></div>`;
+var MK_TOOLS = `<span class="pill" id="syncBtn" onclick="openSyncModal()"><span class="slabel">Всё сохранено</span></span><span class="pill" onclick="exportData()">Сохранить в файл</span><span class="pill" onclick="document.getElementById('imp').click()">Загрузить из файла</span><span class="pill" onclick="openPlan()">План</span>`;
+function renderShell$1() {
+	const a = data.active, sec = data.sections.find((s) => s.id === a);
+	let banner, logo, title, sub, tools = MK_TOOLS;
+	if (a === "overview") {
+		banner = mkBanner("Весь твой год может измениться.", "Пусть это будет он.", 170);
+		logo = "🏠";
+		title = esc(data.title);
+		sub = "Будь внимательной. Будь последовательной. Будь собой.";
+	} else if (a === "inbox") {
+		banner = mkBanner("Входящие", "быстрые записи");
+		logo = "✎";
+		title = "Входящие";
+		sub = "Записать мысль сейчас, переложить в направление потом";
+	} else if (sec) {
+		banner = mkBanner(esc(sec.name), sec.kind === "sport" ? "сильнее каждый день" : "шаг за шагом");
+		logo = secEmoji(sec);
+		if (sec.kind === "project") {
+			const f = window.pjTask ? pjFind(sec.project, window.pjTask) : null;
+			if (f) {
+				title = `<span style="font-size:34px">${pjEd("task", sec.id, f.task.id, f.task.name, "Название задачи")}</span>`;
+				sub = `<a style="color:var(--accent);cursor:pointer" onclick="pjGo('${sec.id}','plan')">← План</a> · ${esc(f.stage.name)}`;
+				tools = "";
+			} else {
+				title = pjEd("proj", sec.id, sec.id, sec.name, "Название");
+				sub = pjEd("goal", sec.id, sec.id, sec.goal || "", "Цель направления");
+				tools = `<span class="pill" onclick="pjAddTask('${sec.id}')">＋ Задача</span><span class="pill" onclick="openNoteModal()">＋ Заметка</span>` + tools;
+			}
+		} else {
+			title = esc(sec.name);
+			sub = esc(sec.sub || "");
+			tools = `<span class="pill" onclick="openSectionModal('${sec.id}')">Изменить</span>` + tools;
+		}
+	} else {
+		banner = mkBanner("Мой прогресс", "", 120);
+		logo = "🏠";
+		title = esc(data.title);
+		sub = "";
+	}
+	document.getElementById("mkBanner").innerHTML = banner;
+	document.getElementById("mkHead").innerHTML = `<div class="logo">${logo}</div><div><h1>${title}</h1><div class="sub">${sub}</div></div><div class="tools">${tools}</div>`;
+	document.getElementById("mkLayout").className = "layout" + (a === "overview" ? " three" : "");
+	if (typeof updateSyncBtn === "function") updateSyncBtn();
+}
+function renderTabs$1() {
+	const on = (id) => data.active === id ? "on" : "", nn = (data.notes || []).length;
+	const dirs = data.sections.map((s) => `<a class="${on(s.id)}" onclick="go('${s.id}')">${secEmoji(s)} ${esc(s.name)}</a>`).join("");
+	document.getElementById("mkNav").innerHTML = `<div class="card nav"><a class="${on("overview")}" onclick="go('overview')">🏡 Главная</a><a onclick="openReport2()">📅 Отчёт по неделям</a></div>
+  <div class="card nav"><div class="cap">Направления</div><div>${dirs}</div><a class="plus" onclick="openSectionModal()">＋ Новое направление</a></div>
+  <div class="card qa"><a onclick="openNoteModal()"><span class="qi">✎</span>Создать заметку</a><a class="${on("inbox")}" onclick="go('inbox')"><span class="qi">▤</span>Входящие${nn ? " (" + nn + ")" : ""}</a></div>`;
+}
+function hmTasks() {
+	const r = [];
+	data.sections.filter((s) => s.kind === "project").forEach((sec) => sec.project.stages.forEach((st) => st.tasks.forEach((t) => r.push({
+		sec,
+		st,
+		t
+	}))));
+	return r;
+}
+function wDirs() {
+	return `<section class="card" data-sid="w-dirs"><div class="band">Направления</div><div class="dirs">${data.sections.map((s) => {
+		const p = sectionProgress(s), pct = Math.round((p === null ? 0 : p) * 100);
+		return `<a class="dir" data-sid="${s.id}" onclick="go('${s.id}')"><div class="img" style="${secCoverStyle(s)}"><span class="cam" onclick="event.stopPropagation();coverPick('${s.id}')" title="Своя картинка">📷</span></div>
+      <div class="tt"><b>${esc(s.name)}</b><div class="pg"><div class="bar"><i style="width:${pct}%"></i></div><span>${pct}%</span></div></div></a>`;
+	}).join("")}<a class="dir newdir" onclick="openSectionModal()"><span class="plusbig">＋</span><span>Добавить новое направление</span></a></div></section>`;
+}
+function wNow() {
+	const now = hmTasks().filter((x) => x.t.status === "i").sort((a, b) => (a.t.end || "9") < (b.t.end || "9") ? -1 : 1);
+	const more = now.length > 5 ? `<tr><td></td><td class="muted" colspan="3">и ещё ${now.length - 5} — все видны в плане каждого направления</td></tr>` : "";
+	return `<section class="card now" data-sid="w-now"><div class="cap">Сейчас в работе</div><table>${now.slice(0, 5).map((x) => `<tr><td style="width:34px"><span class="ck" onclick="pjCheckTask('${x.sec.id}','${x.t.id}')"></span></td>
+    <td><a class="serif big" onclick="pjOpenTask('${x.sec.id}','${x.t.id}')">${esc(x.t.name || "Без названия")}</a><div class="muted" style="font-size:12px">${esc(x.sec.name)} · ${esc(x.st.name)}</div></td>
+    <td><span class="tag st-i">Идёт</span></td><td class="muted">${x.t.end ? "до " + fmtDate(x.t.end) : ""}</td></tr>`).join("") || `<tr><td class="muted">Нет задач со статусом «Идёт»</td></tr>`}${more}</table></section>`;
+}
+function wHabits() {
+	ensureHabits(data);
+	return `<section class="card" data-sid="w-habits"><div class="band s">Привычки · эта неделя</div>${habitsTable(mondayOf(todayStr()))}<div class="addrow" onclick="habAdd()">＋ Привычка</div></section>`;
+}
+function wTime() {
+	const ws = mondayOf(todayStr()), ps = data.sections.filter((s) => s.kind === "project");
+	const days = [
+		0,
+		1,
+		2,
+		3,
+		4,
+		5,
+		6
+	].map((i) => {
+		const ds = dateAddDays(ws, i);
+		return ps.reduce((a, s) => a + s.project.time.filter((x) => x.date === ds).reduce((b, x) => b + (+x.min || 0), 0), 0);
+	});
+	const mx = Math.max(60, ...days), wk = days.reduce((a, b) => a + b, 0);
+	return `<section class="card" data-sid="w-time"><div class="cap">Время · эта неделя</div><div class="bars" style="margin-bottom:22px">${days.map((m, i) => `<div class="${dateAddDays(ws, i) === todayStr() ? "hi" : ""}" style="height:${Math.round(m / mx * 100)}%" title="${fmtMin(m)}"><span>${DOW[i]}</span></div>`).join("")}</div><div class="muted" style="font-size:12px">Всего ${fmtMin(wk)} · <a onclick="openReport2()" style="color:var(--accent);cursor:pointer">отчёт недели →</a></div></section>`;
+}
+function wToday() {
+	return `<section class="card" data-sid="w-today"><div class="band y">План на сегодня</div>${todayHTML()}</section>`;
+}
+function wSoon() {
+	return `<section class="card" data-sid="w-soon"><div class="band p">Ближайшие сроки</div><table>${hmTasks().filter((x) => x.t.status !== "d" && x.t.status !== "o" && x.t.end).sort((a, b) => a.t.end < b.t.end ? -1 : 1).slice(0, 5).map((x) => `<tr><td><a onclick="pjOpenTask('${x.sec.id}','${x.t.id}')" style="cursor:pointer">${esc(x.t.name || "Без названия")}</a><div class="muted" style="font-size:11.5px">${esc(x.sec.name)}</div></td><td class="muted" style="text-align:right;white-space:nowrap">${fmtDate(x.t.end)}</td></tr>`).join("") || `<tr><td class="muted">Сроков пока нет</td></tr>`}</table></section>`;
+}
+function wGoals() {
+	const kn = {
+		month: "Месяц",
+		year: "Год"
+	};
+	const goals = [];
+	data.sections.filter((s) => s.kind === "project").forEach((s) => s.project.goals.forEach((g) => goals.push({
+		s,
+		g
+	})));
+	goals.sort((a, b) => (a.g.kind === "global") - (b.g.kind === "global"));
+	return `<section class="card" data-sid="w-goals"><div class="cap">Цели</div>${goals.slice(0, 3).map(({ s, g }) => `<div class="goal"><b><span>${kn[g.kind] || "Цель"}: ${esc(g.title.length > 80 ? g.title.slice(0, 78) + "…" : g.title)}</span><span>${g.pct}%</span></b><div class="bar"><i style="width:${g.pct}%"></i></div><small class="muted">${esc(s.name)}${g.date ? " · до " + fmtDate(g.date) : ""}</small></div>`).join("") || `<div class="muted">Цели направлений появятся здесь.</div>`}</section>`;
+}
+function wSport() {
+	const sec = data.sections.find((s) => s.kind === "sport");
+	if (!sec || !sec.sport) return "";
+	const sp = sec.sport, w = (sp.weight || []).slice().sort((x, y) => x.date < y.date ? -1 : 1), last = w.length ? w[w.length - 1] : null;
+	const y = /* @__PURE__ */ new Date();
+	y.setDate(y.getDate() - 1);
+	const d = (sp.days || {})[ymd(y)] || {}, g = sp.config && sp.config.goals || {};
+	const rng = (a) => a ? ` <span class="muted">/ ${a[0]}–${a[1]}</span>` : "";
+	return `<section class="card" data-sid="w-sport"><div class="cap">Спорт</div><table class="mini">
+    <tr><td class="muted">Вес</td><td style="text-align:right"><b>${last ? String(last.kg).replace(".", ",") + " кг" : "—"}</b></td></tr>
+    <tr><td class="muted">Ккал вчера</td><td style="text-align:right"><b>${d.kcal || "—"}</b>${rng(g.kcal)}</td></tr>
+    <tr><td class="muted">Белок вчера</td><td style="text-align:right"><b>${d.protein ? d.protein + " г" : "—"}</b>${rng(g.protein)}</td></tr></table></section>`;
+}
+function overviewHTML$1() {
+	return `<div class="col">${wDirs()}${wNow()}${wHabits()}</div><div class="col">${wTime()}${wToday()}${wSoon()}${wGoals()}${wSport()}</div>`;
+}
+function coverPick(id) {
+	const s = data.sections.find((x) => x.id === id);
+	if (!s) return;
+	const v = prompt("Адрес своей картинки (пусто - вернуть рисунок):", s.cover || "");
+	if (v === null) return;
+	s.cover = v.trim();
+	mstamp("cs:" + id);
+	render();
+}
+Object.assign(window, {
+	mkBanner,
+	renderShell: renderShell$1,
+	renderTabs: renderTabs$1,
+	hmTasks,
+	overviewHTML: overviewHTML$1,
+	coverPick,
+	wDirs,
+	wNow,
+	wHabits,
+	wTime,
+	wToday,
+	wSoon,
+	wGoals,
+	wSport
 });
 //#endregion
 //#region src/render.js
 function render$1() {
-	document.getElementById("appTitle").textContent = data.title;
+	renderShell();
 	renderTabs();
 	renderView();
 	save();
 }
-function renderTabs() {
-	let h = `<button class="tab ${data.active === "overview" ? "active" : ""}" onclick="go('overview')">${svg("layers")} Обзор</button>`;
-	data.sections.forEach((s) => {
-		h += `<button class="tab ${data.active === s.id ? "active" : ""}" onclick="go('${s.id}')"><span class="tdot" style="background:${s.color}"></span>${esc(s.name)}</button>`;
-	});
-	h += `<button class="tab add" onclick="openSectionModal()">${svg("plus")} Раздел</button>`;
-	document.getElementById("tabs").innerHTML = h;
-}
 function renderView() {
 	const v = document.getElementById("view");
+	v.className = data.active === "overview" ? "contents" : "col";
 	if (data.active === "overview") {
 		v.innerHTML = overviewHTML();
 		wireNotes();
+		return;
+	}
+	if (data.active === "inbox") {
+		v.innerHTML = inboxHTML();
 		return;
 	}
 	const sec = data.sections.find((s) => s.id === data.active);
 	if (!sec) {
 		data.active = "overview";
 		return renderView();
+	}
+	if (sec.kind === "project") {
+		v.innerHTML = projectHTML(sec);
+		pjAfterRender();
+		return;
 	}
 	if (sec.kind === "course") {
 		v.innerHTML = courseHTML(sec) + blocksHTML(sec) + addBlockCardHTML(sec);
@@ -1729,48 +5602,6 @@ function renderView() {
 	}
 	v.innerHTML = sectionHTML(sec);
 	wireNotes();
-}
-function overviewHTML() {
-	if (!data.sections.length) return `<div class="card empty">Пока нет разделов. Нажми «＋ Раздел».</div>`;
-	const total = data.sections.reduce((a, s) => a + sectionTime(s), 0);
-	let done = 0, checks = 0;
-	data.sections.forEach((s) => {
-		if (s.kind === "course") {
-			done += cDoneSteps(s.course);
-			checks += cTotalSteps();
-		} else if (s.kind === "custom") (s.blocks || []).forEach((b) => {
-			if (b.type === "checklist") {
-				checks += b.items.length;
-				done += b.items.filter((it) => b.done[it.id]).length;
-			}
-			if (b.type === "program") (b.groups || []).forEach((g) => {
-				checks += g.lessons.length;
-				done += g.lessons.filter((l) => b.done[l.id]).length;
-			});
-		});
-		else if (s.items) s.items.filter((i) => i.type === "check").forEach((i) => {
-			checks++;
-			if (i.done) done++;
-		});
-	});
-	const th = Math.floor(total / 60), tm = total % 60;
-	const cards = data.sections.map((s) => {
-		const p = sectionProgress(s), pct = p === null ? 0 : p, t = sectionTime(s);
-		const meta = t > 0 ? fmtMin(t) : itemsMeta(s);
-		return `<div class="ring-card" style="--accent:${s.color}; --accent-soft:${softColor(s.color)}" onclick="go('${s.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')go('${s.id}')">
-      <div class="ring-ico">${svg(s.icon || "star")}</div>
-      <div class="ring-wrap">${ring(pct, 96, 9, s.color, true)}</div>
-      <div class="ring-name">${esc(s.name)}</div>
-      <div class="ring-meta">${meta}</div>
-    </div>`;
-	}).join("");
-	return `<div class="card"><div class="hero">
-      <div><div class="hero-label">Всего времени учтено</div>
-        <div class="hero-time">${th}<span> ч </span>${tm}<span> мин</span></div></div>
-      <div class="hero-legend"><div><b>${done}/${checks}</b> отмечено</div>
-        <div><b>${data.sections.length}</b> ${plural(data.sections.length, "раздел", "раздела", "разделов")}</div></div>
-    </div></div>
-  <div class="grid">${cards}</div>`;
 }
 function sectionHTML(sec) {
 	const p = sectionProgress(sec), pct = p === null ? 0 : p, t = sectionTime(sec);
@@ -2470,9 +6301,7 @@ function renderCourseLessons$1() {
 }
 Object.assign(window, {
 	render: render$1,
-	renderTabs,
 	renderView,
-	overviewHTML,
 	sectionHTML,
 	itemHTML,
 	wireNotes,
@@ -7335,10 +11164,12 @@ function dataScore(d) {
 			const e = s.english;
 			n += Object.keys(e.yandex && e.yandex.done || {}).length + Math.max(0, Object.keys(e.gravity && e.gravity.done || {}).length - 3) + (e.speaking || []).filter((x) => x.done).length + Object.keys(e.twenty && e.twenty.done || {}).length + Object.keys(e.wdaily && e.wdaily.days || {}).length + Object.keys(e.hp && e.hp.days || {}).length + Object.keys(e.anki && e.anki.days || {}).length;
 		}
+		if (s.kind === "project") n += projectScore(s.project);
 		if (s.items) s.items.forEach((it) => {
 			if (it.done || it.value || it.minutes) n++;
 		});
 	});
+	n += (d.notes || []).length;
 	return n;
 }
 function loadSync() {
@@ -7361,7 +11192,7 @@ function setSyncStatus(txt, color) {
 		if (color !== void 0) el.style.color = color;
 	}
 }
-function updateSyncBtn() {
+function updateSyncBtn$1() {
 	if (!syncConfigured$1()) {
 		setSyncStatus("Синхронизация", "");
 		return;
@@ -7384,7 +11215,7 @@ function syncHdr$1() {
 		"Content-Type": "application/json"
 	};
 }
-function mergeArr(a, b, keyFn) {
+function mergeArr$1(a, b, keyFn) {
 	a = a || [];
 	b = b || [];
 	const seen = {}, out = [];
@@ -7444,7 +11275,7 @@ function mDailyT(a, b, pfx, aM, bM) {
 	});
 	return o;
 }
-function mmT(a, b, pfx, aM, bM) {
+function mmT$1(a, b, pfx, aM, bM) {
 	a = a || {};
 	b = b || {};
 	const out = {}, keys = {};
@@ -7477,7 +11308,7 @@ function mWorkoutsT(a, b, aM, bM) {
 	const A = {}, B = {};
 	(a || []).forEach((x) => A[x] = 1);
 	(b || []).forEach((x) => B[x] = 1);
-	return Object.keys(mmT(A, B, "wo:", aM, bM)).sort();
+	return Object.keys(mmT$1(A, B, "wo:", aM, bM)).sort();
 }
 function mNotesT(a, b, aM, bM) {
 	a = a || {};
@@ -7520,7 +11351,7 @@ function mNumT(a, b, pfx, aM, bM) {
 	});
 	return o;
 }
-function mKeepUnknown(a, b) {
+function mKeepUnknown$1(a, b) {
 	if (!a || !b) return;
 	Object.keys(b).forEach((k) => {
 		if (!(k in a)) try {
@@ -7632,56 +11463,56 @@ function mSpeakT(a, b, aM, bM) {
 function mergeSection(m, b, aM, bM) {
 	if (b.kind === "course" && b.course) {
 		const c = m.course;
-		c.done = mmT(c.done, b.course.done, "co:", aM, bM);
-		c.timeLog = mergeArr(c.timeLog, b.course.timeLog, (t) => t.d + "|" + t.m + "|" + (t.note || ""));
-		c.moods = mergeArr(c.moods, b.course.moods, (x) => x.ts);
+		c.done = mmT$1(c.done, b.course.done, "co:", aM, bM);
+		c.timeLog = mergeArr$1(c.timeLog, b.course.timeLog, (t) => t.d + "|" + t.m + "|" + (t.note || ""));
+		c.moods = mergeArr$1(c.moods, b.course.moods, (x) => x.ts);
 		c.tlog = mNumT(c.tlog, b.course.tlog, "tl:", aM, bM);
 		c.cardOrder = lwwArr(c.cardOrder, b.course.cardOrder, "or:course", aM, bM);
-		c.paused = mmT(c.paused, b.course.paused || {}, "pa:", aM, bM);
+		c.paused = mmT$1(c.paused, b.course.paused || {}, "pa:", aM, bM);
 		c.exp = Object.assign({}, b.course.exp, c.exp);
-		mKeepUnknown(c, b.course);
+		mKeepUnknown$1(c, b.course);
 	} else if (b.kind === "sport" && b.sport) {
 		const a = m.sport, bb = b.sport;
 		a.days = mDaysT(a.days, bb.days, aM, bM);
 		a.workouts = mWorkoutsT(a.workouts, bb.workouts, aM, bM);
-		a.weight = mergeArr(a.weight, bb.weight, (x) => x.date + "|" + x.kg);
+		a.weight = mergeArr$1(a.weight, bb.weight, (x) => x.date + "|" + x.kg);
 		[
 			"chest",
 			"waist",
 			"belly",
 			"hips"
 		].forEach((k) => {
-			a[k] = mergeArr(a[k], bb[k], (x) => x.date + "|" + x.cm);
+			a[k] = mergeArr$1(a[k], bb[k], (x) => x.date + "|" + x.cm);
 		});
-		a.energy = mergeArr(a.energy, bb.energy, (x) => x.week);
+		a.energy = mergeArr$1(a.energy, bb.energy, (x) => x.week);
 		a.weekNotes = mNotesT(a.weekNotes, bb.weekNotes, aM, bM);
 		a.cook = mNumT(a.cook, bb.cook, "ck:", aM, bM);
 		a.cardOrder = lwwArr(a.cardOrder, bb.cardOrder, "or:sport", aM, bM);
-		a.paused = mmT(a.paused, bb.paused || {}, "pa:", aM, bM);
-		a.archives = mergeArr(a.archives, bb.archives, (x) => x.id || (x.start || "") + "|" + (x.end || ""));
+		a.paused = mmT$1(a.paused, bb.paused || {}, "pa:", aM, bM);
+		a.archives = mergeArr$1(a.archives, bb.archives, (x) => x.id || (x.start || "") + "|" + (x.end || ""));
 		a.physio = a.physio || {
 			done: {},
 			dates: {}
 		};
 		const bph = bb.physio || {};
-		a.physio.done = mmT(a.physio.done, bph.done, "fz:", aM, bM);
+		a.physio.done = mmT$1(a.physio.done, bph.done, "fz:", aM, bM);
 		a.physio.dates = Object.assign({}, bph.dates || {}, a.physio.dates || {});
 		if ((!a.config || !a.config.startDate) && bb.config && bb.config.startDate) a.config = Object.assign({}, a.config, bb.config);
-		mKeepUnknown(a, bb);
+		mKeepUnknown$1(a, bb);
 		delete a.lifts;
 	} else if (b.kind === "career" && b.career) {
 		const a = m.career, bb = b.career;
-		a.sessions = mergeArr(a.sessions, bb.sessions, (x) => x);
-		a.features = mergeArr(a.features, bb.features, (x) => (x.date || "") + "|" + (x.feature || ""));
-		a.timeLog = mergeArr(a.timeLog, bb.timeLog, (t) => t.d + "|" + t.m + "|" + (t.note || ""));
-		a.later = mergeArr(a.later, bb.later, (x) => x);
+		a.sessions = mergeArr$1(a.sessions, bb.sessions, (x) => x);
+		a.features = mergeArr$1(a.features, bb.features, (x) => (x.date || "") + "|" + (x.feature || ""));
+		a.timeLog = mergeArr$1(a.timeLog, bb.timeLog, (t) => t.d + "|" + t.m + "|" + (t.note || ""));
+		a.later = mergeArr$1(a.later, bb.later, (x) => x);
 		a.vkcourse = a.vkcourse || { done: {} };
-		a.vkcourse.done = mmT(a.vkcourse.done, (bb.vkcourse || {}).done, "vk:", aM, bM);
+		a.vkcourse.done = mmT$1(a.vkcourse.done, (bb.vkcourse || {}).done, "vk:", aM, bM);
 		a.mts = a.mts || {
 			done: {},
 			exp: {}
 		};
-		a.mts.done = mmT(a.mts.done, (bb.mts || {}).done, "mt:", aM, bM);
+		a.mts.done = mmT$1(a.mts.done, (bb.mts || {}).done, "mt:", aM, bM);
 		a.apply = a.apply || { days: {} };
 		a.apply.days = mDailyT(a.apply.days, (bb.apply || {}).days, "ap:", aM, bM);
 		a.li = a.li || { weeks: {} };
@@ -7690,27 +11521,27 @@ function mergeSection(m, b, aM, bM) {
 		a.checkpoints = mFlagsT(a.checkpoints, bb.checkpoints, "st:cp.", aM, bM);
 		a.tlog = mNumT(a.tlog, bb.tlog, "tl:", aM, bM);
 		a.cardOrder = lwwArr(a.cardOrder, bb.cardOrder, "or:career", aM, bM);
-		a.paused = mmT(a.paused, bb.paused || {}, "pa:", aM, bM);
+		a.paused = mmT$1(a.paused, bb.paused || {}, "pa:", aM, bM);
 		if ((!a.config || !a.config.startDate) && bb.config && bb.config.startDate) a.config = Object.assign({}, a.config, bb.config);
-		mKeepUnknown(a, bb);
+		mKeepUnknown$1(a, bb);
 	} else if (b.kind === "english" && b.english) {
 		const a = m.english, bb = b.english;
 		a.yandex = a.yandex || { done: {} };
-		a.yandex.done = mmT(a.yandex.done, (bb.yandex || {}).done, "ya:", aM, bM);
+		a.yandex.done = mmT$1(a.yandex.done, (bb.yandex || {}).done, "ya:", aM, bM);
 		a.gravity = a.gravity || { done: {} };
-		a.gravity.done = mmT(a.gravity.done, (bb.gravity || {}).done, "gv:", aM, bM);
+		a.gravity.done = mmT$1(a.gravity.done, (bb.gravity || {}).done, "gv:", aM, bM);
 		a.speaking = mSpeakT(a.speaking, bb.speaking, aM, bM);
 		a.theory = a.theory || { done: {} };
-		a.theory.done = mmT(a.theory.done, (bb.theory || {}).done, "th:", aM, bM);
+		a.theory.done = mmT$1(a.theory.done, (bb.theory || {}).done, "th:", aM, bM);
 		a.a11y = a.a11y || {
 			done: {},
 			exp: {}
 		};
-		a.a11y.done = mmT(a.a11y.done, (bb.a11y || {}).done, "ax:", aM, bM);
+		a.a11y.done = mmT$1(a.a11y.done, (bb.a11y || {}).done, "ax:", aM, bM);
 		a.a11y.min = mNumT(a.a11y.min, (bb.a11y || {}).min, "ax:", aM, bM);
 		a.writing = mergeWriting(a.writing, bb.writing, aM, bM);
 		a.twenty = a.twenty || { done: {} };
-		a.twenty.done = mmT(a.twenty.done, (bb.twenty || {}).done, "tw:", aM, bM);
+		a.twenty.done = mmT$1(a.twenty.done, (bb.twenty || {}).done, "tw:", aM, bM);
 		a.wdaily = a.wdaily || { days: {} };
 		a.wdaily.days = mDailyT(a.wdaily.days, (bb.wdaily || {}).days, "wd:", aM, bM);
 		a.hp = a.hp || { days: {} };
@@ -7724,16 +11555,16 @@ function mergeSection(m, b, aM, bM) {
 		a.lessons = a.lessons || { weeks: {} };
 		a.lessons.weeks = mDailyT(a.lessons.weeks, (bb.lessons || {}).weeks, "ls:", aM, bM);
 		a.ankiQueue = a.ankiQueue || { done: {} };
-		a.ankiQueue.done = mmT(a.ankiQueue.done, (bb.ankiQueue || {}).done, "aq:", aM, bM);
-		a.paused = mmT(a.paused, bb.paused || {}, "pa:", aM, bM);
+		a.ankiQueue.done = mmT$1(a.ankiQueue.done, (bb.ankiQueue || {}).done, "aq:", aM, bM);
+		a.paused = mmT$1(a.paused, bb.paused || {}, "pa:", aM, bM);
 		a.tlog = mNumT(a.tlog, bb.tlog, "tl:", aM, bM);
 		a.cardOrder = lwwArr(a.cardOrder, bb.cardOrder, "or:english", aM, bM);
 		if ((!a.config || !a.config.startDate) && bb.config && bb.config.startDate) a.config = Object.assign({}, a.config, bb.config);
-		mKeepUnknown(a, bb);
+		mKeepUnknown$1(a, bb);
 	} else if (b.kind === "custom") {
 		ensureCustom(m);
 		ensureCustom(b);
-		m.paused = mmT(m.paused, b.paused || {}, "pa:", aM, bM);
+		m.paused = mmT$1(m.paused, b.paused || {}, "pa:", aM, bM);
 		m.cardOrder = lwwArr(m.cardOrder, b.cardOrder, "or:" + b.id, aM, bM);
 		m.cardExp = Object.assign({}, b.cardExp || {}, m.cardExp || {});
 		const sp = "cs:" + b.id;
@@ -7743,8 +11574,9 @@ function mergeSection(m, b, aM, bM) {
 			m.color = b.color;
 			m.icon = b.icon;
 		}
-		mKeepUnknown(m, b);
-	} else if (b.kind === "generic" && b.items && m.items) b.items.forEach((bi) => {
+		mKeepUnknown$1(m, b);
+	} else if (b.kind === "project" && b.project) mergeProject(m, b, aM, bM);
+	else if (b.kind === "generic" && b.items && m.items) b.items.forEach((bi) => {
 		const mi = m.items.find((x) => x.id === bi.id || x.name === bi.name);
 		if (mi) {
 			if (bi.done) mi.done = true;
@@ -7786,7 +11618,7 @@ function mergeBlocksT(m, b, aM, bM) {
 				if (!items.find((x) => x.id === it.id)) items.push(JSON.parse(JSON.stringify(it)));
 			});
 			mb.items = items.filter((it) => mb.del.indexOf(it.id) < 0);
-			mb.done = mmT(mb.done, bb.done, pfx, aM, bM);
+			mb.done = mmT$1(mb.done, bb.done, pfx, aM, bM);
 		} else if (mb.type === "program") {
 			const groups = JSON.parse(JSON.stringify(fresher.groups || []));
 			(stale.groups || []).forEach((g) => {
@@ -7803,10 +11635,10 @@ function mergeBlocksT(m, b, aM, bM) {
 				g.lessons = g.lessons.filter((l) => mb.del.indexOf(l.id) < 0);
 			});
 			mb.groups = groups.filter((g) => mb.del.indexOf(g.id) < 0);
-			mb.done = mmT(mb.done, bb.done, pfx, aM, bM);
+			mb.done = mmT$1(mb.done, bb.done, pfx, aM, bM);
 			mb.exp = Object.assign({}, bb.exp, mb.exp);
 		}
-		mKeepUnknown(mb, bb);
+		mKeepUnknown$1(mb, bb);
 	});
 	m.blocks = m.blocks.filter((x) => m.blocksDeleted.indexOf(x.id) < 0);
 }
@@ -7821,8 +11653,9 @@ function mergeData(A, B) {
 	});
 	(B.sections || []).forEach((bs) => {
 		if (M.secDeleted.indexOf(bs.id) >= 0) return;
+		if (bs.kind === "course") bs = courseToProject(bs, bM);
 		let ms;
-		if (bs.kind === "custom") ms = M.sections.find((s) => s.kind === "custom" && s.id === bs.id);
+		if (bs.kind === "custom" || bs.kind === "project") ms = M.sections.find((s) => s.kind === bs.kind && s.id === bs.id);
 		else if (bs.kind === "generic") ms = M.sections.find((s) => s.kind === "generic" && s.name === bs.name);
 		else ms = M.sections.find((s) => s.kind === bs.kind);
 		if (!ms) M.sections.push(JSON.parse(JSON.stringify(bs)));
@@ -7831,6 +11664,8 @@ function mergeData(A, B) {
 	M.sections = M.sections.filter((s) => M.secDeleted.indexOf(s.id) < 0);
 	M.week = mergeWeek(M.week || A.week, B.week, aM, bM);
 	M.plan = mergePlan(M.plan || A.plan, B.plan, aM, bM);
+	mergeNotes(M, B, aM, bM);
+	mergeHabits(M, B, aM, bM);
 	if (A.planTpl || B && B.planTpl) M.planTpl = mTplT(A.planTpl, B.planTpl, aM, bM);
 	M._m = M._m || {};
 	Object.keys(bM).forEach((p) => {
@@ -7880,7 +11715,7 @@ document.addEventListener("focusout", function() {
 var POLL_MS = 3e3;
 function syncInit$1() {
 	loadSync();
-	updateSyncBtn();
+	updateSyncBtn$1();
 	if (!syncConfigured$1()) return;
 	const go = function() {
 		cloudPull(true);
@@ -7936,7 +11771,7 @@ function cloudPull(silent) {
 			if (!silent) toast("Данные объединены");
 		} else flushPendingRender();
 		if (csr === null || ms !== csr) pushSoon();
-		updateSyncBtn();
+		updateSyncBtn$1();
 		window.syncBusy = false;
 	}).catch((e) => {
 		window.syncBusy = false;
@@ -7947,7 +11782,7 @@ function cloudPull(silent) {
 function pushSoon() {
 	if (!syncConfigured$1()) return;
 	markDirty();
-	updateSyncBtn();
+	updateSyncBtn$1();
 	if (pushBusy || pushTimer) {
 		window.pushAgain = true;
 		return;
@@ -7957,7 +11792,7 @@ function pushSoon() {
 function schedulePush$1() {
 	if (!syncConfigured$1() || syncApplying) return;
 	markDirty();
-	updateSyncBtn();
+	updateSyncBtn$1();
 	if (pushBusy || pushTimer) {
 		window.pushAgain = true;
 		return;
@@ -7993,13 +11828,13 @@ window.addEventListener("focus", function() {
 });
 window.addEventListener("online", function() {
 	if (syncConfigured$1()) {
-		updateSyncBtn();
+		updateSyncBtn$1();
 		retryPush();
 		cloudPoll();
 	}
 });
 window.addEventListener("offline", function() {
-	updateSyncBtn();
+	updateSyncBtn$1();
 });
 window.addEventListener("pagehide", function() {
 	if (syncConfigured$1() && isDirty()) {
@@ -8019,7 +11854,7 @@ function cloudPush(silent) {
 	if (!syncConfigured$1()) return Promise.resolve();
 	if (navigator.onLine === false) {
 		markDirty();
-		updateSyncBtn();
+		updateSyncBtn$1();
 		return Promise.resolve();
 	}
 	const stamp = (/* @__PURE__ */ new Date()).toISOString();
@@ -8048,7 +11883,7 @@ function cloudPush(silent) {
 				cloudPush(true);
 			}, 800);
 		}
-		updateSyncBtn();
+		updateSyncBtn$1();
 	}).catch((e) => {
 		window.pushBusy = false;
 		markDirty();
@@ -8088,7 +11923,7 @@ function saveSyncCfg() {
 		localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg));
 	} catch (e) {}
 	closeModal();
-	updateSyncBtn();
+	updateSyncBtn$1();
 	cloudPull(false);
 	toast("Синхронизация подключена");
 }
@@ -8098,7 +11933,7 @@ function syncDisable() {
 		localStorage.removeItem(SYNC_KEY);
 	} catch (e) {}
 	closeModal();
-	updateSyncBtn();
+	updateSyncBtn$1();
 }
 Object.assign(window, {
 	isDirty,
@@ -8108,19 +11943,19 @@ Object.assign(window, {
 	loadSync,
 	syncConfigured: syncConfigured$1,
 	setSyncStatus,
-	updateSyncBtn,
+	updateSyncBtn: updateSyncBtn$1,
 	syncHdr: syncHdr$1,
-	mergeArr,
+	mergeArr: mergeArr$1,
 	mergeWriting,
 	mDailyT,
-	mmT,
+	mmT: mmT$1,
 	mFlagsT,
 	mWorkoutsT,
 	mNotesT,
 	lwwArr,
 	mTplT,
 	mNumT,
-	mKeepUnknown,
+	mKeepUnknown: mKeepUnknown$1,
 	mDayT,
 	mDaysT,
 	mStagesT,
@@ -8215,6 +12050,7 @@ function autoMin(sec, mon) {
 	if (sec.kind === "sport") return spWeekMin(sec.sport, mon) + cb;
 	if (sec.kind === "english") return engWeekMin(sec.english, mon) + cb;
 	if (sec.kind === "career") return careerWeekMin(sec.career, mon) + cb;
+	if (sec.kind === "project") return pjWeekMin(sec.project, mon) + cb;
 	if (sec.kind === "course") return tlogWeek(sec.course, "co", mon) + (sec.course.timeLog || []).filter((t) => mondayOf(t.d) === mon).reduce((a, t) => a + (t.m || 0), 0) + cb;
 	return cb;
 }
@@ -8549,6 +12385,29 @@ function metEnglish(sec, mon) {
 	});
 	return o;
 }
+function pjWeekSteps(p, mon) {
+	let n = 0;
+	pjTasks(p).forEach((t) => {
+		if (t.subs.length) t.subs.forEach((s) => {
+			if (s.done && tsInWeek$1("ps:" + s.id, mon)) n++;
+		});
+		else if (t.status === "d" && tsInWeek$1("pj:" + t.id, mon)) n++;
+	});
+	return n;
+}
+function metProject(sec, mon) {
+	const p = sec.project, o = [];
+	metTime(sec, mon, o);
+	const pr = pjProgress(p), k = pjWeekSteps(p, mon);
+	o.push({
+		k: "steps",
+		label: "Пройдено пунктов",
+		val: k + " " + plural(k, "пункт", "пункта", "пунктов"),
+		extra: "всего " + pr.done + "/" + pr.total + ", " + pctTxt(pr.done, pr.total),
+		w: 1
+	});
+	return o;
+}
 function metCourse(sec, mon) {
 	const c = sec.course;
 	const o = [];
@@ -8699,6 +12558,7 @@ function metricsRaw(sec, mon) {
 	if (sec.kind === "sport") return metSport(sec, mon).concat(metBlocks(sec, mon));
 	if (sec.kind === "career") return metCareer(sec, mon).concat(metBlocks(sec, mon));
 	if (sec.kind === "english") return metEnglish(sec, mon).concat(metBlocks(sec, mon));
+	if (sec.kind === "project") return metProject(sec, mon);
 	if (sec.kind === "course") return metCourse(sec, mon).concat(metBlocks(sec, mon));
 	if (sec.kind === "custom") return metCustom(sec, mon);
 	if (sec.kind === "generic") return metGeneric(sec, mon);
@@ -8728,6 +12588,9 @@ function reportCareer(sec, mon) {
 function reportEnglish(sec, mon) {
 	return ["🇬🇧 " + sec.name].concat(metricsLines(sec, mon)).concat([""]);
 }
+function reportProject(sec, mon) {
+	return ["📘 " + sec.name].concat(metricsLines(sec, mon)).concat([""]);
+}
 function reportCourse(sec, mon) {
 	return ["📘 " + sec.name].concat(metricsLines(sec, mon)).concat([""]);
 }
@@ -8744,6 +12607,7 @@ function buildWeeklyReport(mon) {
 		if (sec.kind === "sport") L = L.concat(reportSport(sec, mon));
 		else if (sec.kind === "career") L = L.concat(reportCareer(sec, mon));
 		else if (sec.kind === "english") L = L.concat(reportEnglish(sec, mon));
+		else if (sec.kind === "project") L = L.concat(reportProject(sec, mon));
 		else if (sec.kind === "course") L = L.concat(reportCourse(sec, mon));
 		else if (sec.kind === "custom") L = L.concat(reportCustom(sec, mon));
 		else if (sec.kind === "generic") L = L.concat(reportGeneric(sec, mon));
@@ -8808,6 +12672,7 @@ function ensureWeekData() {
 	});
 }
 function secKey(sec) {
+	if (sec.kind === "project") return sec.legacyKey || "p:" + sec.id;
 	return sec.kind === "custom" ? "c:" + sec.id : sec.kind === "generic" ? "g:" + sec.name : sec.kind;
 }
 function wPlan(w, sk) {
@@ -8868,11 +12733,22 @@ function schedSections() {
 	return data.sections.filter((s) => [
 		"course",
 		"english",
-		"career"
+		"career",
+		"project"
 	].indexOf(s.kind) >= 0);
 }
 function schedItems(sec) {
 	const o = [];
+	if (sec.kind === "project") {
+		pjTasks(sec.project).forEach((t) => t.subs.forEach((x) => o.push({
+			reft: "pj",
+			key: x.id,
+			label: (t.name || "Задача") + " · " + (x.name || "Подзадача"),
+			group: t.name || "Задача",
+			text: x.name || "Подзадача"
+		})));
+		return o;
+	}
 	if (sec.kind === "english") {
 		YA_PROGRAM.forEach((l, i) => o.push({
 			reft: "ya",
@@ -8934,6 +12810,14 @@ function refState(t) {
 	if (!t.reft || !t.ref) return null;
 	const sec = data.sections.find((s) => s.id === t.secId);
 	if (!sec) return null;
+	if ((t.reft === "co" || t.reft === "pj") && sec.kind === "project") {
+		const f = pjSub(sec.project, t.reft === "co" ? "co-" + t.ref : t.ref);
+		if (!f) return null;
+		return {
+			done: f.sub.done,
+			set: (v) => pjSetSubDone(f.sub, f.task, v)
+		};
+	}
 	if (t.reft === "co" && sec.course) {
 		const c = sec.course;
 		return {
@@ -9147,7 +13031,19 @@ function fillPtItems(sid, curVal) {
 		});
 		html += `</optgroup>`;
 	});
-	else schedItems(sec).forEach((it) => {
+	else if (sec.kind === "project") {
+		let g = null;
+		schedItems(sec).forEach((it) => {
+			if (it.group !== g) {
+				if (g !== null) html += `</optgroup>`;
+				g = it.group;
+				html += `<optgroup label="${esc(g)}">`;
+			}
+			const v = it.reft + "|" + it.key;
+			html += `<option value="${v}" ${v === curVal ? "selected" : ""}>${esc(it.text)}</option>`;
+		});
+		if (g !== null) html += `</optgroup>`;
+	} else schedItems(sec).forEach((it) => {
 		const v = it.reft + "|" + it.key;
 		html += `<option value="${v}" ${v === curVal ? "selected" : ""}>${esc(it.label)}</option>`;
 	});
@@ -9548,6 +13444,9 @@ var PLAN_ORDER = [
 	"sport",
 	"english"
 ];
+function planSec(kind) {
+	return data.sections.find((x) => x.kind === kind) || data.sections.find((x) => x.kind === "project" && x.legacyKey === kind);
+}
 function ensurePlanTpl() {
 	data.planTpl = data.planTpl || {};
 	return data.planTpl;
@@ -9585,6 +13484,10 @@ function planAutoLines(sec, mon) {
 			if (nx) out.push("Семейное древо — " + nx + " (этап: " + crCurBlock(c).t + ")");
 		}
 		if (mtsAllDone(c.mts) < mtsTotal()) out.push("Курс МТС — " + mtsAllDone(c.mts) + "/" + mtsTotal() + " видео пройдено");
+	}
+	if (sec.kind === "project" && sec.legacyKey === "course") {
+		const nx = pjTasks(sec.project).filter((t) => t.subs.length).find((t) => t.subs.some((x) => !x.done));
+		if (nx) out.push("Следующий урок — " + nx.name + " (" + nx.subs.filter((x) => x.done).length + "/" + nx.subs.length + " подтем)");
 	}
 	if (sec.kind === "course") {
 		const c = sec.course;
@@ -9627,7 +13530,7 @@ function buildWeekPlan(mon) {
 		""
 	];
 	PLAN_ORDER.forEach((kind) => {
-		const sec = data.sections.find((x) => x.kind === kind);
+		const sec = planSec(kind);
 		if (!sec) return;
 		const g = PLAN_GOALS[kind] || {
 			goal: sec.name,
@@ -9684,7 +13587,7 @@ function renderWeekPlan() {
 }
 function openPlanTpl() {
 	const rows = PLAN_ORDER.map((kind) => {
-		const sec = data.sections.find((x) => x.kind === kind);
+		const sec = planSec(kind);
 		if (!sec) return "";
 		const sk = secKey(sec), g = PLAN_GOALS[kind] || {};
 		return `<label for="tpl_${sk}">${esc(g.goal || sec.name)}</label>
@@ -9836,6 +13739,7 @@ function openSectionModal(id) {
     <h3>${id ? "Редактировать раздел" : "Новый раздел · шаг 1 из 2"}</h3>
     <p class="mhint">${id ? "Название, цвет и иконка." : "Сначала название и вид. После «Создать раздел» сразу откроется шаг 2 — выбор первого блока: задачи, привычки, счётчики или курс."}</p>
     <label for="mName">Название</label><input id="mName" type="text" value="${esc(s.name)}" placeholder="Например, Спорт">
+    ${id ? "" : `<label for="mKind">Вид</label><select id="mKind"><option value="project">План обучения: этапы, задачи, подзадачи, канбан</option><option value="custom">Из блоков: чек-листы, привычки, счётчики</option></select>`}
     <label for="mSub">Подпись</label><input id="mSub" type="text" value="${esc(s.sub || "")}" placeholder="Короткое описание">
     <label>Цвет</label><div class="swatches" id="swColor">${sw}</div>
     <label>Иконка</label><div class="swatches" id="swIcon">${ic}</div>
@@ -9866,7 +13770,28 @@ function saveSection() {
 		editingSection.sub = sub;
 		editingSection.color = pickColor;
 		editingSection.icon = pickIcon;
-		if (editingSection.kind === "custom") mstamp("cs:" + editingSection.id);
+		if (editingSection.kind === "custom" || editingSection.kind === "project") mstamp("cs:" + editingSection.id);
+	} else if (document.getElementById("mKind") && document.getElementById("mKind").value === "project") {
+		const ns = newProjectSection({
+			name,
+			sub,
+			color: pickColor,
+			icon: pickIcon
+		});
+		data.sections.push(ns);
+		data.active = ns.id;
+		window.pjTask = null;
+		window.pjTab = "plan";
+		mstamp("cs:" + ns.id);
+		evLog("block_new", {
+			block: ns.id,
+			kind: "section",
+			name
+		});
+		closeModal$1();
+		render();
+		toast("Направление создано");
+		return;
 	} else {
 		const ns = ensureCustom({
 			id: uid(),

@@ -137,6 +137,10 @@ function migrate(d){ if(!d||!d.sections) return d; d._m=d._m||{};
   d.sections.forEach(s=>{ if(!s.kind) s.kind=s.course?"course":(s.sport?"sport":"generic"); });
   d.sections=d.sections.map(s=>s.kind==="course"?courseToProject(s,d._m):s);
   { const seen={}; d.sections=d.sections.filter(s=>{ if(s.kind!=="project") return true; const f=seen[s.id]; if(!f){ seen[s.id]=s; return true; } mergeProject(f,s,d._m,d._m); return false; }); }
+  seedPlans(d);
+  if(!d.sections.some(s=>s.id===NARC_ID)&&d.secDeleted.indexOf(NARC_ID)<0) d.sections.push(narcSeed());
+  orderSections(d);
+  ensureNotes(d); ensureHabits(d);
   d.sections.forEach(s=>{ if(!s.kind) s.kind=s.course?"course":(s.sport?"sport":"generic");
     if(s.kind==="custom") ensureCustom(s); else ensureBlocks(s);   // блоки конструктора есть у любого раздела
     if(s.kind==="generic"&&(s.name==="Учёба"||s.name==="Учеба")){ s.name="Дизайн и карьера"; s.sub="UX/UI + цифровая доступность"; s.kind="career"; s.icon="sparkle"; s.color="var(--a-blue)"; delete s.items; }
