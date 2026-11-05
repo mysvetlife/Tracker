@@ -98,7 +98,8 @@ function pjStats(p){ const ts=pjTasks(p), cnt=ts.filter(t=>t.status!=="o"), toda
   const next=ts.filter(t=>t.status!=="d"&&t.status!=="o"&&t.end).sort((a,b)=>a.end<b.end?-1:1)[0]||null;
   return {doneT:cnt.filter(t=>t.status==="d").length, totalT:cnt.length, going:ts.filter(t=>t.status==="i"), next:next, days:next?pjDiff(today,next.end):null,
     wk:pjWeekMin(p,mondayOf(today)), all:p.time.reduce((a,x)=>a+(+x.min||0),0), plan:Math.round(ts.reduce((a,t)=>a+(+t.hours||0),0)*10)/10,
-    stagesDone:p.stages.filter(st=>st.tasks.length&&st.tasks.every(t=>t.status==="d"||t.status==="o")).length}; }
+    stagesDone:p.stages.filter(st=>st.tasks.some(t=>t.status!=="o")&&st.tasks.every(t=>t.status==="d"||t.status==="o")).length,
+    stagesAll:p.stages.filter(st=>st.tasks.some(t=>t.status!=="o")).length}; }
 function projectHTML(sec){ const p=sec.project;
   if(window.pjTask){ const f=pjFind(p,window.pjTask); if(f) return pjTaskHTML(sec,f.task,f.stage); window.pjTask=null; }
   const st=pjStats(p), pr=pjProgress(p), tab=window.pjTab, today=todayStr();
@@ -111,7 +112,7 @@ function projectHTML(sec){ const p=sec.project;
     :`<div class="muted">Сейчас нет задачи со статусом «Идёт». Нажми на статус задачи в плане, и она появится здесь.</div>`;
   const g0=p.goals[0];
   const facts=`<div class="card" style="padding:10px 6px"><div class="facts"><div><b>${Math.round(pr.pct*100)}%</b><span>прогресс</span></div><div><b>${fmtMin(st.all)}</b><span>записано всего</span></div><div><b>${st.plan} ч</b><span>по плану</span></div>
-    <div><b>${st.stagesDone} из ${p.stages.length}</b><span>этапов пройдено</span></div><div><b>${st.next?fmtDate(st.next.end):"—"}</b><span>ближайший срок</span></div><div><b>${g0&&g0.date?fmtDate(g0.date)+" "+g0.date.slice(0,4):"—"}</b><span>срок цели</span></div></div></div>`;
+    <div><b>${st.stagesDone} из ${st.stagesAll}</b><span>этапов пройдено</span></div><div><b>${st.next?fmtDate(st.next.end):"—"}</b><span>ближайший срок</span></div><div><b>${g0&&g0.date?fmtDate(g0.date)+" "+g0.date.slice(0,4):"—"}</b><span>срок цели</span></div></div></div>`;
   const cnt={notes:pjTasks(p).filter(t=>t.note).length,prac:pjTasks(p).filter(t=>t.prac).length};
   const tabsH=`<div class="tabs">${PJ_TABS.map(([k,n])=>`<a class="tab ${tab===k?"on":""}" onclick="pjGo('${sec.id}','${k}')">${n}${cnt[k]!=null?` <span class="c">${cnt[k]}</span>`:""}</a>`).join("")}</div>`;
   const body=tab==="kan"?pjKanbanHTML(sec):tab==="gantt"?pjGanttHTML(sec):(tab==="notes"||tab==="prac")?pjFlagList(sec,tab):tab==="time"?pjTimeHTML(sec):tab==="goals"?pjGoalsHTML(sec):pjPlanHTML(sec);

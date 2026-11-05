@@ -15,7 +15,7 @@ import PLANS from "./plans.json";
 const PLAN_META={
   "pj-analyst":{color:"var(--a-blue)",icon:"star",replaces:"",ver:2},
   "pj-english":{color:"var(--a-green)",icon:"lang",replaces:"english"},
-  "pj-ai":{color:"var(--a-violet)",icon:"sparkle",replaces:""},
+  "pj-ai":{color:"var(--a-violet)",icon:"sparkle",replaces:"",ver:2},
   "pj-ux":{color:"var(--a-rose)",icon:"target",replaces:"career"}
 };
 const PLAN_ST={n:1,i:1,d:1,o:1};
@@ -44,7 +44,7 @@ function upgradePlan(d,old,fresh){ const op=ensureProject(old.project), np=fresh
   op.stages.forEach(st=>{ del.push(st.id); st.tasks.forEach(t=>{ del.push(t.id); t.subs.forEach(s=>{ del.push(s.id); }); }); });
   const live={}; np.stages.forEach(st=>{ live[st.id]=1; st.tasks.forEach(t=>{ live[t.id]=1; t.subs.forEach(s=>{ live[s.id]=1; }); }); });
   np.del=del.filter(id=>!live[id]); np.time=op.time; np.moods=op.moods;
-  const i=d.sections.indexOf(old); d.sections[i]=Object.assign({},old,{project:np,planVer:fresh.planVer}); }
+  const i=d.sections.indexOf(old); d.sections[i]=Object.assign({},old,{goal:fresh.goal,project:np,planVer:fresh.planVer}); }
 /* Один раз заводит направления из plans.json; старый раздел того же дела (english, career) уходит в project.legacy */
 function seedPlans(d){ d.secDeleted=d.secDeleted||[];
   (PLANS.directions||[]).forEach(dir=>{ const have=PLAN_META[dir.id]&&d.sections.find(s=>s.id===dir.id);
