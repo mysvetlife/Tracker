@@ -433,3 +433,11 @@ body.dragging *{cursor:grabbing!important;user-select:none!important}
 .mk .pj-ptitle:empty::before{content:attr(data-ph);color:var(--muted-2)}
 .mk .pj-addrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .mk .pj-b.t-page:not(:focus-within) .pj-bt:empty::before{content:attr(data-ph);color:var(--muted-2)}
+
+/* ---- название в плане: клик открывает или сворачивает, ✎ переименовывает ---- */
+.mk .pj-nm{cursor:pointer}
+.mk .pj-nm:hover{text-decoration:underline;text-decoration-color:var(--brown);text-underline-offset:3px;background:transparent}
+.mk .pj-nm[contenteditable]{cursor:text;text-decoration:none;background:var(--surface-3)}
+.mk .pj-rn{opacity:.4;cursor:pointer;color:var(--muted);padding:0 5px;border-radius:5px;font-size:13px}
+.mk tr:hover .pj-rn,.mk .stage:hover .pj-rn{opacity:1}
+.mk .pj-rn:hover{background:var(--surface-3)}

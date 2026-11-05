@@ -2265,6 +2265,26 @@ function pjOpenState(p, id, def) {
 function pjEd$1(k, secId, id, text, ph, cls) {
 	return `<span class="pj-ed ${cls || ""}" contenteditable="plaintext-only" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}">${esc(text)}</span>`;
 }
+function pjName(k, secId, id, text, ph, cls, click) {
+	return `<span class="pj-ed pj-nm ${cls || ""}" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}"${click ? ` onclick="if(!this.isContentEditable)${click}"` : ""}>${esc(text)}</span><span class="pj-rn" onclick="event.stopPropagation();pjBeginEdit(this.previousElementSibling)" title="Переименовать">✎</span>`;
+}
+function pjBeginEdit(el) {
+	if (!el) return;
+	el.setAttribute("contenteditable", "plaintext-only");
+	el.focus();
+	const r = document.createRange();
+	r.selectNodeContents(el);
+	const g = getSelection();
+	g.removeAllRanges();
+	g.addRange(r);
+}
+function pjCurStage(p) {
+	const st = p.stages.find((x) => x.tasks.some((t) => t.status === "n" || t.status === "i"));
+	return st ? st.id : "";
+}
+function pjStageOpen(p, st) {
+	return pjOpenState(p, st.id, st.id === pjCurStage(p) || !st.tasks.length);
+}
 function pjDone(t) {
 	return t.status === "d";
 }
@@ -2616,13 +2636,13 @@ function pjStBadge(sec, t) {
 function pjPlanHTML(sec) {
 	if (!sec.project.stages.length) return `<div class="empty"><div class="serif" style="font-size:24px">Плана пока нет</div><p class="muted">${esc(sec.goal || "")}</p><p>Начни с первого этапа, потом добавь в него задачи.</p><a class="btn" onclick="pjAddStage('${sec.id}')">＋ Первый этап</a></div>`;
 	return `<div class="tbar"><a class="tab ${pjFilter === "all" ? "on" : ""}" onclick="pjSetFilter('${sec.id}','all')">Все</a><a class="tab ${pjFilter === "left" ? "on" : ""}" onclick="pjSetFilter('${sec.id}','left')">Незавершённые</a>
-    <input class="di search" data-s="${sec.id}" placeholder="Поиск по задачам и подзадачам…" value="${esc(pjQuery)}" oninput="pjSearch(this)"><a class="tab" onclick="pjFoldAll('${sec.id}')">Свернуть / развернуть</a></div><div id="pjPlanBody">${pjPlanBody(sec)}</div><div class="addrow" onclick="pjAddStage('${sec.id}')" style="margin-top:12px">＋ Этап</div>`;
+    <input class="di search" data-s="${sec.id}" placeholder="Поиск по задачам и подзадачам…" value="${esc(pjQuery)}" oninput="pjSearch(this)"><a class="tab" onclick="pjFoldAll('${sec.id}')">Свернуть / развернуть этапы</a></div><div id="pjPlanBody">${pjPlanBody(sec)}</div><div class="addrow" onclick="pjAddStage('${sec.id}')" style="margin-top:12px">＋ Этап</div>`;
 }
 function pjPlanBody(sec) {
 	const p = sec.project, q = pjQuery.trim().toLowerCase(), narrow = !!q || pjFilter === "left", has = (s) => String(s || "").toLowerCase().includes(q);
 	const cg = "<colgroup><col style=\"width:70px\"><col><col style=\"width:116px\"><col style=\"width:136px\"><col style=\"width:84px\"><col style=\"width:28px\"></colgroup>";
 	return p.stages.map((st) => {
-		const dn = st.tasks.filter((t) => t.status === "d").length, open = narrow ? true : pjOpenState(p, st.id, true);
+		const dn = st.tasks.filter((t) => t.status === "d").length, open = narrow ? true : pjStageOpen(p, st);
 		const items = st.tasks.map((t) => {
 			let subs = t.subs, force = false;
 			if (q) {
@@ -2647,7 +2667,7 @@ function pjPlanBody(sec) {
 		const rows = items.map(({ t, subs, force }) => {
 			const sopen = force || pjOpenState(p, t.id, false), sd = t.subs.filter((s) => s.done).length;
 			let r = `<tr><td><span class="ck ${pjDone(t) ? "d" : ""}" onclick="pjCheckTask('${sec.id}','${t.id}')" role="checkbox" aria-checked="${pjDone(t)}"></span></td>
-        <td>${t.subs.length ? `<span class="pj-chev ${sopen ? "open" : ""}" onclick="pjFold('${sec.id}','${t.id}',false)" style="cursor:pointer">›</span> ` : ""}${pjEd$1("task", sec.id, t.id, t.name, "Название задачи", pjDone(t) ? "strike" : "")}
+        <td>${t.subs.length ? `<span class="pj-chev ${sopen ? "open" : ""}" onclick="pjFold('${sec.id}','${t.id}',false)" style="cursor:pointer">›</span> ` : ""}${pjName("task", sec.id, t.id, t.name, "Название задачи", pjDone(t) ? "strike" : "", "pjOpenTask('" + sec.id + "','" + t.id + "')")}
           <a class="open" onclick="pjOpenTask('${sec.id}','${t.id}')" title="Открыть страницу задачи" style="cursor:pointer">↗</a>${t.subs.length ? ` <span class="muted" style="font-size:11.5px">${sd}/${t.subs.length}</span>` : ""}${t.note ? " <span class=\"muted\" style=\"font-size:11px\" title=\"Есть конспект\">📝</span>" : ""}${t.prac ? " <span class=\"muted\" style=\"font-size:11px\" title=\"Практика сделана\">🛠</span>" : ""}</td>
         <td>${pjStBadge(sec, t)}</td><td><input type="date" class="di" value="${esc(t.end)}" onchange="pjField('${sec.id}','${t.id}','end',this.value)"></td>
         <td><input type="number" class="di num" min="0" step="0.5" value="${t.hours || ""}" placeholder="0" onchange="pjField('${sec.id}','${t.id}','hours',this.value)" style="width:60px"></td>
@@ -2655,7 +2675,7 @@ function pjPlanBody(sec) {
 			if (sopen) r += subs.map((s) => `<tr class="subrow"><td></td><td colspan="4"><div style="padding-left:22px">${pjSubHTML(sec, s)}</div></td><td></td></tr>`).join("") + `<tr class="subrow"><td></td><td colspan="5"><div class="addrow" style="padding-left:30px" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></td></tr>`;
 			return r;
 		}).join("");
-		return `<div class="stage"><span><span class="pj-chev ${open ? "open" : ""}" onclick="pjFold('${sec.id}','${st.id}',true)" style="cursor:pointer">›</span> ${pjEd$1("stage", sec.id, st.id, st.name, "Название этапа")}</span><span class="muted" style="font-weight:400">${dn} из ${st.tasks.length} <span class="del" onclick="pjDel('${sec.id}','stage','${st.id}')" title="Удалить этап">×</span></span></div>` + (open ? `<table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table>` + (narrow ? "" : `<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">＋ Задача в этот этап</div>`) : "");
+		return `<div class="stage" onclick="if(!event.target.isContentEditable)pjFold('${sec.id}','${st.id}',${!!(st.id === pjCurStage(p) || !st.tasks.length)})" style="cursor:pointer" title="Нажми, чтобы свернуть или развернуть этап"><span><span class="pj-chev ${open ? "open" : ""}">›</span> ${pjName("stage", sec.id, st.id, st.name, "Название этапа")}</span><span class="muted" style="font-weight:400">${dn} из ${st.tasks.length} <span class="del" onclick="event.stopPropagation();pjDel('${sec.id}','stage','${st.id}')" title="Удалить этап">×</span></span></div>` + (open ? `<table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table>` + (narrow ? "" : `<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">＋ Задача в этот этап</div>`) : "");
 	}).join("") || `<div class="empty"><p class="muted">Ничего не найдено.</p></div>`;
 }
 function pjSetFilter(secId, f) {
@@ -2671,9 +2691,12 @@ function pjFoldAll(secId) {
 	const sec = pjSec$1(secId);
 	if (!sec) return;
 	const p = sec.project, ts = pjTasks(p).filter((t) => t.subs.length);
-	const anyOpen = ts.some((t) => pjOpenState(p, t.id, false));
-	ts.forEach((t) => {
-		p.exp[t.id] = anyOpen ? 0 : 1;
+	const anyOpen = p.stages.some((st) => pjStageOpen(p, st));
+	p.stages.forEach((st) => {
+		p.exp[st.id] = anyOpen ? 0 : 1;
+	});
+	if (anyOpen) ts.forEach((t) => {
+		p.exp[t.id] = 0;
 	});
 	render();
 }
@@ -3061,7 +3084,10 @@ document.addEventListener("click", (e) => {
 });
 document.addEventListener("focusout", (e) => {
 	const el = e.target;
-	if (el.classList && el.classList.contains("pj-ed")) pjRename(el);
+	if (el.classList && el.classList.contains("pj-ed")) {
+		pjRename(el);
+		if (el.classList.contains("pj-nm")) el.removeAttribute("contenteditable");
+	}
 });
 function pjMenuOpen(el, bid) {
 	pjMenuClose();
@@ -3104,6 +3130,10 @@ function pjAfterRender$1() {
 	if (!id) return;
 	window.pjFocus = null;
 	const el = document.querySelector(`.pj-ed[data-id="${id}"]`);
+	if (el && el.classList.contains("pj-nm")) {
+		pjBeginEdit(el);
+		return;
+	}
 	if (el) {
 		el.focus();
 		const r = document.createRange();
@@ -3123,6 +3153,10 @@ Object.assign(window, {
 	pjCycleType,
 	pjField,
 	pjFold,
+	pjBeginEdit,
+	pjName,
+	pjCurStage,
+	pjStageOpen,
 	pjAddStage,
 	pjAddTask,
 	pjAddSub,
