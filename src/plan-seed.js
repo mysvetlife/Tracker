@@ -14,7 +14,7 @@ import PLANS from "./plans.json";
    у направлений без ver остаётся версия 1 и их id не меняются. */
 const PLAN_META={
   "pj-analyst":{color:"var(--a-blue)",icon:"star",replaces:"",ver:2},
-  "pj-english":{color:"var(--a-green)",icon:"lang",replaces:"english"},
+  "pj-english":{color:"var(--a-green)",icon:"lang",replaces:"english",ver:2},
   "pj-ai":{color:"var(--a-violet)",icon:"sparkle",replaces:"",ver:2},
   "pj-ux":{color:"var(--a-rose)",icon:"target",replaces:"career"}
 };
