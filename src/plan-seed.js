@@ -16,7 +16,7 @@ const PLAN_META={
   "pj-analyst":{color:"var(--a-blue)",icon:"star",replaces:"",ver:2},
   "pj-english":{color:"var(--a-green)",icon:"lang",replaces:"english",ver:2},
   "pj-ai":{color:"var(--a-violet)",icon:"sparkle",replaces:"",ver:2},
-  "pj-ux":{color:"var(--a-rose)",icon:"target",replaces:"career"}
+  "pj-ux":{color:"var(--a-rose)",icon:"target",replaces:"career",ver:2}
 };
 const PLAN_ST={n:1,i:1,d:1,o:1};
 function planSection(dir){ const used={}, ver=(PLAN_META[dir.id]||{}).ver||1, sp=ver>1?"-v"+ver:"";
