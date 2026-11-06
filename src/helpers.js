@@ -79,7 +79,7 @@ function sectionTime(sec){
 function itemsMeta(sec){
   if(sec.kind==="project"){ const r=pjProgress(sec.project); return r.total?r.done+"/"+r.total+" готово":"План пока пуст"; }
   if(sec.kind==="course"){ return cDoneSteps(sec.course)+"/"+cTotalSteps()+" этапов"; }
-  if(sec.kind==="sport"){ const sp=sec.sport; if(!sp.config.startDate) return "Настрой цикл"; return "Неделя "+spCycleWeek(sp)+"/"+spWeeks(sp)+" · стрик "+spCurrentStreak(sp); }
+  if(sec.kind==="sport"){ const sp=sec.sport; if(!sp.config.startDate) return "Настрой цикл"; const wn=spCycleWeek(sp); return wn?"Неделя "+wn+"/"+spWeeks(sp)+" · стрик "+spCurrentStreak(sp):"Старт "+ruDate(sp.config.startDate); }
   if(sec.kind==="career"){ const c=sec.career; if(!c.config.startDate) return "Настрой цикл"; const cur=mondayOf(todayStr());
     const m=careerWeekMin(c,cur), eE=engData();
     const cd=vkAllDone(c.vkcourse)+mtsAllDone(c.mts)+(eE?axAllDone(eE.a11y):0), ct=vkTotal()+mtsTotal()+axTotal();

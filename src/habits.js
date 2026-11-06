@@ -6,8 +6,8 @@
    Метки синхронизации: hbc:<id> название и дни недели, hb:<id>.<дата> отметка, sd:<дата>.<поле> - как в спорте.
    data.today=[{id,text,done}], data.todayDel=[id]: метки tt:<id> текст, td:<id> галочка. */
 
-const HAB_SEED=[["hb-warm","Зарядка с планкой",[1,1,1,1,1,1,1],"warmup"],["hb-steps","10 000 шагов",[1,1,1,1,1,1,1],"steps"],
-  ["hb-physio","Мини-физио",[1,1,1,1,1,1,1],"reha"],["hb-care","Душ, крем, уход",[1,1,1,1,1,1,1],""],
+const HAB_SEED=[["hb-warm","Зарядка",[1,1,1,1,1,1,1],"warmup"],["hb-steps","Шаги 10 000",[1,1,1,1,1,1,1],"steps"],
+  ["hb-physio","Физиотерапия 15 минут",[1,1,1,1,1,1,1],"reha"],["hb-care","Душ, крем, уход",[1,1,1,1,1,1,1],""],
   ["hb-book","Книга на ночь",[1,1,1,1,1,1,1],""],["hb-mind","Практика осознанности",[1,1,1,1,1,0,0],""]];
 const DOW=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
 function ensureHabits(d){
@@ -67,5 +67,5 @@ function tdRename(id,el){ const t=data.today.find(x=>x.id===id); if(!t) return; 
   if(!v){ tdDel(id,true); return; } if(v===t.text) return; t.text=v; mstamp("tt:"+id); save(); }
 function tdDel(id,quiet){ if(data.todayDel.indexOf(id)<0) data.todayDel.push(id); data.today=data.today.filter(x=>x.id!==id); if(!quiet||true) render(); }
 
-Object.assign(window,{ HAB_SEED, DOW, ensureHabits, mergeHabits, habDone, habToggle, habWeek, habitsTable, habRename, habAdd, habDel, openHabDays, habDayFlip,
+Object.assign(window,{ habSport, HAB_SEED, DOW, ensureHabits, mergeHabits, habDone, habToggle, habWeek, habitsTable, habRename, habAdd, habDel, openHabDays, habDayFlip,
   todayHTML, tdAdd, tdToggle, tdRename, tdDel });

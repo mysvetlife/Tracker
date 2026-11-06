@@ -15,7 +15,7 @@ function renderShell(){
       if(f){ title=`<span style="font-size:34px">${pjEd("task",sec.id,f.task.id,f.task.name,"Название задачи")}</span>`;
         sub=`<a style="color:var(--accent);cursor:pointer" onclick="pjGo('${sec.id}','plan')">← План</a> · ${esc(f.stage.name)}`; tools=""; }
       else { title=pjEd("proj",sec.id,sec.id,sec.name,"Название"); sub=pjEd("goal",sec.id,sec.id,sec.goal||"","Цель направления");
-        tools=`<span class="pill" onclick="pjAddTask('${sec.id}')">＋ Задача</span><span class="pill" onclick="openNoteModal()">＋ Заметка</span>`+tools; } }
+        tools=`<span class="pill" onclick="pjAddTask('${sec.id}')">＋ Задача</span><span class="pill" onclick="openNoteModal()">＋ Заметка</span>`+tools+`<span class="pill" onclick="deleteSection('${sec.id}')">Удалить направление</span>`; } }
     else { title=esc(sec.name); sub=esc(sec.sub||""); tools=`<span class="pill" onclick="openSectionModal('${sec.id}')">Изменить</span>`+tools; } }
   else { banner=mkBanner("Мой прогресс","",120); logo="🏠"; title=esc(data.title); sub=""; }
   document.getElementById("mkBanner").innerHTML=banner;
@@ -25,9 +25,9 @@ function renderShell(){
 
 /* ---------- левая колонка ---------- */
 function renderTabs(){ const on=id=>data.active===id?"on":"", nn=(data.notes||[]).length;
-  const dirs=data.sections.map(s=>`<a class="${on(s.id)}" onclick="go('${s.id}')">${secEmoji(s)} ${esc(s.name)}</a>`).join("");
+  const dirs=data.sections.map(s=>`<a class="${on(s.id)}" data-sid="${s.id}" onclick="go('${s.id}')">${secEmoji(s)} ${esc(s.name)}</a>`).join("");
   document.getElementById("mkNav").innerHTML=`<div class="card nav"><a class="${on('overview')}" onclick="go('overview')">🏡 Главная</a><a onclick="openReport2()">📅 Отчёт по неделям</a></div>
-  <div class="card nav"><div class="cap">Направления</div><div>${dirs}</div><a class="plus" onclick="openSectionModal()">＋ Новое направление</a></div>
+  <div class="card nav"><div class="cap">Направления</div><div data-sort="nav">${dirs}</div><a class="plus" onclick="openSectionModal()">＋ Новое направление</a></div>
   <div class="card qa"><a onclick="openNoteModal()"><span class="qi">✎</span>Создать заметку</a><a class="${on('inbox')}" onclick="go('inbox')"><span class="qi">▤</span>Входящие${nn?" ("+nn+")":""}</a></div>`; }
 
 /* ---------- виджеты главной ---------- */
@@ -36,7 +36,7 @@ function wDirs(){
   const cards=data.sections.map(s=>{ const p=sectionProgress(s), pct=Math.round((p===null?0:p)*100);
     return `<a class="dir" data-sid="${s.id}" onclick="go('${s.id}')"><div class="img" style="${secCoverStyle(s)}"><span class="cam" onclick="event.stopPropagation();coverPick('${s.id}')" title="Своя картинка">📷</span></div>
       <div class="tt"><b>${esc(s.name)}</b><div class="pg"><div class="bar"><i style="width:${pct}%"></i></div><span>${pct}%</span></div></div></a>`; }).join("");
-  return `<section class="card" data-sid="w-dirs"><div class="band">Направления</div><div class="dirs">${cards}<a class="dir newdir" onclick="openSectionModal()"><span class="plusbig">＋</span><span>Добавить новое направление</span></a></div></section>`; }
+  return `<section class="card" data-sid="w-dirs"><div class="band">Направления</div><div class="dirs" data-sort="dirs">${cards}<a class="dir newdir" onclick="openSectionModal()"><span class="plusbig">＋</span><span>Добавить новое направление</span></a></div></section>`; }
 function wNow(){ const now=hmTasks().filter(x=>x.t.status==="i").sort((a,b)=>(a.t.end||"9")<(b.t.end||"9")?-1:1);
   const more=now.length>5?`<tr><td></td><td class="muted" colspan="3">и ещё ${now.length-5} — все видны в плане каждого направления</td></tr>`:"";
   const rows=now.slice(0,5).map(x=>`<tr><td style="width:34px"><span class="ck" onclick="pjCheckTask('${x.sec.id}','${x.t.id}')"></span></td>
@@ -59,12 +59,12 @@ function wGoals(){ const kn={month:"Месяц",year:"Год"};
   return `<section class="card" data-sid="w-goals"><div class="cap">Цели</div>${top.map(({s,g})=>`<div class="goal"><b><span>${kn[g.kind]||"Цель"}: ${esc(g.title.length>80?g.title.slice(0,78)+"…":g.title)}</span><span>${g.pct}%</span></b><div class="bar"><i style="width:${g.pct}%"></i></div><small class="muted">${esc(s.name)}${g.date?" · до "+fmtDate(g.date):""}</small></div>`).join("")||`<div class="muted">Цели направлений появятся здесь.</div>`}</section>`; }
 function wSport(){ const sec=data.sections.find(s=>s.kind==="sport"); if(!sec||!sec.sport) return "";
   const sp=sec.sport, w=(sp.weight||[]).slice().sort((x,y)=>x.date<y.date?-1:1), last=w.length?w[w.length-1]:null;
-  const y=new Date(); y.setDate(y.getDate()-1); const d=(sp.days||{})[ymd(y)]||{}, g=(sp.config&&sp.config.goals)||{};
+  const y=new Date(); y.setDate(y.getDate()-1); const yd=ymd(y), d=(sp.days||{})[yd]||{}, nn=spNoNum(sp);
   const rng=a=>a?` <span class="muted">/ ${a[0]}–${a[1]}</span>`:"";
   return `<section class="card" data-sid="w-sport"><div class="cap">Спорт</div><table class="mini">
     <tr><td class="muted">Вес</td><td style="text-align:right"><b>${last?String(last.kg).replace(".",",")+" кг":"—"}</b></td></tr>
-    <tr><td class="muted">Ккал вчера</td><td style="text-align:right"><b>${d.kcal||"—"}</b>${rng(g.kcal)}</td></tr>
-    <tr><td class="muted">Белок вчера</td><td style="text-align:right"><b>${d.protein?d.protein+" г":"—"}</b>${rng(g.protein)}</td></tr></table></section>`; }
+    ${nn?"":`<tr><td class="muted">Ккал вчера</td><td style="text-align:right"><b>${d.kcal||"—"}</b>${rng(spRange(sp,"kcal",yd))}</td></tr>
+    <tr><td class="muted">Белок вчера</td><td style="text-align:right"><b>${d.protein?d.protein+" г":"—"}</b>${rng(spRange(sp,"protein",yd))}</td></tr>`}</table></section>`; }
 function overviewHTML(){
   return `<div class="col">${wDirs()}${wNow()}${wHabits()}</div><div class="col">${wTime()}${wToday()}${wSoon()}${wGoals()}${wSport()}</div>`; }
 

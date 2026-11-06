@@ -15,6 +15,7 @@ import './notes.js';
 import './art.js';
 import './habits.js';
 import './home.js';
+import './sort.js';
 import './render.js';
 import './actions.js';
 import './sport.js';

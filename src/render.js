@@ -14,7 +14,7 @@ function renderView(){
   /* Блоки конструктора и явная кнопка «Добавить блок» — в конце каждого раздела */
   if(sec.kind==="project"){ v.innerHTML=projectHTML(sec); pjAfterRender(); return; }
   if(sec.kind==="course"){ v.innerHTML=courseHTML(sec)+blocksHTML(sec)+addBlockCardHTML(sec); applyCardLayout(sec); return; }
-  if(sec.kind==="sport"){ v.innerHTML=sportHTML(sec)+blocksHTML(sec)+addBlockCardHTML(sec); applyCardLayout(sec); wireSport(); return; }
+  if(sec.kind==="sport"){ v.innerHTML=sportHTML(sec)+blocksHTML(sec); wireSport(); return; }
   if(sec.kind==="career"){ v.innerHTML=careerHTML(sec)+blocksHTML(sec)+addBlockCardHTML(sec); applyCardLayout(sec); return; }
   if(sec.kind==="english"){ v.innerHTML=englishHTML(sec)+blocksHTML(sec)+addBlockCardHTML(sec); applyCardLayout(sec); return; }
   if(sec.kind==="custom"){ v.innerHTML=customHTML(sec); applyCardLayout(sec); return; }

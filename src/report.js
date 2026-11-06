@@ -40,11 +40,16 @@ function metSport(sec,mon){ const sp=sec.sport; if(!sp.config||!sp.config.startD
   /* Разбивка времени по целям — сразу после общей цифры. */
   const tp=spTimeParts(sp,mon);
   if(tp.length) o.push({k:'tmix',label:'Время по целям',val:tp.map(p=>p.label+' '+fmtMin(p.min)).join(' · ')});
-  o.push({k:'days',label:'Дни зачтены',val:counted+'/7',extra:'полных '+full,w:1});
+  o.push({k:'days',label:'Дни зачтены',val:counted+'/7',w:1});
+  /* Программа года: физиотерапия и зарядка - ежедневные отметки. Сон, боль, отбой, кофеин и сеансы у врача относятся к прежним циклам:
+     за недели до 2026-11-09 они печатаются, если записи были, за новые недели - нет. */
+  const prog=(mon>=sp.config.startDate);
+  if(prog){ o.push({k:'reha',label:'Физиотерапия',val:spCountField(sp,mon,'reha')+' из 7',w:1}); o.push({k:'warm',label:'Зарядка',val:spCountField(sp,mon,'warmup')+' из 7',w:1}); }
+  else {
   /* Сон, боль и физиотерапия — главные метрики Фазы A, поэтому идут выше веса.
      За недели до старта цикла, где этих отметок ещё не было, строки не печатаем:
      «0 из 7» там означало бы не пропуск, а отсутствие самого поля. */
-  const c2=(mon>=sp.config.startDate);
+  const c2=false;
   const has=f=>{ for(let i=0;i<7;i++){ const v=spDay(sp,dateAddDays(mon,i))[f]; if(v!=null&&v!=="") return true; } return false; };
   const sl=spAvgField(sp,mon,'sleepH'), wkn=spAvgField(sp,mon,'wakeN');
   if(sl!=null) o.push({k:'sleep',label:'Сон',val:'в среднем '+num1(sl)+' ч',extra:'ночей 7 ч и больше — '+spSleepGood(sp,mon)+' из 7'+(wkn!=null?' · пробуждений '+num1(wkn):''),w:1});
@@ -57,10 +62,11 @@ function metSport(sec,mon){ const sp=sec.sport; if(!sp.config||!sp.config.startD
   const fw=phWeek(sp,mon);
   if(c2||fw||phDone(sp)) o.push({k:'fz',label:'Физиотерапия',val:fw+' '+plural(fw,'сеанс','сеанса','сеансов')+' за неделю',extra:'всего '+phDone(sp)+' из '+PHYSIO_TOTAL,w:1});
   if(c2||has('reha')) o.push({k:'reha',label:'Домашний блок',val:spCountField(sp,mon,'reha')+' из 7',w:1});
+  }
   o.push({k:'steps',label:'Шаги',val:'в среднем '+Math.round(sdays?steps/sdays:0).toLocaleString('ru-RU')+' при цели '+spStepGoal(sp).toLocaleString('ru-RU'),extra:gd+'/7 дней ≥ цели',w:1});
-  o.push({k:'wo',label:'Тренировки',val:sp.workouts.filter(x=>mondayOf(x)===mon).length+' из 3',w:1});
-  const cr=spWeekCorridor(sp,mon);
-  o.push({k:'kb',label:'КБЖУ в коридоре',val:cr.core+' '+plural(cr.core,'день','дня','дней')+' из 7',extra:'по всем четырём — '+cr.all,w:1});
+  o.push({k:'wo',label:'Тренировки',val:spWorkoutsInWeek(sp,mon)+' из 3',w:1});
+  if(!spNoNum(sp)){ const cr=spWeekCorridor(sp,mon);
+    o.push({k:'kb',label:'КБЖУ в коридоре',val:cr.core+' '+plural(cr.core,'день','дня','дней')+' из 7',extra:'по всем четырём — '+cr.all,w:1}); }
   const cur=spWeekAvg(sp,mon);
   if(cur!=null){ const dc=spDelta(sp,'weight','kg',sp.config.startDate), da=spDelta(sp,'weight','kg',null);
     o.push({k:'wt',label:'Вес',val:'в среднем за неделю '+num1(cur)+' кг',extra:(dc!=null?'с начала цикла '+dTxt(dc,'кг')+', ':'')+'всего '+dTxt(da,'кг'),w:1}); }
@@ -412,13 +418,10 @@ function planAutoLines(sec,mon){
       if(dn<tot){ out.push("Следующий урок — "+COURSE[li].t+" ("+dn+"/"+tot+" подтем)"); break; } }
   }
   if(sec.kind==="sport"){ const sp=sec.sport, wk=spCycleWeekAt(sp,mon);
-    const w=PHASE_A_WEEKS[wk-1];
-    if(w){ out.push("Фокус недели "+wk+" — "+w.focus);
-      out.push("Шаги — цель "+w.steps.toLocaleString('ru-RU')+" в день");
-      out.push("Физиотерапия — "+w.physio+" "+plural(w.physio,'сеанс','сеанса','сеансов')+" (пройдено "+phDone(sp)+" из "+PHYSIO_TOTAL+")");
-      if(wk%2===0) out.push("Замеры: талия, живот, бёдра, грудь");
-    }
-    out.push("КБЖУ в коридоре: "+rngTxt(spRange(sp,'kcal'))+" ккал · белок "+rngTxt(spRange(sp,'protein'))+" г");
+    if(wk>=1&&wk<=spWeeks(sp)){ out.push("Неделя "+wk+" из "+spWeeks(sp)+" — "+spPhase(mon).name+(PROGRAM.light.indexOf(wk)>=0?" · неделя полегче":""));
+      out.push("Зал — 3 тренировки; зарядка и физиотерапия каждый день; шаги "+spStepGoal(sp).toLocaleString('ru-RU'));
+      if(PROGRAM.measDates.some(x=>mondayOf(x)===mon)) out.push("Замеры: грудь, талия, живот, бёдра");
+      if(!spNoNum(sp)) out.push("КБЖУ в коридоре: "+rngTxt(spRange(sp,'kcal',mon))+" ккал · белок "+rngTxt(spRange(sp,'protein',mon))+" г"); }
   }
   if(sec.kind==="english"){ const e=sec.english;
     /* Служебные блоки курса (приветствие, заключение) в план не подсказываем. */

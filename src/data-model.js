@@ -32,11 +32,31 @@ const PHASE_A_WEEKS=[
 ];
 const PHASE_A_OUT="Убрано на всю фазу: выпады любые · групповые занятия · тренажёр отведения ноги назад · «бабочка» · велотренажёр на 7. Растяжки, которых не будет: поза голубя, «четвёрка», ИТ-тракт, колено поперёк тела — они тянут сухожилие через сдавление.";
 const PHASE_A_HOME="Домашний блок, 3–4 раза в неделю по 10 минут: изометрия отведения лёжа с резинкой выше колен 5×30–45 сек · мостик на двух ногах 3×12 с паузой 2 сек · отведение лёжа на боку в нейтрали 2×10 невысоко · наружная ротация плеча 3×15. Если физиотерапевт даст свои упражнения — делаю их.";
+/* ===== Программа года (с 2026-11-09 по 2027-11-07), заменяет Цикл 2 «Фаза A» =====
+   Здесь только даты, названия фаз и стартовые числа. Числа целей (калории по фазам, белок на кг веса) при первом запуске
+   копируются в данные пользователя (sport.prog) и дальше правятся в карточке «Настройки программы». */
+const PROGRAM={ start:"2026-11-09", end:"2027-11-07", weeks:52, stepGoal:10000, gymPerWeek:3,
+  light:[8,12,16,20,24,28,32,36,40,44,48,52],
+  phases:[
+    {id:"p1",name:"Вход, без дефицита",from:"2026-11-09",to:"2026-12-06"},
+    {id:"p2e",name:"Мягкий вход в дефицит",from:"2026-12-07",to:"2026-12-20"},
+    {id:"p2a",name:"Дефицит 2а",from:"2026-12-21",to:"2027-02-28"},
+    {id:"b1",name:"Перерыв, поддержание",from:"2027-03-01",to:"2027-03-14"},
+    {id:"p2b",name:"Дефицит 2б",from:"2027-03-15",to:"2027-06-06"},
+    {id:"b2",name:"Перерыв, поддержание",from:"2027-06-07",to:"2027-06-20"},
+    {id:"p2c",name:"Дефицит 2в",from:"2027-06-21",to:"2027-09-12"},
+    {id:"hold",name:"Закрепление, поддержание",from:"2027-09-13",to:"2027-11-07"}],
+  measDates:["2026-12-06","2027-01-03","2027-01-31","2027-02-28","2027-03-28","2027-04-25","2027-05-23","2027-06-20","2027-07-18","2027-08-15","2027-09-12","2027-10-10","2027-11-07"],
+  pcoef:[1.6,2.0],
+  kcal:{p1:[2300,2500],p2e:[2150,2350],p2a:[2000,2200]} };
+/* порядок и состав блога по умолчанию: одна закреплённая запись «Постоянное» */
+const BLOG_PIN={ id:"bl-pin", pin:true, date:"2026-11-09", title:"Постоянное",
+  text:"Взвешивание и замеры\n• Взвешивание — по воскресеньям, в одно и то же время; в воскресенье трекер напомнит.\n• Обхваты — раз в 4 недели: 6 дек, 3 янв, 31 янв, 28 фев и дальше по календарю.\n• Калории смотрим по неделе, а не по одному дню. Один «лишний» день ничего не меняет.\n\nБелок\n• Норма — 1,6–2,0 г на кг веса. Трекер считает коридор по последнему взвешиванию.\n• Делим на 3–4 приёма по 20–40 г. Протеиновый коктейль добирает белок, еду не заменяет.\n\nТарелка и еда\n• Половина тарелки — овощи и фрукты, четверть белок, четверть цельные зерна и сложные углеводы. Картофель за овощи не считается.\n• Овощи 400–500 г в день.\n• Никаких дней голода и «отработок»: пропущенный зал — питание то же." };
 function defaultData(){
   return { title:"Мой прогресс", active:"overview", updatedAt:0, secDeleted:[], sections:[
     { id:uid(), name:"Спорт / Тело", kind:"sport", color:"var(--a-rose)", icon:"dumbbell",
       sub:"Легче, сильнее, выносливее",
-      sport:{ config:{ startDate:null, exercises:PHASE_A_EXERCISES.slice(), height:177, weightStart:82.0, cycleWeeks:C2_WEEKS, stepGoal:C2_STEPGOAL, goals:c2goals() },
+      sport:{ config:{ startDate:PROGRAM.start, exercises:[], height:177, weightStart:null, cycleWeeks:PROGRAM.weeks, stepGoal:PROGRAM.stepGoal, goals:c2goals(), c2Migr:1, yearMigr:1 },
         days:{}, workouts:[], weight:[], chest:[], waist:[], belly:[], hips:[], energy:[], weekNotes:{}, archives:[], physio:{done:{},dates:{}}, cook:{} } },
     { id:uid(), name:"Дизайн и карьера", kind:"career", color:"var(--a-blue)", icon:"sparkle",
       sub:"UX/UI + цифровая доступность", career:ensureCareer(null) },
@@ -60,7 +80,30 @@ function ensureSport(sp){ sp=sp||{}; sp.config=Object.assign({startDate:null,exe
   sp.archives.forEach(a=>{ if(a&&a.data) delete a.data.lifts; });
   if(!sp.config.exMigr){ sp.config.exMigr=1; sp.config.exercises=(sp.config.exercises||[]).filter(n=>!/присед/i.test(n)); if(!sp.config.exercises.some(n=>/велотренаж/i.test(n))) sp.config.exercises.push("Велотренажёр (скорость)"); }
   if(!sp.config.c2Migr && sp.config.startDate){ sp.config.c2Migr=1; ensureCycle2(sp); }
+  if(!sp.config.yearMigr){ sp.config.yearMigr=1; ensureYear(sp); }
+  sp.weekWo=sp.weekWo||{};                                 // сколько раз была в зале за неделю: {понедельник: число}
+  { const p=sp.prog=sp.prog||{}; p.noNumbers=!!p.noNumbers;
+    if(!p.pcoef) p.pcoef=PROGRAM.pcoef.slice();
+    if(!p.kcal) p.kcal=JSON.parse(JSON.stringify(PROGRAM.kcal)); }
+  sp.blog=sp.blog||[]; sp.blogDel=sp.blogDel||[];
+  if(!sp.blogSeeded){ sp.blogSeeded=1; if(!sp.blog.some(b=>b.id===BLOG_PIN.id)&&sp.blogDel.indexOf(BLOG_PIN.id)<0) sp.blog.push(JSON.parse(JSON.stringify(BLOG_PIN))); }
   return sp; }
+/* Переход на программу года. Цикл 2 уходит в архив снимком (граница, а не перенос): вес, замеры, бодрость и дни остаются
+   на месте, сквозной график не рвётся. Номер архива фиксированный: два устройства, переведшие данные независимо, не дублируют его. */
+function ensureYear(sp){ const c=sp.config;
+  if(c.startDate && c.startDate<PROGRAM.start && !sp.archives.some(a=>a&&a.id==="cycle2")){
+    const from=c.startDate, to=dateAddDays(PROGRAM.start,-1);
+    const srt=arr=>(arr||[]).filter(x=>x&&x.date).slice().sort((x,y)=>x.date<y.date?-1:1);
+    const w=srt(sp.weight), wIn=w.filter(x=>x.date>=from&&x.date<=to), wBefore=w.filter(x=>x.date<=to);
+    const cm=arr=>{ const a=srt(arr).filter(x=>x.date<=to); return a.length?a[a.length-1].cm:null; };
+    sp.archives.push({ id:"cycle2", title:"Цикл 2 — август – ноябрь 2026", from:from, to:to,
+      goals:Object.assign({steps:c.stepGoal||10000},c.goals||{}),
+      exercises:(c.exercises||[]).slice(),
+      summary:{ workouts:(sp.workouts||[]).filter(x=>x>=from&&x<=to).length, physio:Object.keys((sp.physio&&sp.physio.done)||{}).filter(k=>sp.physio.done[k]).length },
+      result:{ weightStart:wIn.length?wIn[0].kg:c.weightStart, weightEnd:wBefore.length?wBefore[wBefore.length-1].kg:null,
+               waist:cm(sp.waist), belly:cm(sp.belly), chest:cm(sp.chest), hips:cm(sp.hips) },
+      note:"Закрыт при переходе на программу года" }); }
+  c.startDate=PROGRAM.start; c.cycleWeeks=PROGRAM.weeks; c.stepGoal=PROGRAM.stepGoal; }
 /* Переход на цикл 2. Архив — это снимок и граница, а не перенос данных:
    weight[], замеры и energy[] остаются на месте целиком, иначе рухнет сквозной
    график с ноября 2025 — он и есть «общий показатель». */
@@ -139,8 +182,11 @@ function migrate(d){ if(!d||!d.sections) return d; d._m=d._m||{};
   { const seen={}; d.sections=d.sections.filter(s=>{ if(s.kind!=="project") return true; const f=seen[s.id]; if(!f){ seen[s.id]=s; return true; } mergeProject(f,s,d._m,d._m); return false; }); }
   seedPlans(d);
   if(!d.sections.some(s=>s.id===NARC_ID)&&d.secDeleted.indexOf(NARC_ID)<0) d.sections.push(narcSeed());
-  orderSections(d);
+  orderSections(d); secApplyOrder(d);                // secApplyOrder - sort.js: порядок, который Света выставила перетаскиванием
   ensureNotes(d); ensureHabits(d);
+  /* привычки, связанные со «Спортом», получают названия программы года (один раз; метка hbc: - чтобы переименование доехало на другие устройства) */
+  if(!d.habRen){ d.habRen=1; const ren={warmup:["Зарядка с планкой","Зарядка"],steps:["10 000 шагов","Шаги 10 000"],reha:["Мини-физио","Физиотерапия 15 минут"]};
+    d.habits.forEach(h=>{ const r=ren[h.src]; if(r&&h.name===r[0]){ h.name=r[1]; d._m["hbc:"+h.id]=Date.now(); } }); }
   d.sections.forEach(s=>{ if(!s.kind) s.kind=s.course?"course":(s.sport?"sport":"generic");
     if(s.kind==="custom") ensureCustom(s); else ensureBlocks(s);   // блоки конструктора есть у любого раздела
     if(s.kind==="generic"&&(s.name==="Учёба"||s.name==="Учеба")){ s.name="Дизайн и карьера"; s.sub="UX/UI + цифровая доступность"; s.kind="career"; s.icon="sparkle"; s.color="var(--a-blue)"; delete s.items; }
@@ -181,5 +227,5 @@ Object.assign(window, {
   ensureSport, ensureCycle2, ensureCareer, ensureVk, ensureBlocks, ensureCustom,
   ensureEnglish, migrate, load, STORE_KEY, C2_START, C2_WEEKS,
   C2_STEPGOAL, PHYSIO_TOTAL, C2_GOALS, PHASE_A_EXERCISES, GV_EP_MIN, PHASE_A_WEEKS,
-  PHASE_A_OUT, PHASE_A_HOME,
+  PHASE_A_OUT, PHASE_A_HOME, PROGRAM, BLOG_PIN, ensureYear,
 });

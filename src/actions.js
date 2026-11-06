@@ -17,7 +17,7 @@ function deleteItem(sid,iid){ if(!confirm("Удалить этот пункт?")
 function renameItem(sid,iid){ const it=findItem(sid,iid); const v=prompt("Название пункта:",it.name); if(v!==null&&v.trim()){ it.name=v.trim(); render(); } }
 function setGoal(sid,iid){ const it=findItem(sid,iid); const v=prompt("Цель (число раз):",it.goal||0); if(v!==null){ const n=parseInt(v,10); it.goal=isNaN(n)?0:Math.max(0,n); render(); } }
 function setGoalTime(sid,iid){ const it=findItem(sid,iid); const v=prompt("Цель в минутах (0 = без цели):",it.goal||0); if(v!==null){ const n=parseInt(v,10); it.goal=isNaN(n)?0:Math.max(0,n); render(); } }
-function deleteSection(id){ if(!confirm("Удалить весь раздел?"))return;
+function deleteSection(id){ const sc=findSec(id); if(!confirm("Удалить направление «"+(sc?sc.name:"")+"» насовсем? Все его данные пропадут, вернуть будет нельзя."))return;
   data.secDeleted=data.secDeleted||[]; if(data.secDeleted.indexOf(id)<0) data.secDeleted.push(id);  // тумбстон: чтобы не воскрес при синхронизации
   evLog("block_state",{block:id, kind:"section", state:"deleted", name:(findSec(id)||{}).name});
   data.sections=data.sections.filter(s=>s.id!==id); data.active="overview"; render(); }

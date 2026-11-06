@@ -914,13 +914,13 @@ function c2goals() {
 		carb: C2_GOALS$1.carb.slice()
 	};
 }
-var PHASE_A_EXERCISES$1 = [
+var PHASE_A_EXERCISES = [
 	"День 1 — тяни: велотренажёр 10 мин ур. 4–5 · изометрия отведения бедра 5×30 сек · гребля 3×10–12 · тяга сверху к груди 3×10–12 · наружная ротация плеча 3×15 · бицепс 3×10–12 · ягодичный мостик 3×12 · боковая планка с колен 3×20 сек",
 	"День 2 — толкай: велотренажёр 10 мин · изометрия 5×30 сек · жим от груди 3×10–12 · трицепс 3×12 · Y-подъёмы 3×10 · наружная ротация 3×15 · разгибание голени 3×12 · сгибание голени 3×12 · мостик 3×12",
 	"День 3 — фулбоди: велотренажёр 20 мин ур. 5–6 · изометрия 5×45 сек · присед на стул 3×10 · гребля 3×12 · тяга сверху 3×12 · наружная ротация 3×15 · мостик 3×15"
 ];
 var GV_EP_MIN$1 = 22;
-var PHASE_A_WEEKS$1 = [
+var PHASE_A_WEEKS = [
 	{
 		focus: "Провокаторы сна. Еду не трогаю",
 		steps: 9e3,
@@ -962,8 +962,107 @@ var PHASE_A_WEEKS$1 = [
 		physio: 1
 	}
 ];
-var PHASE_A_OUT$1 = "Убрано на всю фазу: выпады любые · групповые занятия · тренажёр отведения ноги назад · «бабочка» · велотренажёр на 7. Растяжки, которых не будет: поза голубя, «четвёрка», ИТ-тракт, колено поперёк тела — они тянут сухожилие через сдавление.";
-var PHASE_A_HOME$1 = "Домашний блок, 3–4 раза в неделю по 10 минут: изометрия отведения лёжа с резинкой выше колен 5×30–45 сек · мостик на двух ногах 3×12 с паузой 2 сек · отведение лёжа на боку в нейтрали 2×10 невысоко · наружная ротация плеча 3×15. Если физиотерапевт даст свои упражнения — делаю их.";
+var PHASE_A_OUT = "Убрано на всю фазу: выпады любые · групповые занятия · тренажёр отведения ноги назад · «бабочка» · велотренажёр на 7. Растяжки, которых не будет: поза голубя, «четвёрка», ИТ-тракт, колено поперёк тела — они тянут сухожилие через сдавление.";
+var PHASE_A_HOME = "Домашний блок, 3–4 раза в неделю по 10 минут: изометрия отведения лёжа с резинкой выше колен 5×30–45 сек · мостик на двух ногах 3×12 с паузой 2 сек · отведение лёжа на боку в нейтрали 2×10 невысоко · наружная ротация плеча 3×15. Если физиотерапевт даст свои упражнения — делаю их.";
+var PROGRAM$1 = {
+	start: "2026-11-09",
+	end: "2027-11-07",
+	weeks: 52,
+	stepGoal: 1e4,
+	gymPerWeek: 3,
+	light: [
+		8,
+		12,
+		16,
+		20,
+		24,
+		28,
+		32,
+		36,
+		40,
+		44,
+		48,
+		52
+	],
+	phases: [
+		{
+			id: "p1",
+			name: "Вход, без дефицита",
+			from: "2026-11-09",
+			to: "2026-12-06"
+		},
+		{
+			id: "p2e",
+			name: "Мягкий вход в дефицит",
+			from: "2026-12-07",
+			to: "2026-12-20"
+		},
+		{
+			id: "p2a",
+			name: "Дефицит 2а",
+			from: "2026-12-21",
+			to: "2027-02-28"
+		},
+		{
+			id: "b1",
+			name: "Перерыв, поддержание",
+			from: "2027-03-01",
+			to: "2027-03-14"
+		},
+		{
+			id: "p2b",
+			name: "Дефицит 2б",
+			from: "2027-03-15",
+			to: "2027-06-06"
+		},
+		{
+			id: "b2",
+			name: "Перерыв, поддержание",
+			from: "2027-06-07",
+			to: "2027-06-20"
+		},
+		{
+			id: "p2c",
+			name: "Дефицит 2в",
+			from: "2027-06-21",
+			to: "2027-09-12"
+		},
+		{
+			id: "hold",
+			name: "Закрепление, поддержание",
+			from: "2027-09-13",
+			to: "2027-11-07"
+		}
+	],
+	measDates: [
+		"2026-12-06",
+		"2027-01-03",
+		"2027-01-31",
+		"2027-02-28",
+		"2027-03-28",
+		"2027-04-25",
+		"2027-05-23",
+		"2027-06-20",
+		"2027-07-18",
+		"2027-08-15",
+		"2027-09-12",
+		"2027-10-10",
+		"2027-11-07"
+	],
+	pcoef: [1.6, 2],
+	kcal: {
+		p1: [2300, 2500],
+		p2e: [2150, 2350],
+		p2a: [2e3, 2200]
+	}
+};
+var BLOG_PIN = {
+	id: "bl-pin",
+	pin: true,
+	date: "2026-11-09",
+	title: "Постоянное",
+	text: "Взвешивание и замеры\n• Взвешивание — по воскресеньям, в одно и то же время; в воскресенье трекер напомнит.\n• Обхваты — раз в 4 недели: 6 дек, 3 янв, 31 янв, 28 фев и дальше по календарю.\n• Калории смотрим по неделе, а не по одному дню. Один «лишний» день ничего не меняет.\n\nБелок\n• Норма — 1,6–2,0 г на кг веса. Трекер считает коридор по последнему взвешиванию.\n• Делим на 3–4 приёма по 20–40 г. Протеиновый коктейль добирает белок, еду не заменяет.\n\nТарелка и еда\n• Половина тарелки — овощи и фрукты, четверть белок, четверть цельные зерна и сложные углеводы. Картофель за овощи не считается.\n• Овощи 400–500 г в день.\n• Никаких дней голода и «отработок»: пропущенный зал — питание то же."
+};
 function defaultData$1() {
 	return {
 		title: "Мой прогресс",
@@ -980,13 +1079,15 @@ function defaultData$1() {
 				sub: "Легче, сильнее, выносливее",
 				sport: {
 					config: {
-						startDate: null,
-						exercises: PHASE_A_EXERCISES$1.slice(),
+						startDate: PROGRAM$1.start,
+						exercises: [],
 						height: 177,
-						weightStart: 82,
-						cycleWeeks: C2_WEEKS,
-						stepGoal: C2_STEPGOAL,
-						goals: c2goals()
+						weightStart: null,
+						cycleWeeks: PROGRAM$1.weeks,
+						stepGoal: PROGRAM$1.stepGoal,
+						goals: c2goals(),
+						c2Migr: 1,
+						yearMigr: 1
 					},
 					days: {},
 					workouts: [],
@@ -1110,7 +1211,60 @@ function ensureSport(sp) {
 		sp.config.c2Migr = 1;
 		ensureCycle2(sp);
 	}
+	if (!sp.config.yearMigr) {
+		sp.config.yearMigr = 1;
+		ensureYear(sp);
+	}
+	sp.weekWo = sp.weekWo || {};
+	{
+		const p = sp.prog = sp.prog || {};
+		p.noNumbers = !!p.noNumbers;
+		if (!p.pcoef) p.pcoef = PROGRAM$1.pcoef.slice();
+		if (!p.kcal) p.kcal = JSON.parse(JSON.stringify(PROGRAM$1.kcal));
+	}
+	sp.blog = sp.blog || [];
+	sp.blogDel = sp.blogDel || [];
+	if (!sp.blogSeeded) {
+		sp.blogSeeded = 1;
+		if (!sp.blog.some((b) => b.id === BLOG_PIN.id) && sp.blogDel.indexOf(BLOG_PIN.id) < 0) sp.blog.push(JSON.parse(JSON.stringify(BLOG_PIN)));
+	}
 	return sp;
+}
+function ensureYear(sp) {
+	const c = sp.config;
+	if (c.startDate && c.startDate < PROGRAM$1.start && !sp.archives.some((a) => a && a.id === "cycle2")) {
+		const from = c.startDate, to = dateAddDays(PROGRAM$1.start, -1);
+		const srt = (arr) => (arr || []).filter((x) => x && x.date).slice().sort((x, y) => x.date < y.date ? -1 : 1);
+		const w = srt(sp.weight), wIn = w.filter((x) => x.date >= from && x.date <= to), wBefore = w.filter((x) => x.date <= to);
+		const cm = (arr) => {
+			const a = srt(arr).filter((x) => x.date <= to);
+			return a.length ? a[a.length - 1].cm : null;
+		};
+		sp.archives.push({
+			id: "cycle2",
+			title: "Цикл 2 — август – ноябрь 2026",
+			from,
+			to,
+			goals: Object.assign({ steps: c.stepGoal || 1e4 }, c.goals || {}),
+			exercises: (c.exercises || []).slice(),
+			summary: {
+				workouts: (sp.workouts || []).filter((x) => x >= from && x <= to).length,
+				physio: Object.keys(sp.physio && sp.physio.done || {}).filter((k) => sp.physio.done[k]).length
+			},
+			result: {
+				weightStart: wIn.length ? wIn[0].kg : c.weightStart,
+				weightEnd: wBefore.length ? wBefore[wBefore.length - 1].kg : null,
+				waist: cm(sp.waist),
+				belly: cm(sp.belly),
+				chest: cm(sp.chest),
+				hips: cm(sp.hips)
+			},
+			note: "Закрыт при переходе на программу года"
+		});
+	}
+	c.startDate = PROGRAM$1.start;
+	c.cycleWeeks = PROGRAM$1.weeks;
+	c.stepGoal = PROGRAM$1.stepGoal;
 }
 function ensureCycle2(sp) {
 	const c = sp.config;
@@ -1149,7 +1303,7 @@ function ensureCycle2(sp) {
 	c.cycleWeeks = C2_WEEKS;
 	c.stepGoal = C2_STEPGOAL;
 	c.goals = c2goals();
-	c.exercises = PHASE_A_EXERCISES$1.slice();
+	c.exercises = PHASE_A_EXERCISES.slice();
 }
 function ensureCareer(c) {
 	c = c || {};
@@ -1380,8 +1534,24 @@ function migrate$1(d) {
 	seedPlans(d);
 	if (!d.sections.some((s) => s.id === NARC_ID) && d.secDeleted.indexOf(NARC_ID) < 0) d.sections.push(narcSeed());
 	orderSections(d);
+	secApplyOrder(d);
 	ensureNotes(d);
 	ensureHabits(d);
+	if (!d.habRen) {
+		d.habRen = 1;
+		const ren = {
+			warmup: ["Зарядка с планкой", "Зарядка"],
+			steps: ["10 000 шагов", "Шаги 10 000"],
+			reha: ["Мини-физио", "Физиотерапия 15 минут"]
+		};
+		d.habits.forEach((h) => {
+			const r = ren[h.src];
+			if (r && h.name === r[0]) {
+				h.name = r[1];
+				d._m["hbc:" + h.id] = Date.now();
+			}
+		});
+	}
 	d.sections.forEach((s) => {
 		if (!s.kind) s.kind = s.course ? "course" : s.sport ? "sport" : "generic";
 		if (s.kind === "custom") ensureCustom$1(s);
@@ -1471,11 +1641,14 @@ Object.assign(window, {
 	C2_STEPGOAL,
 	PHYSIO_TOTAL: PHYSIO_TOTAL$1,
 	C2_GOALS: C2_GOALS$1,
-	PHASE_A_EXERCISES: PHASE_A_EXERCISES$1,
+	PHASE_A_EXERCISES,
 	GV_EP_MIN: GV_EP_MIN$1,
-	PHASE_A_WEEKS: PHASE_A_WEEKS$1,
-	PHASE_A_OUT: PHASE_A_OUT$1,
-	PHASE_A_HOME: PHASE_A_HOME$1
+	PHASE_A_WEEKS,
+	PHASE_A_OUT,
+	PHASE_A_HOME,
+	PROGRAM: PROGRAM$1,
+	BLOG_PIN,
+	ensureYear
 });
 //#endregion
 //#region src/project-model.js
@@ -2100,7 +2273,8 @@ function itemsMeta(sec) {
 	if (sec.kind === "sport") {
 		const sp = sec.sport;
 		if (!sp.config.startDate) return "Настрой цикл";
-		return "Неделя " + spCycleWeek(sp) + "/" + spWeeks(sp) + " · стрик " + spCurrentStreak(sp);
+		const wn = spCycleWeek(sp);
+		return wn ? "Неделя " + wn + "/" + spWeeks(sp) + " · стрик " + spCurrentStreak(sp) : "Старт " + ruDate(sp.config.startDate);
 	}
 	if (sec.kind === "career") {
 		const c = sec.career;
@@ -6049,7 +6223,7 @@ Object.assign(window, {
 var HAB_SEED = [
 	[
 		"hb-warm",
-		"Зарядка с планкой",
+		"Зарядка",
 		[
 			1,
 			1,
@@ -6063,7 +6237,7 @@ var HAB_SEED = [
 	],
 	[
 		"hb-steps",
-		"10 000 шагов",
+		"Шаги 10 000",
 		[
 			1,
 			1,
@@ -6077,7 +6251,7 @@ var HAB_SEED = [
 	],
 	[
 		"hb-physio",
-		"Мини-физио",
+		"Физиотерапия 15 минут",
 		[
 			1,
 			1,
@@ -6209,13 +6383,13 @@ function mergeHabits$1(M, B, aM, bM) {
 	});
 	M.today = M.today.filter((t) => M.todayDel.indexOf(t.id) < 0);
 }
-function habSport() {
+function habSport$1() {
 	const s = data.sections.find((x) => x.kind === "sport");
 	return s && s.sport ? s.sport : null;
 }
 function habDone(h, ds) {
 	if (h.src) {
-		const sp = habSport();
+		const sp = habSport$1();
 		return !!(sp && sp.days[ds] && sp.days[ds][h.src]);
 	}
 	return !!h.days[ds];
@@ -6224,7 +6398,7 @@ function habToggle(id, ds) {
 	const h = data.habits.find((x) => x.id === id);
 	if (!h) return;
 	if (h.src) {
-		const sp = habSport();
+		const sp = habSport$1();
 		if (!sp) return;
 		const d = sp.days[ds] || (sp.days[ds] = {});
 		d[h.src] = !d[h.src];
@@ -6372,6 +6546,7 @@ function tdDel(id, quiet) {
 	render();
 }
 Object.assign(window, {
+	habSport: habSport$1,
 	HAB_SEED,
 	DOW: DOW$1,
 	ensureHabits: ensureHabits$1,
@@ -6420,7 +6595,7 @@ function renderShell$1() {
 			} else {
 				title = pjEd("proj", sec.id, sec.id, sec.name, "Название");
 				sub = pjEd("goal", sec.id, sec.id, sec.goal || "", "Цель направления");
-				tools = `<span class="pill" onclick="pjAddTask('${sec.id}')">＋ Задача</span><span class="pill" onclick="openNoteModal()">＋ Заметка</span>` + tools;
+				tools = `<span class="pill" onclick="pjAddTask('${sec.id}')">＋ Задача</span><span class="pill" onclick="openNoteModal()">＋ Заметка</span>` + tools + `<span class="pill" onclick="deleteSection('${sec.id}')">Удалить направление</span>`;
 			}
 		} else {
 			title = esc(sec.name);
@@ -6440,9 +6615,9 @@ function renderShell$1() {
 }
 function renderTabs$1() {
 	const on = (id) => data.active === id ? "on" : "", nn = (data.notes || []).length;
-	const dirs = data.sections.map((s) => `<a class="${on(s.id)}" onclick="go('${s.id}')">${secEmoji(s)} ${esc(s.name)}</a>`).join("");
+	const dirs = data.sections.map((s) => `<a class="${on(s.id)}" data-sid="${s.id}" onclick="go('${s.id}')">${secEmoji(s)} ${esc(s.name)}</a>`).join("");
 	document.getElementById("mkNav").innerHTML = `<div class="card nav"><a class="${on("overview")}" onclick="go('overview')">🏡 Главная</a><a onclick="openReport2()">📅 Отчёт по неделям</a></div>
-  <div class="card nav"><div class="cap">Направления</div><div>${dirs}</div><a class="plus" onclick="openSectionModal()">＋ Новое направление</a></div>
+  <div class="card nav"><div class="cap">Направления</div><div data-sort="nav">${dirs}</div><a class="plus" onclick="openSectionModal()">＋ Новое направление</a></div>
   <div class="card qa"><a onclick="openNoteModal()"><span class="qi">✎</span>Создать заметку</a><a class="${on("inbox")}" onclick="go('inbox')"><span class="qi">▤</span>Входящие${nn ? " (" + nn + ")" : ""}</a></div>`;
 }
 function hmTasks() {
@@ -6455,7 +6630,7 @@ function hmTasks() {
 	return r;
 }
 function wDirs() {
-	return `<section class="card" data-sid="w-dirs"><div class="band">Направления</div><div class="dirs">${data.sections.map((s) => {
+	return `<section class="card" data-sid="w-dirs"><div class="band">Направления</div><div class="dirs" data-sort="dirs">${data.sections.map((s) => {
 		const p = sectionProgress(s), pct = Math.round((p === null ? 0 : p) * 100);
 		return `<a class="dir" data-sid="${s.id}" onclick="go('${s.id}')"><div class="img" style="${secCoverStyle(s)}"><span class="cam" onclick="event.stopPropagation();coverPick('${s.id}')" title="Своя картинка">📷</span></div>
       <div class="tt"><b>${esc(s.name)}</b><div class="pg"><div class="bar"><i style="width:${pct}%"></i></div><span>${pct}%</span></div></div></a>`;
@@ -6514,12 +6689,12 @@ function wSport() {
 	const sp = sec.sport, w = (sp.weight || []).slice().sort((x, y) => x.date < y.date ? -1 : 1), last = w.length ? w[w.length - 1] : null;
 	const y = /* @__PURE__ */ new Date();
 	y.setDate(y.getDate() - 1);
-	const d = (sp.days || {})[ymd(y)] || {}, g = sp.config && sp.config.goals || {};
+	const yd = ymd(y), d = (sp.days || {})[yd] || {}, nn = spNoNum(sp);
 	const rng = (a) => a ? ` <span class="muted">/ ${a[0]}–${a[1]}</span>` : "";
 	return `<section class="card" data-sid="w-sport"><div class="cap">Спорт</div><table class="mini">
     <tr><td class="muted">Вес</td><td style="text-align:right"><b>${last ? String(last.kg).replace(".", ",") + " кг" : "—"}</b></td></tr>
-    <tr><td class="muted">Ккал вчера</td><td style="text-align:right"><b>${d.kcal || "—"}</b>${rng(g.kcal)}</td></tr>
-    <tr><td class="muted">Белок вчера</td><td style="text-align:right"><b>${d.protein ? d.protein + " г" : "—"}</b>${rng(g.protein)}</td></tr></table></section>`;
+    ${nn ? "" : `<tr><td class="muted">Ккал вчера</td><td style="text-align:right"><b>${d.kcal || "—"}</b>${rng(spRange(sp, "kcal", yd))}</td></tr>
+    <tr><td class="muted">Белок вчера</td><td style="text-align:right"><b>${d.protein ? d.protein + " г" : "—"}</b>${rng(spRange(sp, "protein", yd))}</td></tr>`}</table></section>`;
 }
 function overviewHTML$1() {
 	return `<div class="col">${wDirs()}${wNow()}${wHabits()}</div><div class="col">${wTime()}${wToday()}${wSoon()}${wGoals()}${wSport()}</div>`;
@@ -6548,6 +6723,199 @@ Object.assign(window, {
 	wSoon,
 	wGoals,
 	wSport
+});
+//#endregion
+//#region src/sort.js
+function secApplyOrder$1(d) {
+	const ord = d.secOrder;
+	if (!ord || !ord.length) return d;
+	const rank = (s) => {
+		const i = ord.indexOf(s.id);
+		return i < 0 ? 1e6 : i;
+	};
+	d.sections = d.sections.map((s, i) => [
+		rank(s),
+		i,
+		s
+	]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
+	return d;
+}
+function secSaveOrder(ids) {
+	const have = data.sections.map((s) => s.id);
+	data.secOrder = ids.filter((id) => have.indexOf(id) >= 0).concat(have.filter((id) => ids.indexOf(id) < 0));
+	secApplyOrder$1(data);
+	mstamp("or:sections");
+	save();
+}
+(function initSort() {
+	let st = null, suppress = false;
+	const SKIP = "input,select,textarea,button,.cam,.ck,.pop";
+	const HOLD_MS = 380;
+	document.addEventListener("pointerdown", (e) => {
+		if (e.button !== 0 || st) return;
+		if (e.target.closest(SKIP)) return;
+		const item = e.target.closest("[data-sid]");
+		if (!item || !item.parentElement || !item.parentElement.dataset.sort) return;
+		st = {
+			item,
+			cont: item.parentElement,
+			group: item.parentElement.dataset.sort,
+			x0: e.clientX,
+			y0: e.clientY,
+			on: false,
+			touch: e.pointerType !== "mouse",
+			timer: 0
+		};
+		if (st.touch) {
+			const s = st;
+			s.timer = setTimeout(() => {
+				if (st === s && !s.on) {
+					start();
+					move({
+						clientX: s.x0,
+						clientY: s.y0
+					});
+				}
+			}, HOLD_MS);
+		}
+	});
+	document.addEventListener("pointermove", (e) => {
+		if (!st) return;
+		if (!st.on) {
+			const far = Math.hypot(e.clientX - st.x0, e.clientY - st.y0);
+			if (st.touch) {
+				if (far > 9) {
+					clearTimeout(st.timer);
+					st = null;
+				}
+				return;
+			}
+			if (far < 6) return;
+			start();
+		}
+		move(e);
+	});
+	document.addEventListener("touchmove", (e) => {
+		if (st && st.on) e.preventDefault();
+	}, { passive: false });
+	function start() {
+		const r = st.item.getBoundingClientRect(), g = st.item.cloneNode(true);
+		g.classList.add("dragghost");
+		g.removeAttribute("data-sid");
+		g.style.width = r.width + "px";
+		g.style.height = r.height + "px";
+		g.style.left = r.left + "px";
+		g.style.top = r.top + "px";
+		document.getElementById("app").appendChild(g);
+		st.ghost = g;
+		st.item.classList.add("dragsrc");
+		document.body.classList.add("dragging");
+		document.querySelectorAll("[data-sort=\"" + st.group + "\"]").forEach((c) => c.classList.add("droparea"));
+		st.on = true;
+		const s = getSelection();
+		if (s) s.removeAllRanges();
+	}
+	function move(e) {
+		st.ghost.style.transform = "translate(" + (e.clientX - st.x0) + "px," + (e.clientY - st.y0) + "px) rotate(1.6deg) scale(1.03)";
+		const H = window.innerHeight || 600;
+		if (e.clientY < 70) window.scrollBy(0, -14);
+		else if (e.clientY > H - 70) window.scrollBy(0, 14);
+		const conts = [].slice.call(document.querySelectorAll("[data-sort=\"" + st.group + "\"]"));
+		let target = null;
+		for (const c of conts) {
+			const r = c.getBoundingClientRect();
+			if (e.clientX >= r.left - 12 && e.clientX <= r.right + 12 && e.clientY >= r.top - 12 && e.clientY <= r.bottom + 12) {
+				target = c;
+				break;
+			}
+		}
+		if (!target) return;
+		conts.forEach((c) => c.classList.toggle("droptarget", c === target));
+		const kids = [].slice.call(target.children).filter((k) => k.dataset.sid && k !== st.item);
+		let ref = null, append = false;
+		if (!kids.length) append = true;
+		else {
+			let best = null, bd = 1e9;
+			for (const k of kids) {
+				const r = k.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+				const dd = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom ? -1 : Math.hypot(e.clientX - cx, e.clientY - cy);
+				if (dd < bd) {
+					bd = dd;
+					best = k;
+				}
+			}
+			const r = best.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+			ref = (target.classList.contains("dirs") ? Math.abs(e.clientY - cy) < r.height / 2 ? e.clientX < cx : e.clientY < cy : e.clientY < cy) ? best : best.nextElementSibling;
+			if (ref === st.item) ref = st.item.nextElementSibling;
+		}
+		if (!append && st.item.parentElement === target && st.item.nextElementSibling === ref) return;
+		if (append && st.item.parentElement === target) return;
+		const sibs = [].slice.call(document.querySelectorAll("[data-sort=\"" + st.group + "\"] > [data-sid]")).filter((k) => k !== st.item);
+		const before0 = new Map(sibs.map((k) => [k, k.getBoundingClientRect()]));
+		if (append) target.appendChild(st.item);
+		else target.insertBefore(st.item, ref);
+		sibs.forEach((k) => {
+			const r0 = before0.get(k), r1 = k.getBoundingClientRect(), dx = r0.left - r1.left, dy = r0.top - r1.top;
+			if (dx || dy) {
+				k.style.transition = "none";
+				k.style.transform = "translate(" + dx + "px," + dy + "px)";
+				requestAnimationFrame(() => {
+					k.style.transition = "transform .18s ease";
+					k.style.transform = "";
+					setTimeout(() => {
+						k.style.transition = "";
+					}, 220);
+				});
+			}
+		});
+	}
+	function end(cancel) {
+		if (!st) return;
+		const s = st;
+		st = null;
+		clearTimeout(s.timer);
+		if (!s.on) return;
+		s.ghost.remove();
+		s.item.classList.remove("dragsrc");
+		document.body.classList.remove("dragging");
+		document.querySelectorAll(".droparea,.droptarget").forEach((c) => c.classList.remove("droparea", "droptarget"));
+		suppress = true;
+		setTimeout(() => {
+			suppress = false;
+		}, 60);
+		if (cancel) {
+			render();
+			return;
+		}
+		const ids = [].slice.call(s.item.parentElement.children).filter((k) => k.dataset.sid).map((k) => k.dataset.sid);
+		if (s.group === "sport") {
+			const sp = spData();
+			if (sp) {
+				sp.cardOrder = ids;
+				mstamp("or:sport");
+				save();
+			}
+		} else secSaveOrder(ids);
+		render();
+	}
+	document.addEventListener("pointerup", () => end(false));
+	document.addEventListener("pointercancel", () => end(true));
+	document.addEventListener("keydown", (e) => {
+		if (e.key === "Escape" && st && st.on) end(true);
+	});
+	document.addEventListener("click", (e) => {
+		if (suppress) {
+			e.preventDefault();
+			e.stopPropagation();
+		}
+	}, true);
+	document.addEventListener("dragstart", (e) => {
+		if (e.target.closest && e.target.closest("[data-sort]>[data-sid]")) e.preventDefault();
+	});
+})();
+Object.assign(window, {
+	secApplyOrder: secApplyOrder$1,
+	secSaveOrder
 });
 //#endregion
 //#region src/render.js
@@ -6585,8 +6953,7 @@ function renderView() {
 		return;
 	}
 	if (sec.kind === "sport") {
-		v.innerHTML = sportHTML(sec) + blocksHTML(sec) + addBlockCardHTML(sec);
-		applyCardLayout(sec);
+		v.innerHTML = sportHTML(sec) + blocksHTML(sec);
 		wireSport();
 		return;
 	}
@@ -7433,7 +7800,8 @@ function setGoalTime(sid, iid) {
 	}
 }
 function deleteSection(id) {
-	if (!confirm("Удалить весь раздел?")) return;
+	const sc = findSec$1(id);
+	if (!confirm("Удалить направление «" + (sc ? sc.name : "") + "» насовсем? Все его данные пропадут, вернуть будет нельзя.")) return;
 	data.secDeleted = data.secDeleted || [];
 	if (data.secDeleted.indexOf(id) < 0) data.secDeleted.push(id);
 	evLog("block_state", {
@@ -7554,39 +7922,95 @@ function spTargets(sp) {
 		bmr: Math.round(bmr)
 	};
 }
+var PHYS_SET = [
+	"короткий комплект (день зала)",
+	"плечо, 1-й комплект",
+	"короткий комплект (день зала)",
+	"ноги, 1-й комплект",
+	"короткий комплект (день зала)",
+	"плечо, 2-й комплект",
+	"ноги, 2-й комплект"
+];
+var GYM_NOTE = [
+	"тяжелее",
+	"легче",
+	"средне"
+];
+var rnd5 = (x) => Math.ceil(x / 5 - .5) * 5;
 function spGoals(sp) {
 	return sp.config && sp.config.goals || C2_GOALS;
 }
-function spRange$1(sp, f) {
-	const g = spGoals(sp)[f];
-	return g && g.length === 2 ? g : C2_GOALS[f];
-}
 function rngTxt$1(r) {
-	return r[0] + "–" + r[1];
+	return r ? r[0] + "–" + r[1] : "не задан";
 }
 function inRange(v, r) {
-	if (!v) return false;
+	if (!v || !r) return false;
 	return v >= r[0] * .95 && v <= r[1] * 1.05;
 }
-function spDayCore(sp, d) {
-	return inRange(d.kcal, spRange$1(sp, "kcal")) && inRange(d.protein, spRange$1(sp, "protein"));
+function spNoNum$1(sp) {
+	sp = sp || habSport();
+	return !!(sp && sp.prog && sp.prog.noNumbers);
 }
-function spDayAll(sp, d) {
-	return spDayCore(sp, d) && inRange(d.fat, spRange$1(sp, "fat")) && inRange(d.carbs, spRange$1(sp, "carb"));
+function spPhase$1(ds) {
+	const P = PROGRAM.phases;
+	return P.find((p) => ds >= p.from && ds <= p.to) || (ds < PROGRAM.start ? P[0] : P[P.length - 1]);
+}
+function spWeightAt(sp, ds) {
+	const w = (sp.weight || []).filter((x) => x && x.date).slice().sort((x, y) => x.date < y.date ? -1 : 1);
+	const upto = w.filter((x) => x.date <= ds), l = upto.length ? upto[upto.length - 1] : w.length ? w[0] : null;
+	return l ? l.kg : sp.config.weightStart || 80;
+}
+function spProteinR(sp, ds) {
+	const w = spWeightAt(sp, ds), c = sp.prog.pcoef;
+	return [rnd5(w * c[0]), rnd5(w * c[1])];
+}
+function spKcalOf(sp, id) {
+	const k = sp.prog.kcal[id];
+	return k && k[0] && k[1] && k[1] >= k[0] ? k : null;
+}
+function spKcalR(sp, ds) {
+	return spKcalOf(sp, spPhase$1(ds).id);
+}
+function spMacroFrom(sp, k, ds) {
+	if (!k) return null;
+	const mid = (k[0] + k[1]) / 2, pr = spProteinR(sp, ds), pm = (pr[0] + pr[1]) / 2;
+	const fat = [Math.round(.25 * mid / 9), Math.round(.3 * mid / 9)], cm = (mid - pm * 4 - (fat[0] + fat[1]) / 2 * 9) / 4;
+	return {
+		fat,
+		carb: [rnd5(cm * .93), rnd5(cm * 1.07)]
+	};
+}
+function spRange$1(sp, f, ds) {
+	ds = ds || todayStr();
+	if (f === "kcal") return spKcalR(sp, ds);
+	if (f === "protein") return spProteinR(sp, ds);
+	const m = spMacroFrom(sp, spKcalR(sp, ds), ds);
+	return m ? f === "fat" ? m.fat : m.carb : null;
+}
+function spDayCore(sp, d, ds) {
+	return inRange(d.kcal, spRange$1(sp, "kcal", ds)) && inRange(d.protein, spRange$1(sp, "protein", ds));
+}
+function spDayAll(sp, d, ds) {
+	return spDayCore(sp, d, ds) && inRange(d.fat, spRange$1(sp, "fat", ds)) && inRange(d.carbs, spRange$1(sp, "carb", ds));
 }
 function spWeekCorridor$1(sp, mon) {
 	let core = 0, all = 0;
 	for (let i = 0; i < 7; i++) {
-		const d = spDay$1(sp, dateAddDays$1(mon, i));
-		if (spDayCore(sp, d)) {
+		const ds = dateAddDays$1(mon, i), d = spDay$1(sp, ds);
+		if (spDayCore(sp, d, ds)) {
 			core++;
-			if (spDayAll(sp, d)) all++;
+			if (spDayAll(sp, d, ds)) all++;
 		}
 	}
 	return {
 		core,
 		all
 	};
+}
+function spWeekNo(sp, ds) {
+	const st = sp.config.startDate || PROGRAM.start;
+	if (ds < st) return 0;
+	return Math.min(spWeeks$1(sp), Math.floor(Math.round((/* @__PURE__ */ new Date(mondayOf$1(ds) + "T00:00:00") - /* @__PURE__ */ new Date(mondayOf$1(st) + "T00:00:00")) / 864e5) / 7) + 1);
 }
 function painMax(d) {
 	const v = [
@@ -7693,11 +8117,8 @@ function dTxt$1(v, unit) {
 }
 var SP_MIN = {
 	workout: 90,
-	physio: 90,
-	reha: 10,
-	warmup: 10,
-	photos: 5,
-	report: 5
+	reha: 15,
+	warmup: 10
 };
 var SP_WALK = {
 	steps: 1e4,
@@ -7708,16 +8129,14 @@ function spCookMin$1(sp, mon) {
 	return v ? parseInt(v) || 0 : 0;
 }
 function spTimeParts$1(sp, mon) {
-	let steps = 0, warm = 0, reha = 0, ph = 0, rep = 0;
+	let steps = 0, warm = 0, reha = 0;
 	for (let i = 0; i < 7; i++) {
 		const d = spDay$1(sp, dateAddDays$1(mon, i));
 		steps += d.stepsCount || 0;
 		if (d.warmup) warm++;
 		if (d.reha) reha++;
-		if (d.photos) ph++;
-		if (d.report) rep++;
 	}
-	const wo = (sp.workouts || []).filter((x) => mondayOf$1(x) === mon).length, fz = phWeek$1(sp, mon), cook = spCookMin$1(sp, mon);
+	const wo = spWorkoutsInWeek$1(sp, mon), cook = spCookMin$1(sp, mon);
 	const out = [], add = (label, min, hint) => {
 		if (min > 0) out.push({
 			label,
@@ -7726,12 +8145,9 @@ function spTimeParts$1(sp, mon) {
 		});
 	};
 	add("Тренировки в зале", wo * SP_MIN.workout, wo + " × 1 ч 30 мин");
-	add("Физиотерапия", fz * SP_MIN.physio, fz + " × 1 ч 30 мин");
 	add("Ходьба", Math.round(steps / SP_WALK.steps * SP_WALK.min), steps.toLocaleString("ru-RU") + " шагов");
-	add("Домашний блок", reha * SP_MIN.reha, reha + " × 10 мин");
+	add("Физиотерапия", reha * SP_MIN.reha, reha + " × 15 мин");
 	add("Зарядка", warm * SP_MIN.warmup, warm + " × 10 мин");
-	add("Фото еды", ph * SP_MIN.photos, ph + " × 5 мин");
-	add("Отчёт КБЖУ", rep * SP_MIN.report, rep + " × 5 мин");
 	add("Готовка ПП", cook, "введено вручную");
 	return out;
 }
@@ -7751,12 +8167,6 @@ function spLastDailyEnergy(sp) {
 function activeSport() {
 	const s = data.sections.find((x) => x.id === data.active);
 	return s && s.kind === "sport" ? s : null;
-}
-function renderSport() {
-	const sec = activeSport();
-	if (!sec) return;
-	document.getElementById("view").innerHTML = sportHTML$1(sec);
-	applyCardLayout(sec);
 }
 function dateAddDays$1(ds, n) {
 	const d = /* @__PURE__ */ new Date(ds + "T00:00:00");
@@ -7788,11 +8198,25 @@ function ruDate$1(ds) {
 function spDay$1(sp, ds) {
 	return sp.days[ds] || {};
 }
-function spFull$1(d) {
-	return !!(d.steps && d.warmup && d.photos && d.report);
+function spParts(d) {
+	const a = [];
+	if (!spNoNum$1()) a.push(!!(d.kcal > 0));
+	a.push(!!d.steps);
+	a.push(!!d.warmup);
+	a.push(!!d.reha);
+	return a;
+}
+function spDoneN(d) {
+	return spParts(d).filter(Boolean).length;
+}
+function spTotalN() {
+	return spNoNum$1() ? 3 : 4;
 }
 function spCounted$1(d) {
-	return !!(d.steps && d.photos && d.report);
+	return spDoneN(d) === spTotalN();
+}
+function spFull$1(d) {
+	return spCounted$1(d);
 }
 function spWeeks$1(sp) {
 	return sp.config.cycleWeeks || 12;
@@ -7853,18 +8277,19 @@ function spBestStreak(sp) {
 	}
 	return best;
 }
-function spWorkoutsInWeek(sp, mon) {
-	return sp.workouts.filter((w) => mondayOf$1(w) === mon).length;
+function spWorkoutsInWeek$1(sp, mon) {
+	const w = sp.weekWo || {};
+	return mon in w ? w[mon] : sp.workouts.filter((x) => mondayOf$1(x) === mon).length;
 }
 function spWorkoutsThisWeek(sp) {
-	return spWorkoutsInWeek(sp, mondayOf$1(todayStr()));
+	return spWorkoutsInWeek$1(sp, mondayOf$1(todayStr()));
 }
 function spStrengthCompliance(sp) {
 	if (!sp.config.startDate) return 0;
 	let m = mondayOf$1(sp.config.startDate), end = mondayOf$1(todayStr()), weeks = 0, ok = 0;
 	while (m <= end) {
 		weeks++;
-		if (spWorkoutsInWeek(sp, m) >= 3) ok++;
+		if (spWorkoutsInWeek$1(sp, m) >= 3) ok++;
 		m = dateAddDays$1(m, 7);
 	}
 	return weeks ? ok / weeks : 0;
@@ -8116,188 +8541,119 @@ function calendarRows(sp, all) {
 	}
 	return rows;
 }
-function sportSetupHTML(sec) {
-	return `<div class="card" style="--accent:${sec.color}; --accent-soft:${softColor(sec.color)}">
-    <div class="sec-head" style="margin-bottom:16px">
-      <div class="sec-ico">${svg("dumbbell")}</div>
-      <div><h2 class="sec-title">${esc(sec.name)}</h2><p class="sec-sub">${esc(sec.sub || "")}</p></div>
-    </div>
-    <p style="color:var(--muted); font-size:14px; margin:0 0 18px">Цель — стать легче, сильнее и выносливее за цикл 12 недель. Главное здесь — <b>действия</b>, а вес лишь справочное табло. Настроим старт:</p>
-    <button class="btn primary" onclick="openSportSetup()">${svg("sparkle")} Начать цикл</button>
-  </div>`;
-}
-function openSportSetup() {
-	const cfg = activeSport().sport.config;
-	const ex = (cfg.exercises && cfg.exercises.length ? cfg.exercises : PHASE_A_EXERCISES).join("\n");
-	document.getElementById("modal").innerHTML = `
-    <h3>${cfg.startDate ? "Настройки цикла" : "Начать цикл"}</h3>
-    <p class="mhint">Главная метрика — выполнение действий, а не вес.</p>
-    <label for="spStart">Дата старта</label><input type="date" id="spStart" value="${cfg.startDate || todayStr()}">
-    <label for="spWeeks">Длина цикла, недель</label><input type="number" id="spWeeks" value="${cfg.cycleWeeks || 12}">
-    <label for="spGoal">Цель по шагам в день</label><input type="number" id="spGoal" value="${cfg.stepGoal || 1e4}">
-    <label for="spHeight">Рост, см</label><input type="number" id="spHeight" value="${cfg.height || 177}">
-    <label for="spWeight">Стартовый вес, кг</label><input type="number" step="0.1" id="spWeight" value="${cfg.weightStart != null ? cfg.weightStart : 82}">
-    <label for="spSex">Пол (для расчёта норм КБЖУ)</label><select id="spSex"><option value="f" ${(cfg.sex || "f") === "f" ? "selected" : ""}>Женский</option><option value="m" ${cfg.sex === "m" ? "selected" : ""}>Мужской</option></select>
-    <label for="spAge">Возраст</label><input type="number" id="spAge" value="${cfg.age || 30}">
-    <label for="spAct">Активность</label><select id="spAct">
-      <option value="1.2" ${cfg.activity == 1.2 ? "selected" : ""}>Низкая (сидячая)</option>
-      <option value="1.375" ${cfg.activity == 1.375 ? "selected" : ""}>Лёгкая (1–3 трен/нед)</option>
-      <option value="1.45" ${!cfg.activity || cfg.activity == 1.45 ? "selected" : ""}>Умеренная (шаги + 3 трен)</option>
-      <option value="1.55" ${cfg.activity == 1.55 ? "selected" : ""}>Средняя (3–5 трен/нед)</option>
-      <option value="1.725" ${cfg.activity == 1.725 ? "selected" : ""}>Высокая (6–7 трен/нед)</option>
-    </select>
-    <label for="spEx">Программа тренировок — один день на строку</label><textarea class="note-area" id="spEx" rows="6" placeholder="День 1 — тяни: ...">${esc(ex)}</textarea>
-    <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="saveSportSetup()">Сохранить</button></div>`;
-	showModal();
-}
-function saveSportSetup() {
-	const sp = activeSport().sport;
-	const sd = document.getElementById("spStart").value || todayStr();
-	const h = parseFloat(document.getElementById("spHeight").value) || 177;
-	const ws = parseFloat(document.getElementById("spWeight").value);
-	const exs = document.getElementById("spEx").value.split("\n").map((s) => s.trim()).filter(Boolean);
-	const first = !sp.config.startDate;
-	const cw = parseInt(document.getElementById("spWeeks").value) || 12;
-	const sg = parseInt(document.getElementById("spGoal").value) || 1e4;
-	const sex = document.getElementById("spSex").value || "f";
-	const age = parseInt(document.getElementById("spAge").value) || 30;
-	const act = parseFloat(document.getElementById("spAct").value) || 1.45;
-	sp.config.startDate = sd;
-	sp.config.height = h;
-	sp.config.weightStart = isNaN(ws) ? null : ws;
-	sp.config.exercises = exs;
-	sp.config.cycleWeeks = cw;
-	sp.config.stepGoal = sg;
-	sp.config.sex = sex;
-	sp.config.age = age;
-	sp.config.activity = act;
-	if (first && !isNaN(ws)) sp.weight.push({
-		date: sd,
-		kg: ws
+var SP_CARDS = [
+	"day",
+	"str",
+	"phy",
+	"body",
+	"kbzhu",
+	"blog",
+	"energy",
+	"cal",
+	"cfg"
+];
+function spCardOrder(sp) {
+	const o = (sp.cardOrder || []).filter((k) => SP_CARDS.indexOf(k) >= 0);
+	SP_CARDS.forEach((k) => {
+		if (o.indexOf(k) < 0) o.push(k);
 	});
-	save();
-	closeModal();
-	render();
+	return o;
+}
+var spFnum = (n) => String(n).replace(".", ",");
+function spBand(k, title, sub, body, cls) {
+	return `<section class="card" data-sid="${k}"><div class="band ${cls || ""}"><span>${title}</span><span class="bsub">${sub || ""}</span></div>${body}</section>`;
+}
+function spTiles(arr) {
+	return `<div class="tiles">${arr.map((t, i) => `<div class="tile t${i + 1}"><div class="n${String(t[0]).replace(/<[^>]*>/g, "").length > 6 ? " sm" : ""}">${t[0]}</div><div class="l">${t[1]}</div></div>`).join("")}</div>`;
+}
+var spFr = (n, m) => n + "<small>/" + m + "</small>";
+function spBarSvg(vals, labels, goal, h) {
+	const W = 900, H = h || 130, pad = 22, mx = Math.max(goal || 0, ...vals, 1) * 1.15, bw = 880 / vals.length;
+	const bars = vals.map((v, i) => {
+		const bh = v / mx * (H - pad), x = 10 + i * bw + 7, w = bw - 14;
+		return `<rect x="${x}" y="${H - pad - bh}" width="${w}" height="${Math.max(bh, 0)}" rx="5" fill="#e9c8ac"/><text x="${x + w / 2}" y="${H - 6}" text-anchor="middle" font-size="10.5" fill="#9b8573">${labels[i]}</text>`;
+	}).join("");
+	const gy = goal ? H - pad - goal / mx * (H - pad) : null;
+	return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${bars}${gy != null ? `<line x1="6" x2="894" y1="${gy}" y2="${gy}" stroke="#b98562" stroke-dasharray="4 4"/>` : ""}</svg>`;
+}
+function spLineSvg(pts, h, dec) {
+	if (pts.length < 2) return "<p class=\"muted\" style=\"font-size:12.5px\">Нужно хотя бы две записи, чтобы построить график.</p>";
+	const W = 900, H = h || 140, p = 20, ys = pts.map((x) => x.y), mn = Math.min(...ys), rg = Math.max(...ys) - mn || 1;
+	const X = (i) => p + i * 860 / (pts.length - 1), Y = (y) => p + (1 - (y - mn) / rg) * (H - 40 - 8);
+	return `<svg viewBox="0 0 ${W} ${H}" width="100%"><path d="${pts.map((q, i) => (i ? "L" : "M") + X(i) + " " + Y(q.y)).join(" ")}" fill="none" stroke="#b98562" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${pts.map((q, i) => `<circle cx="${X(i)}" cy="${Y(q.y)}" r="3.5" fill="#fffaf4" stroke="#b98562" stroke-width="2"/>`).join("")}<text x="${p}" y="${H - 2}" font-size="10.5" fill="#9b8573">${esc(pts[0].label)}</text><text x="880" y="${H - 2}" font-size="10.5" fill="#9b8573" text-anchor="end">${esc(pts[pts.length - 1].label)}</text><text x="${X(pts.length - 1)}" y="${Y(pts[pts.length - 1].y) - 9}" font-size="11.5" fill="#6d503b" text-anchor="end" font-weight="600">${pts[pts.length - 1].y.toFixed(dec == null ? 1 : dec).replace(".", ",")}</text></svg>`;
+}
+function spFmtPost(t) {
+	return String(t || "").split("\n").map((l) => {
+		if (/^## /.test(l) || /^(Установка недели|Напоминания|Что лучше съесть|Взвешивание и замеры|Белок|Тарелка и еда)$/.test(l)) return "<h4>" + esc(l.replace(/^## /, "")) + "</h4>";
+		if (l.charAt(0) === "•") return "<div class=\"bli\">" + esc(l.slice(1).trim()) + "</div>";
+		return l ? "<p>" + esc(l) + "</p>" : "";
+	}).join("");
+}
+function spAvgDay(sp, mon, f, upTo) {
+	let s = 0, n = 0;
+	for (let i = 0; i < 7; i++) {
+		const x = dateAddDays$1(mon, i);
+		if (x > upTo) break;
+		const v = spDay$1(sp, x)[f];
+		if (v > 0) {
+			s += v;
+			n++;
+		}
+	}
+	return n ? Math.round(s / n) : null;
+}
+function spStWord(v, r) {
+	return !v || !r ? "" : inRange(v, r) ? "в коридоре" : v < r[0] ? "ниже коридора" : "выше коридора";
 }
 function sportHTML$1(sec) {
 	const sp = sec.sport;
-	if (!sp.config.startDate) return sportSetupHTML(sec);
 	if (!sportDay) window.sportDay = todayStr();
 	if (!sportWeekMon) window.sportWeekMon = mondayOf$1(sportDay);
-	const WEEKS = spWeeks$1(sp), TDAYS = spDaysTotal(sp), GOAL = spStepGoal$1(sp);
-	const wk = spCycleWeek$1(sp), day = spCycleDay(sp), cyclePct = Math.max(0, Math.min(day / TDAYS, 1));
-	const curMon = mondayOf$1(todayStr());
-	const comp = spWeekCompliance$1(sp, curMon), counted = spWeekCountedDays(sp, curMon);
-	const streak = spCurrentStreak$1(sp), best = spBestStreak(sp);
-	const overCycle = day > TDAYS, notStarted = day < 1;
-	const dCycW = spDelta$1(sp, "weight", "kg", sp.config.startDate), dCycT = spDelta$1(sp, "waist", "cm", sp.config.startDate);
-	const dAllW = spDelta$1(sp, "weight", "kg", null), dAllT = spDelta$1(sp, "waist", "cm", null);
-	const allFrom = (spAllPts(sp, "weight", "kg")[0] || {}).date;
-	const wcount = spWorkoutsInWeek(sp, curMon), scomp = spStrengthCompliance(sp);
-	const fullDays = spWeekFullDays(sp, curMon);
-	const selMon = sportWeekMon, isCur = selMon === curMon;
-	const selRange = ruDate$1(selMon) + " — " + ruDate$1(dateAddDays$1(selMon, 6)) + (isCur ? " · текущая" : "");
-	const selCounted = spWeekCountedDays(sp, selMon), selFull = spWeekFullDays(sp, selMon);
-	const selWorkouts = spWorkoutsInWeek(sp, selMon);
-	let html = `<div class="card" style="--accent:${sec.color}; --accent-soft:${softColor(sec.color)}">
-    <div class="sec-head" style="margin-bottom:18px">
-      <div class="sec-ico">${svg("dumbbell")}</div>
-      <div><h2 class="sec-title">${esc(sec.name)}</h2><p class="sec-sub">${esc(sec.sub || "")} · ${notStarted ? "старт " + ruDate$1(sp.config.startDate) : overCycle ? "цикл завершён — можно архивировать" : "неделя " + wk + " из " + WEEKS}</p></div>
-      <div class="sec-tools"><button class="iconbtn" aria-label="Настройки цикла" onclick="openSportSetup()">${svg("pencil")}</button></div>
-    </div>
-    <div class="dash">
-      <div class="dring">${ring(comp, 132, 12, "var(--a-rose)", true)}</div>
-      <div style="width:100%">
-        <div class="stats">
-          <div class="stat"><div class="n" style="color:var(--a-rose)">${counted}/7</div><div class="l">дней недели зачтено</div></div>
-          <div class="stat"><div class="n">${fullDays}/7</div><div class="l">полных дней</div></div>
-          <div class="stat"><div class="n b">${wcount}/3</div><div class="l">силовые за неделю</div></div>
-          <div class="stat"><div class="n g">${streak}</div><div class="l">стрик, ${plural(streak, "день", "дня", "дней")}</div></div>
-          <div class="stat"><div class="n">${best}</div><div class="l">лучший стрик</div></div>
-          <div class="stat"><div class="n">${wk}/${WEEKS}</div><div class="l">неделя цикла</div></div>
-        </div>
-        <div class="prog" style="margin-top:14px"><div class="prog-top"><span class="lab">Прогресс цикла</span><span class="pct" style="color:var(--a-rose)">${notStarted ? "старт " + ruDate$1(sp.config.startDate) : "день " + Math.max(0, Math.min(day, TDAYS)) + "/" + TDAYS}</span></div>
-          <div class="track"><i style="width:${Math.round(cyclePct * 100)}%; background:linear-gradient(90deg,var(--a-rose),#ff9db0)"></i></div></div>
-        <div style="margin-top:14px; font-size:13px; line-height:1.75">
-          <div><span style="color:var(--muted)">За цикл (с ${ruDate$1(sp.config.startDate)}):</span> <b>${dTxt$1(dCycW, "кг")}</b> · талия <b>${dTxt$1(dCycT, "см")}</b></div>
-          <div><span style="color:var(--muted)">Всего${allFrom ? " с " + ruDate$1(allFrom) : ""}:</span> <b style="color:var(--success)">${dTxt$1(dAllW, "кг")}</b> · талия <b style="color:var(--success)">${dTxt$1(dAllT, "см")}</b></div>
-        </div>
-        <p style="font-size:13px; color:var(--muted); margin:12px 0 0">${counted >= 6 ? "Сильная неделя — " + counted + "/7 дней. Так держать!" : counted >= 4 ? counted + "/7 дней — хороший ритм." : "Каждый отмеченный день — уже вклад."}</p>
-      </div>
-    </div>
-    <div class="beacon">${svg("info")}<div>Фаза A: погасить обострение и пройти все 10 сеансов физиотерапии. Сохранить сустав важнее, чем ускорить снижение веса. Неделя, где вес не сдвинулся, но сон и боль стали лучше, — хорошая неделя.</div></div>
-  </div>`;
-	const d = spDay$1(sp, sportDay);
-	const status = spFull$1(d) ? ["Полный день", "var(--success)"] : spCounted$1(d) ? ["День зачтён", "var(--a-amber)"] : ["Ещё не зачтён", "var(--muted-2)"];
-	const dcheck = (on) => `<span class="check ${on ? "on" : ""}" style="--accent:var(--a-rose); cursor:default">${svg("check")}</span>`;
-	const tog = (f, on, label) => `<div class="item" style="margin-bottom:10px"><div class="item-top"><button class="check ${on ? "on" : ""}" style="--accent:var(--a-rose)" onclick="spToggle('${f}')">${svg("check")}</button><div class="item-name ${on ? "done" : ""}">${label}</div></div></div>`;
-	const painTxt = (f) => d[f] == null ? "—" : d[f];
-	const painBlock = (f, label) => {
-		const v = d[f];
-		const z = v == null ? null : v <= 3 ? "g" : v <= 5 ? "y" : "r";
-		return `<div style="margin-top:9px"><div style="display:flex; justify-content:space-between; gap:8px; font-size:12px; color:var(--muted)"><span>${label}</span><span style="color:${z ? PAIN_COLOR[z] : "var(--muted-2)"}">${v == null ? "не отмечено" : v + "/10 · " + PAIN_WORD[z]}</span></div>
-      <div class="painrow">${[
-			0,
-			1,
-			2,
-			3,
-			4,
-			5,
-			6,
-			7,
-			8,
-			9,
-			10
-		].map((n) => {
-			return `<button class="${v === n ? "on" : ""}" ${v === n ? `style="background:${PAIN_COLOR[n <= 3 ? "g" : n <= 5 ? "y" : "r"]}"` : ""} onclick="spSetPain('${f}',${n})">${n}</button>`;
-		}).join("")}</div></div>`;
-	};
-	html += cardWrap(sec, "day", "Действия дня", selCounted + "/7 зачтено · " + status[0], selCounted / 7, "var(--a-rose)", `
-    <div class="weeknav">
-      <button aria-label="Предыдущая неделя" onclick="sportWeekShift(-1)">‹</button>
-      <span>${selRange}</span>
-      <button aria-label="Следующая неделя" onclick="sportWeekShift(1)">›</button>
-    </div>
-    <div class="dayswitch week">
-      ${WD$1.map((lb, i) => {
-		const ds = dateAddDays$1(sportWeekMon, i);
-		const fut = ds > todayStr();
-		const num = (/* @__PURE__ */ new Date(ds + "T00:00:00")).getDate();
-		return `<button class="${ds === sportDay ? "on" : ""} ${fut ? "fut" : ""} ${ds === todayStr() ? "today" : ""}" onclick="setSportDay('${ds}')"><b>${lb}</b><span>${num}</span></button>`;
-	}).join("")}
-    </div>
-    <div class="morn">
-      <h4>Утро · сон и боль</h4>
-      <div class="mline">
-        <span class="lb">Часов сна</span>
-        <input class="sleepin" type="number" step="0.5" min="0" max="12" placeholder="7,5" value="${d.sleepH || ""}" onchange="spSetSleep(this.value)">
-        <span class="lb" style="min-width:auto">Пробуждений</span>
-        <span class="cnt"><button class="cntb" aria-label="Меньше" onclick="spWake(-1)">−</button><span class="cntv">${d.wakeN != null ? d.wakeN : "—"}</span><button class="cntb" aria-label="Больше" onclick="spWake(1)">+</button></span>
-      </div>
-      <div class="painhead"><span style="color:var(--muted)">Боль 0–10</span><b>Бедро П ${painTxt("painR")} · Л ${painTxt("painL")} · Плечо ${painTxt("painS")}</b></div>
-      ${painBlock("painR", "Правое бедро")}
-      ${painBlock("painL", "Левое бедро")}
-      ${painBlock("painS", "Правое плечо")}
-      <p style="font-size:11.5px; color:var(--muted-2); margin:12px 0 0">Боль ≤3 при тендинопатии допустима — это не признак повреждения. Цель не «не болит», а «болит ≤3 и уходит за сутки».</p>
-    </div>
-    <div class="item" style="margin-bottom:10px">
-      <div class="item-top">${dcheck(!!d.steps)}<div class="item-name ${d.steps ? "done" : ""}">Шаги <small style="color:var(--muted-2); white-space:nowrap">цель ${GOAL.toLocaleString("ru-RU")}</small></div></div>
-      <div class="stepsrow"><input class="stepsin" type="number" min="0" placeholder="сколько шагов сегодня" value="${d.stepsCount || ""}" onchange="spSetSteps(this.value)"></div>
-    </div>
-    ${tog("reha", !!d.reha, "Домашний блок резинок, 10 минут")}
-    ${tog("cola", !!d.cola, "Кофеин не позже 14:00")}
-    ${tog("bed", !!d.bed, "Отбой в целевое время")}
-    ${tog("warmup", !!d.warmup, "Зарядка")}
-    ${tog("photos", !!d.photos, "Фото всех приёмов пищи")}
-    <div class="item"><div class="item-top">${dcheck(!!d.report)}<div class="item-name ${d.report ? "done" : ""}">Отчёт по КБЖУ</div></div>
-      <div class="kbju">
-        <label>Ккал<input type="number" min="0" value="${d.kcal || ""}" onchange="spSetKbju('kcal',this.value)"></label>
-        <label>Белки, г<input type="number" min="0" value="${d.protein || ""}" onchange="spSetKbju('protein',this.value)"></label>
-        <label>Жиры, г<input type="number" min="0" value="${d.fat || ""}" onchange="spSetKbju('fat',this.value)"></label>
-        <label>Углев., г<input type="number" min="0" value="${d.carbs || ""}" onchange="spSetKbju('carbs',this.value)"></label>
-      </div></div>
-    <div class="item" style="margin-bottom:0"><div class="item-top"><div class="item-name">Бодрость${d.energy ? `: <b style="color:var(--success)">${d.energy}/10</b>` : " <small style=\"color:var(--muted-2)\">оцени 1–10</small>"}</div></div>
-      <div class="enrow">${[
+	return spTopHTML(sp) + `<div class="col" data-sort="sport">${spCardOrder(sp).map((k) => spCard(sp, k)).join("")}</div>`;
+}
+function spTopHTML(sp) {
+	const mon = sportWeekMon, today = todayStr(), goal = spStepGoal$1(sp), nn = spNoNum$1(sp);
+	let prot = 0, steps = 0, bright = 0, cnt = 0;
+	for (let i = 0; i < 7; i++) {
+		const x = dateAddDays$1(mon, i);
+		if (x > today) break;
+		const y = spDay$1(sp, x);
+		if (inRange(y.protein, spRange$1(sp, "protein", x))) prot++;
+		if (y.stepsCount >= goal || y.steps) steps++;
+		if ((y.energy || 0) >= 7) bright++;
+		if (spCounted$1(y)) cnt++;
+	}
+	return spTiles([
+		[spFr(spWorkoutsInWeek$1(sp, mon), 3), "тренировок за неделю"],
+		[spFr(steps, 7), "дней с шагами " + goal.toLocaleString("ru-RU")],
+		[nn ? spFr(cnt, 7) : spFr(prot, 7), nn ? "дней зачтено" : "дней с белком в коридоре"],
+		[spFr(bright, 7), "дней с бодростью 7 и выше"]
+	]);
+}
+function spCard(sp, k) {
+	return k === "day" ? spCDay(sp) : k === "str" ? spCStr(sp) : k === "phy" ? spCPhy(sp) : k === "body" ? spCBody(sp) : k === "kbzhu" ? spCKb(sp) : k === "blog" ? spCBlog(sp) : k === "energy" ? spCEnergy(sp) : k === "cal" ? spCCal(sp) : k === "cfg" ? spCCfg(sp) : "";
+}
+function spCDay(sp) {
+	const mon = sportWeekMon, sd = sportDay, d = spDay$1(sp, sd), nn = spNoNum$1(sp), t = spTotalN(), n = spDoneN(d), goal = spStepGoal$1(sp), wn = spWeekNo(sp, sd), today = todayStr();
+	const status = n === t ? "День зачтён" : n ? "Сделано " + n + " из " + t : "Пока ничего не отмечено";
+	const days = WD$1.map((lb, i) => {
+		const x = dateAddDays$1(mon, i), k = spDoneN(spDay$1(sp, x));
+		return `<button class="dsb ${x === sd ? "on" : ""} ${x > today ? "fut" : k === t ? "okd" : k ? "somed" : ""} ${x === today ? "istoday" : ""}" onclick="setSportDay('${x}')"><b>${lb}</b><span>${(/* @__PURE__ */ new Date(x + "T00:00:00")).getDate()}</span></button>`;
+	}).join("");
+	const ck = (on, label, hint, click) => `<div class="item"><span class="ck ${on ? "d" : ""}" ${click ? `onclick="${click}"` : ""}></span><span class="${on ? "strike" : ""}">${label}${hint ? ` <small class="muted">${hint}</small>` : ""}</span></div>`;
+	const fld = (l, v, ph, h) => `<label>${l}<input type="number" min="0" value="${v || ""}" placeholder="${ph || ""}" onchange="${h}"></label>`;
+	const dow = ((/* @__PURE__ */ new Date(sd + "T00:00:00")).getDay() + 6) % 7;
+	const fields = (nn ? "" : fld("Ккал", d.kcal, "", "spSetKbju('kcal',this.value)") + fld("Белки, г", d.protein, "", "spSetKbju('protein',this.value)") + fld("Жиры, г", d.fat, "", "spSetKbju('fat',this.value)") + fld("Углев., г", d.carbs, "", "spSetKbju('carbs',this.value)")) + fld("Шаги", d.stepsCount, goal.toLocaleString("ru-RU"), "spSetSteps(this.value)");
+	return spBand("day", "Действия дня", ruDate$1(sd) + (wn ? " · неделя " + wn + " из " + spWeeks$1(sp) : " · старт " + ruDate$1(sp.config.startDate)) + " · " + status, `
+    <div class="wknav"><button aria-label="Предыдущая неделя" onclick="sportWeekShift(-1)">‹</button><span>${ruDate$1(mon)} – ${ruDate$1(dateAddDays$1(mon, 6))}</span><button aria-label="Следующая неделя" onclick="sportWeekShift(1)">›</button></div><div class="dsw">${days}</div>
+    <div class="cap" style="margin:14px 0 6px">Цифры дня</div>
+    <div class="kbju ${nn ? "k1" : "k5"}">${fields}</div>
+    <div class="cap" style="margin:12px 0 2px">Отметки</div>
+    ${nn ? "" : ck(d.kcal > 0, "КБЖУ записано", "по цифрам выше")}
+    ${ck(!!d.steps, "Шаги " + goal.toLocaleString("ru-RU"), "по цифрам выше")}
+    ${ck(!!d.warmup, "Зарядка", "", "spToggle('warmup')")}
+    ${ck(!!d.reha, "Физиотерапия 15 минут", PHYS_SET[dow], "spToggle('reha')")}
+    <div class="cap" style="margin:12px 0 6px">Бодрость${d.energy ? `: <b style="color:#6f8a5a">${d.energy}/10</b>` : ""}</div><div class="enrow">${[
 		1,
 		2,
 		3,
@@ -8308,164 +8664,174 @@ function sportHTML$1(sec) {
 		8,
 		9,
 		10
-	].map((nn) => `<button class="enbtn ${d.energy === nn ? "on" : ""}" onclick="spSetEnergy(${nn})">${nn}</button>`).join("")}</div>
-    </div>
-    <p style="font-size:12px; color:var(--muted-2); margin:10px 0 0">Отмечай любой день недели через переключатель выше — карточки ниже тоже покажут выбранную неделю. День зачтён при шагах ≥ ${GOAL.toLocaleString("ru-RU")} + фото + КБЖУ (зарядка — бонус). Полных дней на этой неделе: ${selFull}/7.</p>`);
-	const dots = [
+	].map((k) => `<button class="enbtn ${d.energy === k ? "on" : ""}" onclick="spSetEnergy(${k})">${k}</button>`).join("")}</div>
+    <p class="muted" style="font-size:12px;margin-top:10px">День зачтён, когда сделаны все ${t === 4 ? "четыре" : "три"}. Часть сделанного — тоже прогресс, день просто остаётся светлым.</p>`);
+}
+function spCStr(sp) {
+	const mon = sportWeekMon, n = spWorkoutsInWeek$1(sp, mon), can = mon <= mondayOf$1(todayStr()), wn = Math.max(1, spWeekNo(sp, mon)), light = PROGRAM.light.indexOf(wn) >= 0;
+	const slots = [
 		0,
 		1,
 		2
-	].map((i) => `<i class="${i < selWorkouts ? "on" : ""}"></i>`).join("");
-	html += cardWrap(sec, "strength", "Силовые тренировки", selRange + " · " + (selWorkouts >= 3 ? "неделя зачтена" : selWorkouts + "/3"), Math.min(selWorkouts / 3, 1), "var(--a-rose)", `
-    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap">
-      <div style="display:flex; align-items:center; gap:14px"><span class="dots">${dots}</span><span style="font-family:Sora,sans-serif; font-weight:700; font-size:18px">${selWorkouts} <small style="color:var(--muted-2); font-weight:500; font-size:13px">/ 3</small></span></div>
-      <button class="btn primary" onclick="openWorkout()">${svg("plus")} Отметить / изменить</button>
-    </div>
-    <div class="prog" style="margin-top:16px"><div class="prog-top"><span class="lab">Комплаенс силовых за цикл</span><span class="pct" style="color:var(--a-rose)">${Math.round(scomp * 100)}%</span></div>
-      <div class="track"><i style="width:${Math.round(scomp * 100)}%; background:linear-gradient(90deg,var(--a-rose),#ff9db0)"></i></div></div>
-    <p style="font-size:12px; color:var(--muted-2); margin:12px 0 0">Всего отмечено тренировок: <b style="color:var(--text)">${sp.workouts.length}</b>. Даты добавляются и убираются в окне «Отметить / изменить».</p>`);
-	const fzDone = phDone$1(sp), fzWeek = phWeek$1(sp, selMon), fzLast = phLastDate(sp);
-	html += cardWrap(sec, "physio", "Физиотерапия", "пройдено " + fzDone + " из " + PHYSIO_TOTAL, fzDone / PHYSIO_TOTAL, "var(--success)", `
-    <div class="fzrow">${[
-		1,
-		2,
-		3,
-		4,
-		5,
-		6,
-		7,
-		8,
-		9,
-		10
 	].map((i) => {
-		const on = !!sp.physio.done[phKey(i)], ds = sp.physio.dates[phKey(i)];
-		return `<button class="fzdot ${on ? "on" : ""}" onclick="phToggle(${i})" aria-label="Сеанс ${i}" title="${on && ds ? "сеанс " + i + " · " + ruDate$1(ds) : "сеанс " + i}">${i}</button>`;
-	}).join("")}</div>
-    <div style="font-family:Sora,sans-serif; font-weight:700; font-size:17px">Пройдено ${fzDone} из ${PHYSIO_TOTAL}</div>
-    <p style="font-size:12px; color:var(--muted-2); margin:8px 0 0">Все 10 сеансов проходятся до конца, даже если боль ушла раньше.</p>
-    <p style="font-size:12.5px; color:var(--muted); margin:12px 0 0">${fzWeek ? "На выбранной неделе: " + fzWeek + " " + plural(fzWeek, "сеанс", "сеанса", "сеансов") : "На выбранной неделе отметок нет."}${fzLast ? " · последний " + ruDate$1(fzLast) : ""}</p>
-    <p style="font-size:11.5px; color:var(--muted-2); margin:8px 0 0">Отметка ставится на выбранный день (${ruDate$1(sportDay)}). Нажми ещё раз, чтобы снять.</p>`);
-	const measRow = (label, last, type) => {
-		const overdue = !last || spDaysSince(last.date) > 14;
-		return `<div class="metric"><div class="micon">${svg("target")}</div><div class="mlabel">${label}<small class="${overdue ? "reminder" : ""}">${last ? "обновлено " + ruDate$1(last.date) + (overdue ? " · пора замерить" : "") : "нет данных · пора замерить"}</small></div><div class="mval">${last ? last.cm + " <small>см</small>" : "—"}</div><button class="btn sm" onclick="openMeasure('${type}')">${svg("plus")}</button></div>`;
-	};
-	const meas = [
+		const on = i < n, lab = (3 * (wn - 1) + i) % 2 === 0 ? "A" : "B";
+		return `<div class="gslot ${on ? "on" : ""} ${can ? "" : "fut"}" ${can ? `onclick="spSetWo('${mon}',${i})"` : ""}><b>${i + 1}-я · зал ${lab}</b><small>${on ? "была" : "ещё нет"}${wn >= 5 ? " · " + GYM_NOTE[i] : ""}</small></div>`;
+	}).join("");
+	return spBand("str", "Силовые тренировки", ruDate$1(mon) + " – " + ruDate$1(dateAddDays$1(mon, 6)) + " · " + Math.min(n, 3) + "/3" + (light ? " · неделя полегче" : ""), `<div class="gslots">${slots}</div>
+    <p class="muted" style="font-size:12.5px;margin-top:10px">Отмечаем, сколько раз была в зале, а не в какой день: перенесла с пятницы на субботу — всё равно засчитано. Зал идёт по порядку A, B, A, потом B, A, B. Нажми на тренировку, чтобы отметить; нажми ещё раз, чтобы снять.</p>`);
+}
+function spCPhy(sp) {
+	const mon = sportWeekMon, today = todayStr();
+	let n = 0;
+	const cells = WD$1.map((lb, i) => {
+		const x = dateAddDays$1(mon, i), on = !!spDay$1(sp, x).reha, fut = x > today;
+		if (on) n++;
+		return `<div class="pslot ${on ? "on" : ""} ${fut ? "fut" : ""}" ${fut ? "" : `onclick="spToggleDay('${x}','reha')"`}><b>${lb}</b><small>${PHYS_SET[i]}</small></div>`;
+	}).join("");
+	return spBand("phy", "Физиотерапия · 15 минут", ruDate$1(mon) + " – " + ruDate$1(dateAddDays$1(mon, 6)) + " · " + n + " из 7", `<div class="pslots">${cells}</div><p class="muted" style="font-size:12.5px;margin-top:8px">Дома, каждый день. Нажми на день, чтобы отметить или снять. Сеансы у врача пройдены: 10 из 10.</p>`, "s");
+}
+function spCBody(sp) {
+	const w = spLast$1(sp.weight), h = sp.config.height || 177, bmi = w ? w.kg / Math.pow(h / 100, 2) : null, wl = spLast$1(sp.waist);
+	todayStr();
+	const defs = [
 		[
+			"weight",
+			"Вес",
+			"кг"
+		],
+		[
+			"chest",
 			"Обхват груди",
-			spLast$1(sp.chest),
-			"chest"
+			"см"
 		],
 		[
+			"waist",
 			"Обхват талии",
-			spLast$1(sp.waist),
-			"waist"
+			"см"
 		],
 		[
+			"belly",
 			"Обхват живота",
-			spLast$1(sp.belly),
-			"belly"
+			"см"
 		],
 		[
+			"hips",
 			"Обхват бёдер",
-			spLast$1(sp.hips),
-			"hips"
+			"см"
 		]
 	];
-	const measFresh = meas.filter((m) => m[1] && spDaysSince(m[1].date) <= 14).length;
-	html += cardWrap(sec, "meas", "Обхваты и параметры", measFresh + "/4 обновлены за 2 недели", measFresh / 4, "var(--a-rose)", meas.map((m) => measRow(m[0], m[1], m[2])).join(""));
-	const exs = sp.config.exercises || [];
-	html += cardWrap(sec, "prog", "Программа тренировок", exs.length ? exs.length + " " + plural(exs.length, "день", "дня", "дней") + " в неделю" : "не задана", null, "var(--a-cyan)", (exs.length ? exs.map((n) => {
-		const i = n.indexOf(":");
-		const t = i > 0 ? n.slice(0, i) : n, b = i > 0 ? n.slice(i + 1).trim() : "";
-		return `<div style="padding:11px 0; border-bottom:1px solid var(--line)"><div style="font-size:13.5px; font-weight:600; margin-bottom:4px">${esc(t)}</div>${b ? `<div style="font-size:12.5px; color:var(--muted); line-height:1.65">${esc(b)}</div>` : ""}</div>`;
-	}).join("") : "<p class=\"emptyc\">Список меняется в настройках цикла (карандаш в шапке вкладки).</p>") + `<p style="font-size:11.5px; color:var(--muted-2); margin:12px 0 0">${esc(PHASE_A_HOME)}</p>
-    <p style="font-size:11.5px; color:var(--muted-2); margin:9px 0 0">${esc(PHASE_A_OUT)}</p>`);
-	const wsteps = spWeekSteps(sp, selMon), wsTotal = wsteps.reduce((a, x) => a + x.v, 0), goalDays = wsteps.filter((x) => x.v >= GOAL).length;
-	html += cardWrap(sec, "steps", "Шаги за неделю", selRange + " · " + goalDays + "/7 дней ≥ цели", goalDays / 7, "var(--a-rose)", `
-    ${barChart(wsteps, {
-		h: 130,
-		goal: GOAL
-	})}
-    <div style="display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-top:8px"><span>Всего: <b style="color:var(--text)">${wsTotal.toLocaleString("ru-RU")}</b> шагов</span><span>Пунктир — цель</span></div>`);
-	const wkcal = spWeekKcal(sp, selMon), macro = spWeekMacroAvg(sp, selMon);
-	const dd = spDay$1(sp, sportDay), corr = spWeekCorridor$1(sp, selMon);
-	const RK = spRange$1(sp, "kcal"), RP = spRange$1(sp, "protein"), RF = spRange$1(sp, "fat"), RC = spRange$1(sp, "carb");
-	const kcalMid = Math.round((RK[0] + RK[1]) / 2);
-	const macroRow = (label, val, r, color, unit) => {
-		const v = val || 0, ok = inRange(v, r), max = r[1] * 1.35, p = (x) => Math.min(x / max * 100, 100);
-		const note = !v ? "" : ok ? "<span style=\"color:var(--success)\">✓</span>" : "<span style=\"color:var(--muted-2)\">· " + (v < r[0] ? "ниже" : "выше") + " коридора</span>";
-		return `<div style="margin-bottom:13px"><div style="display:flex; justify-content:space-between; gap:8px; font-size:12.5px; margin-bottom:6px"><span style="color:var(--muted)">${label}</span><span><b>${v ? Math.round(v) : "—"}</b> <span style="color:var(--muted-2)">/ ${rngTxt$1(r)} ${unit}</span> ${note}</span></div>
-      <div class="corr"><span class="fill" style="width:${p(v)}%; background:${ok ? "var(--success)" : color}; opacity:${v ? ".9" : "0"}"></span><span class="band" style="left:${p(r[0])}%; width:${(p(r[1]) - p(r[0])).toFixed(1)}%"></span></div></div>`;
-	};
-	html += cardWrap(sec, "kbju", "КБЖУ · коридор дня", ruDate$1(sportDay) + " · в коридоре " + corr.core + "/7", corr.core / 7, "var(--a-amber)", `
-    ${macroRow("Калории", dd.kcal, RK, "var(--a-amber)", "ккал")}
-    ${macroRow("Белок", dd.protein, RP, "var(--a-rose)", "г")}
-    ${macroRow("Жиры", dd.fat, RF, "var(--video)", "г")}
-    ${macroRow("Углеводы", dd.carbs, RC, "var(--practice)", "г")}
-    <p style="font-size:11.5px; color:var(--muted-2); margin:2px 0 0">Цифры выше прежних намеренно: глубокий дефицит при лечении тендинопатии работает против физиотерапии — сухожилию нужны белок и энергия. Белок 1,9–2,1 г/кг, и главное не общая цифра, а <b style="color:var(--muted)">30–40 г на приём, 4–5 раз в день</b>. Сладкое 150–200 ккал вносится в углеводы как строка плана, а не как награда за терпение.</p>
-    <div class="section-h" style="margin:20px 0 12px"><h2 style="font-size:16px">Динамика за неделю</h2><span class="daystatus">${selRange}${macro ? " · " + macro.days + " " + plural(macro.days, "день", "дня", "дней") + " с данными" : ""}</span></div>
-    ${barChart(wkcal, {
-		h: 120,
-		color: "var(--a-amber)",
-		goal: kcalMid
-	})}
-    ${macro ? `<div class="stats" style="margin-top:12px">
-      <div class="stat"><div class="n" style="color:var(--a-amber)">${macro.kcal}</div><div class="l">ккал/день · ${rngTxt$1(RK)}</div></div>
-      <div class="stat"><div class="n">${macro.p} г</div><div class="l">белки · ${rngTxt$1(RP)}</div></div>
-      <div class="stat"><div class="n">${macro.f} г</div><div class="l">жиры · ${rngTxt$1(RF)}</div></div>
-      <div class="stat"><div class="n">${macro.c} г</div><div class="l">углеводы · ${rngTxt$1(RC)}</div></div>
-    </div>` : `<p class="emptyc">Введи КБЖУ в «Действиях дня» — появится статистика.</p>`}
-    <p style="font-size:12px; color:var(--muted-2); margin:12px 0 0">Дней в коридоре на этой неделе: <b style="color:var(--text)">${corr.core}</b> из 7 по калориям и белку, из них <b style="color:var(--text)">${corr.all}</b> — по всем четырём.</p>`);
-	const tr = spWeightTrend(sp);
-	const bmi = spBMI(sp), cat = bmi ? bmiCat(bmi) : null;
-	const latestW = spLatestWeight(sp);
-	const arrow = tr.state === "down" ? "↓" : tr.state === "up" ? "↑" : tr.state === "plateau" ? "→" : "";
-	const arrowColor = tr.state === "down" ? "var(--success)" : tr.state === "plateau" ? "var(--muted)" : tr.state === "up" ? "var(--a-amber)" : "var(--muted-2)";
-	const fromStart = sp.config.weightStart != null && latestW != null ? latestW - sp.config.weightStart : null;
-	const wpts = [...sp.weight].sort((a, b) => a.date < b.date ? -1 : 1).map((x) => ({
+	const arr = (k) => (k === "weight" ? sp.weight : sp[k]).slice().sort((a, b) => a.date < b.date ? -1 : 1);
+	if (window.sportBStat) {
+		const get = (k) => arr(k).map((x) => ({
+			date: x.date,
+			v: k === "weight" ? x.kg : x.cm
+		}));
+		const dates = Array.from(new Set([].concat.apply([], defs.map((r) => get(r[0]).map((x) => x.date))))).sort().reverse();
+		const cell = (k, ds) => {
+			const x = get(k).find((y) => y.date === ds);
+			return x ? spFnum(x.v) : "·";
+		};
+		const diff = (k) => {
+			const a = get(k);
+			if (a.length < 2) return "·";
+			const c = +(a[a.length - 1].v - a[0].v).toFixed(1);
+			return (c > 0 ? "+" : c < 0 ? "−" : "±") + spFnum(Math.abs(c));
+		};
+		return spBand("body", "Статистика замеров", "все записи", `<table class="stab"><tr><th>Дата</th>${defs.map((r) => `<th>${r[1].replace("Обхват ", "")}</th>`).join("")}</tr>
+      ${dates.map((ds) => `<tr><td>${ruDate$1(ds)} ${ds.slice(0, 4)}</td>${defs.map((r) => `<td>${cell(r[0], ds)}</td>`).join("")}</tr>`).join("")}
+      <tr class="sum"><td>с первой записи</td>${defs.map((r) => `<td>${diff(r[0])}</td>`).join("")}</tr></table><span class="pill" onclick="spBStat(0)" style="margin-top:12px;display:inline-block">← К показателям</span>`);
+	}
+	const rows = defs.map((r) => {
+		const k = r[0], a = arr(k), last = a.length ? a[a.length - 1] : null, v = last ? k === "weight" ? last.kg : last.cm : null;
+		const old = k !== "weight" && (!last || spDaysSince(last.date) > 28);
+		return `<div class="mrow"><div><b>${r[1]}</b>${old ? "<small class=\"rem\">пора замерить</small>" : ""}</div><div class="mval">${v != null ? spFnum(v) + " <small>" + r[2] + "</small>" : "—"}</div><span class="pill" onclick="${k === "weight" ? "openWeight()" : "openMeasure('" + k + "')"}">＋</span></div>`;
+	}).join("");
+	const pts = arr("weight").map((x) => ({
 		label: ruDate$1(x.date),
 		y: x.kg
 	}));
-	html += cardWrap(sec, "weight", "Вес", sp.weight.length + " " + plural(sp.weight.length, "замер", "замера", "замеров") + (latestW != null ? " · " + latestW.toFixed(1) + " кг" : ""), null, "var(--a-rose)", `
-    <div class="stats" style="margin-bottom:10px">
-      <div class="stat"><div class="n" style="color:var(--a-rose)">${tr.cur != null ? tr.cur.toFixed(1) : latestW != null ? latestW.toFixed(1) : "—"}<small style="font-size:13px; color:var(--muted-2)"> кг</small></div><div class="l">${tr.cur != null ? "средний за неделю" : "последний вес"}</div></div>
-      <div class="stat"><div class="n" style="color:${arrowColor}">${tr.delta != null ? (tr.delta > 0 ? "+" : "") + tr.delta.toFixed(1) + " " + arrow : "—"}</div><div class="l">к прошлой неделе</div></div>
-      <div class="stat"><div class="n" style="color:${cat ? cat[1] : "var(--muted-2)"}">${bmi ? bmi.toFixed(1) : "—"}</div><div class="l">ИМТ${cat ? " · " + cat[0] : ""}</div></div>
-      <div class="stat"><div class="n">${fromStart != null ? (fromStart > 0 ? "+" : "") + fromStart.toFixed(1) : "—"}</div><div class="l">от старта, кг</div></div>
-    </div>
-    ${wpts.length > 1 ? lineChart(wpts, { h: 150 }) : `<p class="emptyc">Запиши вес хотя бы дважды — построю график.</p>`}
-    ${tr.state === "plateau" ? `<div class="plateau">Плато — это нормально при наборе мышц. Продолжай действия.</div>` : ""}
-    <div style="font-size:11.5px; color:var(--muted-2); margin:10px 0 0">ИМТ = вес ${latestW != null ? latestW.toFixed(1) : "—"} кг ÷ рост ${(sp.config.height / 100).toFixed(2)} м²</div>
-    <div style="margin-top:12px"><button class="btn sm primary" onclick="openWeight()">${svg("plus")} Записать вес</button></div>`);
-	const enPts = spEnergyPoints(sp), enLast = spLastDailyEnergy(sp), enAvg = enPts.length ? enPts.reduce((a, p) => a + p.y, 0) / enPts.length : null;
-	html += cardWrap(sec, "energy", "Бодрость по дням", enLast != null ? enLast + "/10 сегодня" : "нет данных", null, "var(--success)", `
-    ${enPts.length > 1 ? lineChart(enPts, { h: 140 }) : enPts.length === 1 ? `<p class="emptyc">Есть одна отметка (${enPts[0].y}/10). Отмечай каждый день — покажу динамику.</p>` : `<p class="emptyc">Отмечай бодрость каждый день в «Действиях дня» — увидишь, как она меняется.</p>`}
-    ${enPts.length ? `<div style="display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-top:8px"><span>Отметок: <b style="color:var(--text)">${enPts.length}</b></span><span>Средняя: <b style="color:var(--text)">${enAvg.toFixed(1)}/10</b></span></div>` : ""}
-    <p style="font-size:12px; color:var(--muted-2); margin:10px 0 0">Ставь оценку 1–10 для выбранного дня в «Действиях дня».</p>`);
-	const tParts = spTimeParts$1(sp, selMon), tTotal = tParts.reduce((a, p) => a + p.min, 0);
-	html += cardWrap(sec, "time", "Время на цель", selRange + " · " + fmtMin(tTotal), null, "var(--a-cyan)", `
-    <div style="font-family:Sora,sans-serif; font-weight:700; font-size:22px; margin-bottom:14px">${fmtMin(tTotal)}</div>
-    ${tParts.length ? tParts.map((p) => `<div class="metric"><div class="micon">${svg("clock")}</div><div class="mlabel">${p.label}<small>${esc(p.hint)}</small></div><div class="mval">${fmtMin(p.min)}</div></div>`).join("") : "<p class=\"emptyc\">Отметь действия дня — время посчитается само.</p>"}
-    <label for="spCook" style="margin-top:14px">Готовка ПП за неделю, минут</label>
-    <input class="stepsin" id="spCook" type="number" min="0" step="5" placeholder="например 240" value="${spCookMin$1(sp, selMon) || ""}" onchange="spSetCook(this.value)">
-    <p style="font-size:11.5px; color:var(--muted-2); margin:10px 0 0">Считается по отметкам: зал 1 ч 30 мин · физиотерапия 1 ч 30 мин · ходьба 10 000 шагов ≈ 2 ч (пропорционально пройденному) · домашний блок и зарядка по 10 мин · фото еды и отчёт КБЖУ по 5 мин. Готовка добавляется вручную и входит в общее время недельного отчёта.</p>`);
-	html += cardWrap(sec, "cal", "Календарь пути", (calAll ? "весь путь" : WEEKS + " недель") + " · день " + Math.max(0, Math.min(day, TDAYS)) + "/" + TDAYS, cyclePct, "var(--a-rose)", `
-    <div class="seg" style="margin-bottom:12px"><button class="${calAll ? "" : "on"}" onclick="event.stopPropagation();calSetAll(0)">Текущий цикл</button><button class="${calAll ? "on" : ""}" onclick="event.stopPropagation();calSetAll(1)">Весь путь</button></div>
-    <div class="callegend"><span><i class="cell full"></i>полный</span><span><i class="cell counted"></i>зачтён</span><span><i class="cell partial"></i>частично</span><span><i class="cell miss"></i>день без отметок</span><span><i class="cell future"></i>впереди</span></div>
-    <div class="callegend" style="margin-top:-4px"><span><b class="cchip" style="color:var(--a-rose)">Ш</b>шаги</span><span><b class="cchip" style="color:var(--a-amber)">К</b>КБЖУ</span><span><b class="cchip" style="color:var(--success)">Т</b>тренировка</span><span><b class="cchip" style="color:var(--a-cyan)">Д</b>домашний блок</span><span><b class="cchip" style="color:var(--a-violet)">Ф</b>физиотерапия</span></div>
-    <div class="callegend" style="margin-top:-4px"><span><i class="cpain" style="background:var(--success)"></i>боль 0–3</span><span><i class="cpain" style="background:var(--a-amber)"></i>боль 4–5</span><span><i class="cpain" style="background:var(--a-rose)"></i>боль выше 5</span></div>
-    <p style="font-size:11.5px; color:var(--muted-2); margin:0 0 12px">Метки в ячейке — что именно сделано в этот день. Полоска слева — светофор боли из программы, медицинский ориентир, а не оценка дня. Нажми на день, чтобы открыть его.</p>
-    <div class="calrow calhead"><span class="calw"></span><div class="calcells">${WD$1.map((x) => `<span>${x}</span>`).join("")}</div><span class="calc"></span></div>
-    ${calendarRows(sp, calAll)}`);
-	const cc = spCycleCompliance(sp);
-	html += cardWrap(sec, "arch", "Прошлые циклы", sp.archives.length ? sp.archives.length + " " + plural(sp.archives.length, "цикл", "цикла", "циклов") : "пока пусто", null, "var(--a-violet)", `
-    ${sp.archives.length ? "<div style=\"margin-bottom:14px\">" + sp.archives.map((a, i) => archiveRow(a, i)).join("") + "</div>" : "<p class=\"emptyc\">Здесь появятся закрытые циклы.</p>"}
-    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Архив — это граница, а не перенос: вес, замеры и все отметки остаются на месте, сквозные цифры не обнуляются. <b style="color:var(--text)">Отмеченные дни прошлых циклов видны в «Календаре пути» — переключи на «Весь путь».</b> Переключатель недель в «Действиях дня» тоже листается назад сколько угодно.</p>
-    <p style="font-size:12.5px; color:var(--muted); margin:0 0 14px">${notStarted ? "Цикл 2 начинается " + ruDate$1(sp.config.startDate) + ". До этого отмечай дни как обычно — они лягут в свои даты, и недельный отчёт за текущую неделю соберётся полностью." : "Средний комплаенс текущего цикла: <b style=\"color:var(--text)\">" + Math.round(cc * 100) + "%</b>."}</p>
-    <button class="btn sm" onclick="archiveCycle()">${svg("layers")} Закрыть цикл и начать новый</button>`);
-	return html;
+	return spBand("body", "Параметры тела", "<span class=\"pill\" onclick=\"spBStat(1)\" style=\"margin:-3px 0\">Статистика</span>", `<div class="tiles t3"><div class="tile t1"><div class="n">${w ? spFnum(w.kg) : "—"}</div><div class="l">вес, кг</div></div><div class="tile t2"><div class="n">${bmi ? spFnum(bmi.toFixed(1)) : "—"}</div><div class="l">ИМТ</div></div><div class="tile t3"><div class="n">${wl ? spFnum(wl.cm) : "—"}</div><div class="l">талия, см</div></div></div>
+    ${rows}<div class="cap" style="margin:16px 0 4px">Прогресс веса по неделям</div>${spLineSvg(pts, 140)}`);
+}
+function spCKb(sp) {
+	const sd = sportDay, mon = sportWeekMon, d = spDay$1(sp, sd), ph = spPhase$1(sd);
+	todayStr();
+	if (spNoNum$1(sp)) return spBand("kbzhu", "КБЖУ", "подсчёт выключен", `<p class="muted" style="font-size:13px">Сейчас числа скрыты, день зачитывается по трём действиям. Данные не удалены. Подсчёт можно выключить, если он мешает.</p><span class="pill" onclick="spToggleNN()">Включить подсчёт</span>`);
+	const upTo = sd, R = {
+		kcal: spRange$1(sp, "kcal", sd),
+		protein: spRange$1(sp, "protein", sd),
+		fat: spRange$1(sp, "fat", sd),
+		carbs: spRange$1(sp, "carb", sd)
+	};
+	const row = (l, k, u) => {
+		const r = R[k];
+		if (!r) return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span class="muted">${l}</span><span class="muted">коридор не задан · задай в настройках</span></div></div>`;
+		const v = d[k] || 0, av = spAvgDay(sp, mon, k, upTo), ok = inRange(v, r), mx = r[1] * 1.35, p = (x) => Math.min(x / mx * 100, 100);
+		return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span class="muted">${l}</span><span><b>${v || "—"}</b> <span class="muted">/ ${r[0]}–${r[1]} ${u}</span> ${v ? ok ? "<span style=\"color:#6f8a5a\">✓ в коридоре</span>" : "<span class=\"muted\">· " + spStWord(v, r) + "</span>" : ""}</span></div><div class="corr"><span class="fill" style="width:${p(v)}%;background:${ok ? "#8fa57a" : "#d9c6b3"}"></span><span class="cband" style="left:${p(r[0])}%;width:${p(r[1]) - p(r[0])}%"></span></div>
+      <div class="avgl muted">среднее за неделю: <b>${av == null ? "—" : av}</b>${av != null ? " · " + spStWord(av, r) : ""}</div></div>`;
+	};
+	const mid = R.kcal ? (R.kcal[0] + R.kcal[1]) / 2 : 0;
+	return spBand("kbzhu", "КБЖУ · коридор дня", ruDate$1(sd) + " · " + ph.name, row("Калории", "kcal", "ккал") + row("Белок", "protein", "г") + row("Жиры", "fat", "г") + row("Углеводы", "carbs", "г") + spBarSvg(WD$1.map((_, i) => spDay$1(sp, dateAddDays$1(mon, i)).kcal || 0), WD$1, mid, 110) + "<div class=\"muted\" style=\"font-size:12px;margin-top:4px\">Калории оцениваются по неделе, а не по одному дню: пунктир — середина коридора. Подсчёт можно выключить, если он мешает (настройки внизу).</div>");
+}
+function spCBlog(sp) {
+	const posts = (sp.blog || []).slice().sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (a.date < b.date ? 1 : -1));
+	const form = window.sportBlogNew ? `<div class="blogform"><input id="blogT" class="di" placeholder="Название, например: Неделя 3 · 23–29 ноября" style="width:100%"><textarea id="blogX" class="di" rows="7" placeholder="Вставь сюда текст недели: установка, напоминания, что съесть" style="width:100%;margin-top:6px"></textarea><div class="inl" style="margin-top:6px"><span class="pill" onclick="spBlogSave()">Сохранить</span><span class="pill" onclick="spBlogNew(0)">Отмена</span></div></div>` : `<span class="pill" onclick="spBlogNew(1)">＋ Запись недели</span>`;
+	return spBand("blog", "Блог · еда на неделю", "новая запись по воскресеньям", `<div class="blogl">${posts.map((p) => `<article class="bpost"><div class="bh"><b>${esc(p.title || "Без названия")}</b><span class="muted">${p.pin ? "всегда наверху" : ruDate$1(p.date) + " <span class=\"del\" onclick=\"spBlogDel('" + p.id + "')\" title=\"Удалить\">×</span>"}</span></div><div class="btext">${spFmtPost(p.text)}</div></article>`).join("") || "<p class=\"muted\" style=\"font-size:13px\">Записей пока нет.</p>"}</div>${form}`);
+}
+function spCEnergy(sp) {
+	const pts = [];
+	for (let i = 13; i >= 0; i--) {
+		const x = dateAddDays$1(todayStr(), -i), e = spDay$1(sp, x).energy;
+		if (e) pts.push({
+			label: ruDate$1(x),
+			y: e
+		});
+	}
+	const avg = pts.length ? pts.reduce((a, p) => a + p.y, 0) / pts.length : null;
+	return spBand("energy", "Бодрость по дням", pts.length ? "в среднем " + avg.toFixed(1).replace(".", ",") + "/10" : "нет данных", spLineSvg(pts, 130, 0) + "<div class=\"muted\" style=\"font-size:12px;margin-top:4px\">Оценка 1–10 ставится в «Действиях дня».</div>");
+}
+function spCCal(sp) {
+	const sd = sportDay, today = todayStr(), nn = spNoNum$1(sp), t = spTotalN(), cur = Math.max(1, spWeekNo(sp, today)), from = Math.max(1, cur - 5), to = Math.min(spWeeks$1(sp), cur + 1), st0 = mondayOf$1(sp.config.startDate);
+	let rows = "";
+	for (let w = from; w <= to; w++) {
+		const wm = dateAddDays$1(st0, 7 * (w - 1));
+		const cells = WD$1.map((_, i) => {
+			const x = dateAddDays$1(wm, i), dd = spDay$1(sp, x), fut = x > today, k = spDoneN(dd), cls = fut ? "future" : k === t ? "counted" : k ? "partial" : "miss";
+			const m = [
+				dd.steps ? "Ш" : "",
+				!nn && dd.kcal > 0 ? "К" : "",
+				dd.warmup ? "З" : "",
+				dd.reha ? "Ф" : ""
+			].join("");
+			return `<span class="cc ${cls} ${x === today ? "tod" : ""} ${x === sd ? "sel" : ""}" onclick="setSportDay('${x}')" title="${ruDate$1(x)}"><i>${(/* @__PURE__ */ new Date(x + "T00:00:00")).getDate()}</i><em>${fut ? "" : m}</em></span>`;
+		}).join("");
+		rows += `<div class="crow"><span class="cw">${ruDate$1(wm)}${PROGRAM.light.indexOf(w) >= 0 ? " ·" : ""}</span>${cells}</div>`;
+	}
+	return spBand("cal", "Календарь пути", "с " + ruDate$1(sp.config.startDate) + " · неделя " + spWeekNo(sp, today) + " из " + spWeeks$1(sp), `<div class="clegend"><span><i class="cc counted"></i>день зачтён</span><span><i class="cc partial"></i>сделано часть</span><span><i class="cc miss"></i>без отметок</span><span><i class="cc future"></i>впереди</span></div><div class="clegend"><span><b>Ш</b> шаги</span><span><b>К</b> КБЖУ</span><span><b>З</b> зарядка</span><span><b>Ф</b> физио</span></div><div class="crow chead"><span class="cw"></span>${WD$1.map((x) => `<span>${x}</span>`).join("")}</div>${rows}<div class="muted" style="font-size:12px;margin-top:8px">Показаны последние недели. Нажми на день — он откроется в «Действиях дня».</div>`);
+}
+function spCCfg(sp) {
+	const nn = spNoNum$1(sp), p = sp.prog, today = todayStr(), cur = spPhase$1(today);
+	const rng = (r) => r ? r[0] + "–" + r[1] : "<span class=\"muted\">посчитается от калорий</span>";
+	const rowsP = PROGRAM.phases.map((ph) => {
+		const k = spKcalOf(sp, ph.id), kk = p.kcal[ph.id] || [0, 0], m = spMacroFrom(sp, k, today);
+		return `<tr class="${cur.id === ph.id ? "curph" : ""}"><td>${esc(ph.name)}<small class="muted"> ${ruDate$1(ph.from)} – ${ruDate$1(ph.to)}</small></td><td class="kin"><input type="number" min="0" step="50" placeholder="от" value="${kk[0] || ""}" onchange="spSetKcalPhase('${ph.id}',0,this.value)"> – <input type="number" min="0" step="50" placeholder="до" value="${kk[1] || ""}" onchange="spSetKcalPhase('${ph.id}',1,this.value)"></td><td>${rng(m && m.fat)}</td><td>${rng(m && m.carb)}</td></tr>`;
+	}).join("");
+	const pr = spProteinR(sp, today);
+	return spBand("cfg", "Настройки программы", "правятся прямо здесь", `<div class="item"><span class="ck ${nn ? "d" : ""}" onclick="spToggleNN()"></span><span>Без чисел <small class="muted">скрывает КБЖУ, день зачитывается по трём действиям; данные не удаляются</small></span></div>
+    <div class="cap" style="margin:12px 0 4px">Белок на кг веса</div>
+    <div class="kin" style="margin-bottom:8px"><input type="number" min="0.5" max="3" step="0.1" value="${p.pcoef[0]}" onchange="spSetCoef(0,this.value)"> – <input type="number" min="0.5" max="3" step="0.1" value="${p.pcoef[1]}" onchange="spSetCoef(1,this.value)"> <small class="muted">г на кг · при весе ${spFnum(spWeightAt(sp, today))} кг это <b>${pr[0]}–${pr[1]} г</b> в день, меняется вместе с весом</small></div>
+    <div class="cap" style="margin:12px 0 0">Калории по фазам</div>
+    <table class="phtab"><tr><th>Фаза</th><th>Ккал в день (по неделе)</th><th>Жиры, г</th><th>Углеводы, г</th></tr>${rowsP}</table>
+    <p class="muted" style="font-size:12px;margin-top:8px">Задай калории фазы — жиры и углеводы подстроятся сами: жиры 25–30% калорий, углеводы — остаток после белка. Белок считается от веса. Прошлые дни не пересчитываются, у каждого дня свой коридор по его фазе. Шаги ${spStepGoal$1(sp).toLocaleString("ru-RU")} в день, взвешивание по воскресеньям, замеры раз в 4 недели.</p>`);
 }
 function wireSport$1() {}
+function renderSport() {
+	render();
+}
+function spData$1() {
+	const sec = activeSport();
+	return sec ? sec.sport : null;
+}
 function setSportDay(ds) {
 	window.sportDay = ds;
 	window.sportWeekMon = mondayOf$1(ds);
@@ -8478,26 +8844,30 @@ function sportWeekShift(n) {
 	window.sportDay = inWeek ? t : sportWeekMon;
 	renderSport();
 }
+function spDayObj(sp, ds) {
+	return sp.days[ds] || (sp.days[ds] = {});
+}
 function spSetEnergy(score) {
-	const sp = activeSport().sport;
-	const d = sp.days[sportDay] || (sp.days[sportDay] = {});
+	const d = spDayObj(spData$1(), sportDay);
 	d.energy = d.energy === score ? 0 : score;
 	if (!d.energy) delete d.energy;
 	mstamp("sd:" + sportDay + ".energy");
 	save();
 	renderSport();
 }
-function spToggle(f) {
-	const sp = activeSport().sport;
-	const d = sp.days[sportDay] || (sp.days[sportDay] = {});
+function spToggleDay(ds, f) {
+	const d = spDayObj(spData$1(), ds);
 	d[f] = !d[f];
-	mstamp("sd:" + sportDay + "." + f);
+	mstamp("sd:" + ds + "." + f);
 	save();
 	renderSport();
 }
+function spToggle(f) {
+	spToggleDay(sportDay, f);
+}
 function spSetSteps(v) {
-	const sp = activeSport().sport;
-	const d = sp.days[sportDay] || (sp.days[sportDay] = {});
+	const sp = spData$1();
+	const d = spDayObj(sp, sportDay);
 	const n = parseInt(v) || 0;
 	d.stepsCount = n;
 	d.steps = n >= spStepGoal$1(sp);
@@ -8507,8 +8877,7 @@ function spSetSteps(v) {
 	renderSport();
 }
 function spSetKbju(f, v) {
-	const sp = activeSport().sport;
-	const d = sp.days[sportDay] || (sp.days[sportDay] = {});
+	const d = spDayObj(spData$1(), sportDay);
 	d[f] = parseFloat(v) || 0;
 	d.report = d.kcal > 0;
 	mstamp("sd:" + sportDay + "." + f);
@@ -8516,8 +8885,76 @@ function spSetKbju(f, v) {
 	save();
 	renderSport();
 }
-function calSetAll(v) {
-	window.calAll = !!v;
+function spSetWo(mon, i) {
+	const sp = spData$1();
+	const n = spWorkoutsInWeek$1(sp, mon);
+	sp.weekWo = sp.weekWo || {};
+	sp.weekWo[mon] = i < n ? i : i + 1;
+	mstamp("ww:" + mon);
+	save();
+	renderSport();
+}
+function spBStat(on) {
+	window.sportBStat = !!on;
+	renderSport();
+}
+function spToggleNN() {
+	const sp = spData$1();
+	sp.prog.noNumbers = !sp.prog.noNumbers;
+	mstamp("cf:prog");
+	save();
+	renderSport();
+}
+function spSetKcalPhase(id, idx, v) {
+	const sp = spData$1();
+	const k = (sp.prog.kcal[id] || [0, 0]).slice();
+	k[idx] = Math.max(0, parseInt(v) || 0);
+	if (!k[0] && !k[1]) delete sp.prog.kcal[id];
+	else sp.prog.kcal[id] = k;
+	mstamp("cf:prog");
+	save();
+	renderSport();
+}
+function spSetCoef(idx, v) {
+	const sp = spData$1();
+	const n = parseFloat(String(v).replace(",", "."));
+	if (!(n >= .5 && n <= 3)) {
+		renderSport();
+		return;
+	}
+	sp.prog.pcoef[idx] = n;
+	mstamp("cf:prog");
+	save();
+	renderSport();
+}
+function spBlogNew(on) {
+	window.sportBlogNew = !!on;
+	renderSport();
+}
+function spBlogSave() {
+	const sp = spData$1();
+	const t = document.getElementById("blogT").value.trim(), x = document.getElementById("blogX").value.trim();
+	if (t || x) {
+		const id = uid();
+		sp.blog.push({
+			id,
+			date: todayStr(),
+			title: t,
+			text: x
+		});
+		mstamp("bl:" + id);
+	}
+	window.sportBlogNew = false;
+	save();
+	renderSport();
+}
+function spBlogDel(id) {
+	const sp = spData$1();
+	if (!confirm("Удалить запись?")) return;
+	if (sp.blogDel.indexOf(id) < 0) sp.blogDel.push(id);
+	sp.blog = sp.blog.filter((x) => x.id !== id);
+	mstamp("bl:" + id);
+	save();
 	renderSport();
 }
 function spSetCook(v) {
@@ -8533,108 +8970,11 @@ function spSetCook(v) {
 	save();
 	renderSport();
 }
-function spSetSleep(v) {
-	const sp = activeSport().sport;
-	const d = sp.days[sportDay] || (sp.days[sportDay] = {});
-	const n = Math.max(0, Math.min(12, parseFloat(String(v).replace(",", ".")) || 0));
-	if (n) d.sleepH = n;
-	else delete d.sleepH;
-	mstamp("sd:" + sportDay + ".sleepH");
-	save();
-	renderSport();
-}
-function spWake(step) {
-	const sp = activeSport().sport;
-	const d = sp.days[sportDay] || (sp.days[sportDay] = {});
-	const cur = d.wakeN != null ? d.wakeN : 0;
-	d.wakeN = Math.max(0, Math.min(9, cur + step));
-	mstamp("sd:" + sportDay + ".wakeN");
-	save();
-	renderSport();
-}
-function spSetPain(f, v) {
-	const sp = activeSport().sport;
-	const d = sp.days[sportDay] || (sp.days[sportDay] = {});
-	if (d[f] === v) delete d[f];
-	else d[f] = v;
-	mstamp("sd:" + sportDay + "." + f);
-	save();
-	renderSport();
-}
-function phToggle(i) {
-	const sp = activeSport().sport;
-	const k = phKey(i);
-	if (sp.physio.done[k]) {
-		delete sp.physio.done[k];
-		delete sp.physio.dates[k];
-	} else {
-		sp.physio.done[k] = 1;
-		sp.physio.dates[k] = sportDay || todayStr();
-	}
-	mstamp("fz:" + k);
-	save();
-	renderSport();
-}
-function spAddWorkout() {
-	const sec = activeSport();
-	const ds = todayStr();
-	if (sec.sport.workouts.indexOf(ds) < 0) sec.sport.workouts.push(ds);
-	mstamp("wo:" + ds);
-	save();
-	renderSport();
-	toast("Тренировка засчитана");
-}
-function openWorkout() {
-	const sec = activeSport();
-	if (!sec) return;
-	const sp = sec.sport;
-	const mon = sportWeekMon || mondayOf$1(todayStr());
-	const list = sp.workouts.map((w, i) => ({
-		w,
-		i
-	})).sort((a, b) => a.w < b.w ? 1 : -1).slice(0, 14);
-	document.getElementById("modal").innerHTML = `
-  <h3>Силовые тренировки</h3><p class="mhint">Отметь день, когда была тренировка — можно задним числом. Здесь же убирается лишняя дата.</p>
-  <label for="woDate">Дата тренировки</label><input type="date" id="woDate" value="${sportDay || todayStr()}" max="${todayStr()}">
-  <div style="margin:10px 0 4px"><button class="btn primary" onclick="saveWorkout()">${svg("plus")} Добавить</button></div>
-  <label>Отмеченные тренировки${sp.workouts.length > 14 ? " · последние 14" : ""}</label>
-  ${list.length ? list.map(({ w, i }) => `<div class="tlog"><span class="tm" style="color:var(--a-rose)">${ruDate$1(w)}</span><span class="tn">${mondayOf$1(w) === mon ? "на выбранной неделе" : "&nbsp;"}</span><button class="link danger" onclick="spDelWorkout('${w}')" aria-label="Убрать">✕</button></div>`).join("") : `<p class="emptyc">Пока нет отмеченных тренировок.</p>`}
-  <div class="modal-actions"><button class="btn" onclick="closeModal()">Закрыть</button></div>`;
-	showModal();
-}
-function saveWorkout() {
-	const sec = activeSport();
-	const d = document.getElementById("woDate").value;
-	if (!d) {
-		alert("Выбери дату");
-		return;
-	}
-	if (sec.sport.workouts.indexOf(d) >= 0) {
-		toast("Этот день уже отмечен");
-		return;
-	}
-	sec.sport.workouts.push(d);
-	mstamp("wo:" + d);
-	save();
-	renderSport();
-	openWorkout();
-	toast("Тренировка добавлена");
-}
-function spDelWorkout(ds) {
-	const sp = activeSport().sport;
-	const i = sp.workouts.indexOf(ds);
-	if (i < 0) return;
-	sp.workouts.splice(i, 1);
-	mstamp("wo:" + ds);
-	save();
-	renderSport();
-	if (document.getElementById("woDate")) openWorkout();
-}
 function openWeight() {
 	document.getElementById("modal").innerHTML = `
-  <h3>Записать вес</h3><p class="mhint">Взвешивайся в любой день, главная цифра — среднее за неделю.</p>
+  <h3>Записать вес</h3><p class="mhint">Взвешивание — по воскресеньям, в одно и то же время.</p>
   <label for="wDate">Дата</label><input type="date" id="wDate" value="${todayStr()}">
-  <label for="wKg">Вес, кг</label><input type="number" step="0.1" id="wKg" placeholder="81.6">
+  <label for="wKg">Вес, кг</label><input type="number" step="0.1" id="wKg" placeholder="79.3">
   <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="saveWeight()">Сохранить</button></div>`;
 	showModal();
 	setTimeout(() => {
@@ -8668,7 +9008,7 @@ function openMeasure(type) {
 		hips: "Обхват бёдер"
 	}[type] || "Обхват";
 	document.getElementById("modal").innerHTML = `
-  <h3>${label}</h3><p class="mhint">Замеряй раз в 2 недели.</p>
+  <h3>${label}</h3><p class="mhint">Замеры — раз в 4 недели.</p>
   <label for="mDate">Дата</label><input type="date" id="mDate" value="${todayStr()}">
   <label for="mCm">${label}, см</label><input type="number" step="0.1" id="mCm" placeholder="напр. 84">
   <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn primary" onclick="saveMeasure('${type}')">Сохранить</button></div>`;
@@ -8847,7 +9187,7 @@ Object.assign(window, {
 	spWeekFullDays,
 	spCurrentStreak: spCurrentStreak$1,
 	spBestStreak,
-	spWorkoutsInWeek,
+	spWorkoutsInWeek: spWorkoutsInWeek$1,
 	spWorkoutsThisWeek,
 	spStrengthCompliance,
 	spWeekAvg: spWeekAvg$1,
@@ -8867,27 +9207,16 @@ Object.assign(window, {
 	lineChart,
 	calRange,
 	calendarRows,
-	sportSetupHTML,
-	openSportSetup,
-	saveSportSetup,
 	sportHTML: sportHTML$1,
 	wireSport: wireSport$1,
 	setSportDay,
 	sportWeekShift,
 	spSetEnergy,
 	spToggle,
+	spToggleDay,
 	spSetSteps,
 	spSetKbju,
-	calSetAll,
 	spSetCook,
-	spSetSleep,
-	spWake,
-	spSetPain,
-	phToggle,
-	spAddWorkout,
-	openWorkout,
-	saveWorkout,
-	spDelWorkout,
 	openWeight,
 	saveWeight,
 	openMeasure,
@@ -8901,7 +9230,34 @@ Object.assign(window, {
 	PAIN_WORD,
 	SP_MIN,
 	SP_WALK,
-	WD: WD$1
+	WD: WD$1,
+	PHYS_SET,
+	GYM_NOTE,
+	rnd5,
+	spNoNum: spNoNum$1,
+	spPhase: spPhase$1,
+	spWeightAt,
+	spProteinR,
+	spKcalOf,
+	spKcalR,
+	spMacroFrom,
+	spWeekNo,
+	spParts,
+	spDoneN,
+	spTotalN,
+	SP_CARDS,
+	spCardOrder,
+	spTopHTML,
+	spCard,
+	spData: spData$1,
+	spSetWo,
+	spBStat,
+	spToggleNN,
+	spSetKcalPhase,
+	spSetCoef,
+	spBlogNew,
+	spBlogSave,
+	spBlogDel
 });
 //#endregion
 //#region src/career.js
@@ -12495,6 +12851,16 @@ function mergeSection(m, b, aM, bM) {
 		a.cardOrder = lwwArr(a.cardOrder, bb.cardOrder, "or:sport", aM, bM);
 		a.paused = mmT$1(a.paused, bb.paused || {}, "pa:", aM, bM);
 		a.archives = mergeArr$1(a.archives, bb.archives, (x) => x.id || (x.start || "") + "|" + (x.end || ""));
+		a.weekWo = mNumT(a.weekWo, bb.weekWo, "ww:", aM, bM);
+		{
+			const ta = aM["cf:prog"] || 0, tb = bM["cf:prog"] || 0;
+			if (bb.prog && (!a.prog || tb > ta)) a.prog = JSON.parse(JSON.stringify(bb.prog));
+		}
+		a.blogDel = a.blogDel || [];
+		(bb.blogDel || []).forEach((id) => {
+			if (a.blogDel.indexOf(id) < 0) a.blogDel.push(id);
+		});
+		a.blog = mergeArr$1(a.blog, bb.blog, (x) => x.id).filter((x) => a.blogDel.indexOf(x.id) < 0);
 		a.physio = a.physio || {
 			done: {},
 			dates: {}
@@ -12667,6 +13033,10 @@ function mergeData(A, B) {
 		else mergeSection(ms, bs, aM, bM);
 	});
 	M.sections = M.sections.filter((s) => M.secDeleted.indexOf(s.id) < 0);
+	if (A.secOrder && A.secOrder.length || B.secOrder && B.secOrder.length) {
+		M.secOrder = lwwArr(A.secOrder, B.secOrder, "or:sections", aM, bM).slice();
+		secApplyOrder(M);
+	}
 	M.week = mergeWeek(M.week || A.week, B.week, aM, bM);
 	M.plan = mergePlan(M.plan || A.plan, B.plan, aM, bM);
 	mergeNotes(M, B, aM, bM);
@@ -13128,58 +13498,71 @@ function metSport(sec, mon) {
 		k: "days",
 		label: "Дни зачтены",
 		val: counted + "/7",
-		extra: "полных " + full,
 		w: 1
 	});
-	const c2 = mon >= sp.config.startDate;
-	const has = (f) => {
-		for (let i = 0; i < 7; i++) {
-			const v = spDay(sp, dateAddDays(mon, i))[f];
-			if (v != null && v !== "") return true;
-		}
-		return false;
-	};
-	const sl = spAvgField(sp, mon, "sleepH"), wkn = spAvgField(sp, mon, "wakeN");
-	if (sl != null) o.push({
-		k: "sleep",
-		label: "Сон",
-		val: "в среднем " + num1(sl) + " ч",
-		extra: "ночей 7 ч и больше — " + spSleepGood(sp, mon) + " из 7" + (wkn != null ? " · пробуждений " + num1(wkn) : ""),
-		w: 1
-	});
-	if (c2 || has("bed")) o.push({
-		k: "bed",
-		label: "Отбой вовремя",
-		val: spCountField(sp, mon, "bed") + " из 7",
-		w: 1
-	});
-	if (c2 || has("cola")) o.push({
-		k: "cola",
-		label: "Кофеин до 14:00",
-		val: spCountField(sp, mon, "cola") + " из 7",
-		w: 1
-	});
-	const pr = spAvgField(sp, mon, "painR"), pl = spAvgField(sp, mon, "painL"), ps = spAvgField(sp, mon, "painS");
-	if (pr != null || pl != null || ps != null) o.push({
-		k: "pain",
-		label: "Боль в среднем",
-		val: "бедро П " + num1(pr) + " / Л " + num1(pl) + " · плечо " + num1(ps),
-		w: 1
-	});
-	const fw = phWeek(sp, mon);
-	if (c2 || fw || phDone(sp)) o.push({
-		k: "fz",
-		label: "Физиотерапия",
-		val: fw + " " + plural(fw, "сеанс", "сеанса", "сеансов") + " за неделю",
-		extra: "всего " + phDone(sp) + " из " + PHYSIO_TOTAL,
-		w: 1
-	});
-	if (c2 || has("reha")) o.push({
-		k: "reha",
-		label: "Домашний блок",
-		val: spCountField(sp, mon, "reha") + " из 7",
-		w: 1
-	});
+	if (mon >= sp.config.startDate) {
+		o.push({
+			k: "reha",
+			label: "Физиотерапия",
+			val: spCountField(sp, mon, "reha") + " из 7",
+			w: 1
+		});
+		o.push({
+			k: "warm",
+			label: "Зарядка",
+			val: spCountField(sp, mon, "warmup") + " из 7",
+			w: 1
+		});
+	} else {
+		const has = (f) => {
+			for (let i = 0; i < 7; i++) {
+				const v = spDay(sp, dateAddDays(mon, i))[f];
+				if (v != null && v !== "") return true;
+			}
+			return false;
+		};
+		const sl = spAvgField(sp, mon, "sleepH"), wkn = spAvgField(sp, mon, "wakeN");
+		if (sl != null) o.push({
+			k: "sleep",
+			label: "Сон",
+			val: "в среднем " + num1(sl) + " ч",
+			extra: "ночей 7 ч и больше — " + spSleepGood(sp, mon) + " из 7" + (wkn != null ? " · пробуждений " + num1(wkn) : ""),
+			w: 1
+		});
+		if (has("bed")) o.push({
+			k: "bed",
+			label: "Отбой вовремя",
+			val: spCountField(sp, mon, "bed") + " из 7",
+			w: 1
+		});
+		if (has("cola")) o.push({
+			k: "cola",
+			label: "Кофеин до 14:00",
+			val: spCountField(sp, mon, "cola") + " из 7",
+			w: 1
+		});
+		const pr = spAvgField(sp, mon, "painR"), pl = spAvgField(sp, mon, "painL"), ps = spAvgField(sp, mon, "painS");
+		if (pr != null || pl != null || ps != null) o.push({
+			k: "pain",
+			label: "Боль в среднем",
+			val: "бедро П " + num1(pr) + " / Л " + num1(pl) + " · плечо " + num1(ps),
+			w: 1
+		});
+		const fw = phWeek(sp, mon);
+		if (fw || phDone(sp)) o.push({
+			k: "fz",
+			label: "Физиотерапия",
+			val: fw + " " + plural(fw, "сеанс", "сеанса", "сеансов") + " за неделю",
+			extra: "всего " + phDone(sp) + " из " + PHYSIO_TOTAL,
+			w: 1
+		});
+		if (has("reha")) o.push({
+			k: "reha",
+			label: "Домашний блок",
+			val: spCountField(sp, mon, "reha") + " из 7",
+			w: 1
+		});
+	}
 	o.push({
 		k: "steps",
 		label: "Шаги",
@@ -13190,17 +13573,19 @@ function metSport(sec, mon) {
 	o.push({
 		k: "wo",
 		label: "Тренировки",
-		val: sp.workouts.filter((x) => mondayOf(x) === mon).length + " из 3",
+		val: spWorkoutsInWeek(sp, mon) + " из 3",
 		w: 1
 	});
-	const cr = spWeekCorridor(sp, mon);
-	o.push({
-		k: "kb",
-		label: "КБЖУ в коридоре",
-		val: cr.core + " " + plural(cr.core, "день", "дня", "дней") + " из 7",
-		extra: "по всем четырём — " + cr.all,
-		w: 1
-	});
+	if (!spNoNum(sp)) {
+		const cr = spWeekCorridor(sp, mon);
+		o.push({
+			k: "kb",
+			label: "КБЖУ в коридоре",
+			val: cr.core + " " + plural(cr.core, "день", "дня", "дней") + " из 7",
+			extra: "по всем четырём — " + cr.all,
+			w: 1
+		});
+	}
 	const cur = spWeekAvg(sp, mon);
 	if (cur != null) {
 		const dc = spDelta(sp, "weight", "kg", sp.config.startDate), da = spDelta(sp, "weight", "kg", null);
@@ -14506,14 +14891,12 @@ function planAutoLines(sec, mon) {
 	}
 	if (sec.kind === "sport") {
 		const sp = sec.sport, wk = spCycleWeekAt(sp, mon);
-		const w = PHASE_A_WEEKS[wk - 1];
-		if (w) {
-			out.push("Фокус недели " + wk + " — " + w.focus);
-			out.push("Шаги — цель " + w.steps.toLocaleString("ru-RU") + " в день");
-			out.push("Физиотерапия — " + w.physio + " " + plural(w.physio, "сеанс", "сеанса", "сеансов") + " (пройдено " + phDone(sp) + " из " + PHYSIO_TOTAL + ")");
-			if (wk % 2 === 0) out.push("Замеры: талия, живот, бёдра, грудь");
+		if (wk >= 1 && wk <= spWeeks(sp)) {
+			out.push("Неделя " + wk + " из " + spWeeks(sp) + " — " + spPhase(mon).name + (PROGRAM.light.indexOf(wk) >= 0 ? " · неделя полегче" : ""));
+			out.push("Зал — 3 тренировки; зарядка и физиотерапия каждый день; шаги " + spStepGoal(sp).toLocaleString("ru-RU"));
+			if (PROGRAM.measDates.some((x) => mondayOf(x) === mon)) out.push("Замеры: грудь, талия, живот, бёдра");
+			if (!spNoNum(sp)) out.push("КБЖУ в коридоре: " + rngTxt(spRange(sp, "kcal", mon)) + " ккал · белок " + rngTxt(spRange(sp, "protein", mon)) + " г");
 		}
-		out.push("КБЖУ в коридоре: " + rngTxt(spRange(sp, "kcal")) + " ккал · белок " + rngTxt(spRange(sp, "protein")) + " г");
 	}
 	if (sec.kind === "english") {
 		const e = sec.english;

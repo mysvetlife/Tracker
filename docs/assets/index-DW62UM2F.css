@@ -1132,3 +1132,52 @@ body.dragging *{cursor:grabbing!important;user-select:none!important}
 .mk .pj-rn{opacity:.4;cursor:pointer;color:var(--muted);padding:0 5px;border-radius:5px;font-size:13px}
 .mk tr:hover .pj-rn,.mk .stage:hover .pj-rn{opacity:1}
 .mk .pj-rn:hover{background:var(--surface-3)}
+
+/* ---- «Спорт» (программа года): дополнения к карточкам по макету ---- */
+.mk .dsb.somed{background:#f6ead2;border-color:#e6d2a8}
+.mk .dsb.okd{background:#d3dfc3;border-color:#a9bd92}
+.mk .dsb.on.somed,.mk .dsb.on.okd{background:var(--accent);border-color:var(--accent)}
+.mk .gslots,.mk .pslots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mk .pslots{grid-template-columns:repeat(7,1fr)}
+.mk .gslot,.mk .pslot{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 9px;cursor:pointer}
+.mk .gslot b,.mk .pslot b{display:block;font-size:13px;color:var(--brown-d)}
+.mk .gslot small,.mk .pslot small{font-size:11px;color:var(--muted);line-height:1.3;display:block}
+.mk .gslot.on,.mk .pslot.on{background:#d3dfc3;border-color:#a9bd92}
+.mk .gslot.fut,.mk .pslot.fut{opacity:.55;cursor:default}
+.mk .tiles.t3{grid-template-columns:repeat(3,1fr);margin-bottom:6px}
+.mk .kbju.k5{grid-template-columns:repeat(5,1fr)}
+.mk .kbju.k1{grid-template-columns:minmax(0,260px)}
+.mk .enrow{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.mk .enbtn{width:100%;height:34px}
+.mk .mrow small.rem{display:block}
+.mk .avgl{font-size:11.5px;margin-top:4px}
+.mk .stab{width:100%;border-collapse:collapse;font-size:13px}
+.mk .stab th{text-align:right;font-size:11px;color:var(--muted);font-weight:600;padding:5px 8px;border-bottom:1px solid var(--line)}
+.mk .stab th:first-child,.mk .stab td:first-child{text-align:left}
+.mk .stab td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line)}
+.mk .stab tr.sum td{font-weight:700;color:var(--brown-d);background:var(--surface2)}
+.mk .phtab{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.mk .phtab th{text-align:left;font-size:11px;color:var(--muted);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line)}
+.mk .phtab td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.mk .phtab td small{display:block}
+.mk .phtab tr.curph td{background:var(--peach)}
+.mk .phtab td.kin{white-space:nowrap}
+.mk .kin input{width:78px;font:inherit;border:1px solid var(--line);border-radius:8px;padding:4px 7px;background:#fff;color:var(--text)}
+.mk .bpost{border-bottom:1px solid var(--line);padding:10px 0}
+.mk .bpost .bh{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.mk .blogl{margin-bottom:10px}
+.mk .blogform textarea{font:inherit}
+.mk .blogform input.di,.mk .blogform textarea.di{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:#fff;color:var(--text)}
+.mk .btext h4{margin:12px 0 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mk .btext h4:first-child{margin-top:4px}
+.mk .btext p{margin:0 0 4px;font-size:13px}
+.mk .btext .bli{font-size:13px;padding:3px 0 3px 16px;position:relative}
+.mk .btext .bli::before{content:"•";position:absolute;left:4px;color:var(--accent)}
+.mk .clegend{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-bottom:8px;align-items:center}
+.mk .clegend b{color:var(--brown-d)}
+.mk .clegend .cc{display:inline-block;width:18px;height:18px;border-radius:5px;cursor:default}
+.mk .inl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:760px){.mk .pslots{grid-template-columns:repeat(2,1fr)}.mk .gslots{grid-template-columns:1fr}.mk .kbju.k5{grid-template-columns:repeat(2,1fr)}.mk .tiles.t3{grid-template-columns:1fr}}
+/* старые правила .item (styles.css) красят пункт в коробку; в «Спорте» это строка списка, как в макете */
+.mk .item{background:transparent;border-width:0 0 1px 0;border-radius:0;margin-bottom:0;padding:8px 2px;transition:none}
+.mk .item:hover{border-color:var(--line)}
