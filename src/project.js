@@ -146,7 +146,7 @@ function pjPlanBody(sec){ const p=sec.project, q=pjQuery.trim().toLowerCase(), n
       if(sopen) r+=subs.map(s=>`<tr class="subrow"><td></td><td colspan="4"><div style="padding-left:22px">${pjSubHTML(sec,s)}</div></td><td></td></tr>`).join("")+`<tr class="subrow"><td></td><td colspan="5"><div class="addrow" style="padding-left:30px" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></td></tr>`;
       return r; }).join("");
     return `<div class="stage" onclick="if(!event.target.isContentEditable)pjFold('${sec.id}','${st.id}',${!!(st.id===pjCurStage(p)||!st.tasks.length)})" style="cursor:pointer" title="Нажми, чтобы свернуть или развернуть этап"><span><span class="pj-chev ${open?"open":""}">›</span> ${pjName("stage",sec.id,st.id,st.name,"Название этапа")}</span><span class="muted" style="font-weight:400">${dn} из ${st.tasks.length} <span class="del" onclick="event.stopPropagation();pjDel('${sec.id}','stage','${st.id}')" title="Удалить этап">×</span></span></div>`
-      +(open?`<table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table>`+(narrow?"":`<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">＋ Задача в этот этап</div>`):""); }).join("");
+      +(open?`<div class="tw pj-tw"><table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table></div>`+(narrow?"":`<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">＋ Задача в этот этап</div>`):""); }).join("");
   return html||`<div class="empty"><p class="muted">Ничего не найдено.</p></div>`; }
 function pjSetFilter(secId,f){ window.pjFilter=f; render(); }
 function pjSearch(el){ window.pjQuery=el.value; const sec=pjSec(el.dataset.s), box=document.getElementById("pjPlanBody"); if(sec&&box) box.innerHTML=pjPlanBody(sec); }
@@ -174,8 +174,8 @@ function pjGanttHTML(sec){ const p=sec.project, ts=pjTasks(p).filter(t=>t.end);
   const rows=ts.map(t=>{ const a=t.start||dateAddDays(t.end,-3), l=pjDiff(ax,a)/total*100, w=(pjDiff(a,t.end)+1)/total*100;
     return `<div class="gntrow"><div class="gntl"><a onclick="pjOpenTask('${sec.id}','${t.id}')" style="cursor:pointer">${esc(t.name||"Без названия")}</a></div><div class="gntt"><div class="gb" style="left:${l}%;width:${w}%;${col[t.status]}" title="${esc(t.name)}: ${fmtDate(a)} — ${fmtDate(t.end)}"></div></div></div>`; }).join("");
   const tl=pjDiff(ax,today)/total*100;
-  return `<div class="gnt" style="--n:${weeks}"><div class="gntrow gnthead"><div class="gntl"></div><div class="gntt"><div class="gntweeks">${heads}</div></div></div>
-    <div class="gntbody">${rows}<div class="gntgrid"><div class="gnttoday" style="left:${tl}%"><i>сегодня</i></div></div></div></div>
+  return `<div class="tw"><div class="gnt" style="--n:${weeks}"><div class="gntrow gnthead"><div class="gntl"></div><div class="gntt"><div class="gntweeks">${heads}</div></div></div>
+    <div class="gntbody">${rows}<div class="gntgrid"><div class="gnttoday" style="left:${tl}%"><i>сегодня</i></div></div></div></div></div>
     <div class="muted" style="font-size:12px;margin-top:10px">Жёлтое идёт, серое не начато, зелёное готово. Срок меняется в плане или на странице задачи.</div>`; }
 
 /* ---------- конспекты и практика: задачи с галочкой ---------- */
@@ -194,7 +194,7 @@ function pjTimeHTML(sec){ const p=sec.project, opts=pjTasks(p);
     <td><input class="di" style="width:100%" value="${esc(x.src)}" placeholder="Источник" onchange="pjTimeField('${sec.id}','${x.id}','src',this.value)"></td>
     <td class="x"><span class="del" onclick="pjDelTime('${sec.id}','${x.id}')" title="Удалить">×</span></td></tr>`).join("");
   const sum=p.time.reduce((a,x)=>a+(+x.min||0),0);
-  return `<table style="table-layout:fixed"><colgroup><col style="width:130px"><col><col style="width:190px"><col style="width:80px"><col style="width:130px"><col style="width:28px"></colgroup><tr><th>Дата</th><th>Что делала</th><th>Задача</th><th>Минут</th><th>Источник</th><th></th></tr>${rows}</table>
+  return `<div class="tw pj-tw pj-time"><table style="table-layout:fixed"><colgroup><col style="width:130px"><col><col style="width:190px"><col style="width:80px"><col style="width:130px"><col style="width:28px"></colgroup><tr><th>Дата</th><th>Что делала</th><th>Задача</th><th>Минут</th><th>Источник</th><th></th></tr>${rows}</table></div>
   <div class="addrow" onclick="pjAddTime('${sec.id}')">＋ Запись времени</div><div class="muted" style="font-size:12px;margin-top:8px">Всего записано: ${fmtMin(sum)}</div>`; }
 function pjAddTime(secId){ const sec=pjSec(secId); if(!sec) return; const x={id:uid(),task:"",date:todayStr(),min:0,what:"",src:""};
   sec.project.time.push(x); mstamp("pt:"+x.id); render(); }
@@ -206,7 +206,7 @@ function pjDelTime(secId,id){ const sec=pjSec(secId); if(!sec) return; sec.proje
 function pjGoalsHTML(sec){ const p=sec.project;
   return p.goals.map(g=>`<div class="goal"><b><span>${PJ_GOAL_KIND[g.kind]||"Цель"}: <input class="di" style="width:60%;font-weight:600;color:var(--text)" value="${esc(g.title)}" placeholder="Название цели" onchange="pjGoalField('${sec.id}','${g.id}','title',this.value)"></span><span>${g.pct}%</span></b>
     <div class="bar" style="margin:6px 0"><i style="width:${g.pct}%"></i></div>
-    <div style="display:flex;gap:12px;align-items:center"><input type="range" min="0" max="100" value="${g.pct}" class="rg" style="flex:1" onchange="pjGoalField('${sec.id}','${g.id}','pct',this.value)"> <span class="muted" style="font-size:12px">срок</span>
+    <div class="gline" style="display:flex;gap:12px;align-items:center"><input type="range" min="0" max="100" value="${g.pct}" class="rg" style="flex:1" onchange="pjGoalField('${sec.id}','${g.id}','pct',this.value)"> <span class="muted" style="font-size:12px">срок</span>
       <input type="date" class="di" value="${esc(g.date)}" onchange="pjGoalField('${sec.id}','${g.id}','date',this.value)"><span class="del" onclick="pjDelGoal('${sec.id}','${g.id}')" title="Удалить цель">×</span></div></div>`).join("")
     +`<div class="addrow" onclick="pjAddGoal('${sec.id}','month')">＋ Цель месяца</div><div class="addrow" onclick="pjAddGoal('${sec.id}','year')">＋ Цель года</div><div class="muted" style="font-size:12px;margin-top:8px">Процент ставится вручную ползунком.</div>`; }
 function pjAddGoal(secId,kind){ const sec=pjSec(secId); if(!sec) return; const g={id:uid(),kind:kind,title:"",date:"",pct:0}; sec.project.goals.push(g); mstamp("pg:"+g.id); render(); }

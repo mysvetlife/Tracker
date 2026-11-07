@@ -19,7 +19,7 @@ function renderShell(){
     else { title=esc(sec.name); sub=esc(sec.sub||""); tools=`<span class="pill" onclick="openSectionModal('${sec.id}')">Изменить</span>`+tools; } }
   else { banner=mkBanner("Мой прогресс","",120); logo="🏠"; title=esc(data.title); sub=""; }
   document.getElementById("mkBanner").innerHTML=banner;
-  document.getElementById("mkHead").innerHTML=`<div class="logo">${logo}</div><div><h1>${title}</h1><div class="sub">${sub}</div></div><div class="tools">${tools}</div>`;
+  document.getElementById("mkHead").innerHTML=`<button class="burger" type="button" aria-label="Меню" onclick="mkNavToggle()">☰</button><div class="logo">${logo}</div><div class="ttl"><h1>${title}</h1><div class="sub">${sub}</div></div><div class="tools">${tools}</div>`;
   document.getElementById("mkLayout").className="layout"+(a==="overview"?" three":"");
   if(typeof updateSyncBtn==="function") updateSyncBtn(); }
 
@@ -73,5 +73,12 @@ function coverPick(id){ const s=data.sections.find(x=>x.id===id); if(!s) return;
   const v=prompt("Адрес своей картинки (пусто - вернуть рисунок):",s.cover||""); if(v===null) return;
   s.cover=v.trim(); mstamp("cs:"+id); render(); }
 
-Object.assign(window,{ mkBanner, renderShell, renderTabs, hmTasks, overviewHTML, coverPick,
+/* выезжающее меню на телефоне (≤760px): кнопка ☰ в шапке, закрытие касанием вне меню или выбором пункта */
+function mkNavToggle(){ document.body.classList.toggle("nav-open"); }
+function mkNavClose(){ document.body.classList.remove("nav-open"); }
+document.addEventListener("click",e=>{ if(!document.body.classList.contains("nav-open")) return;
+  if(e.target.closest("#mkNav a")||e.target.id==="mkScrim") mkNavClose(); },true);   // захват: onclick пункта перерисовывает меню раньше
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") mkNavClose(); });
+
+Object.assign(window,{ mkNavToggle, mkNavClose, mkBanner, renderShell, renderTabs, hmTasks, overviewHTML, coverPick,
   wDirs, wNow, wHabits, wTime, wToday, wSoon, wGoals, wSport });

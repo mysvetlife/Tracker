@@ -19,6 +19,9 @@ function secArtKind(s){ const n=(s.name||'').toLowerCase();
   if(/(^|[^а-яё])ии([^а-яё]|$)|нейро/.test(n)) return 'ai'; if(/ux|ui|дизайн/.test(n)) return 'ux'; if(/аналит|данн/.test(n)) return 'analyst'; return 'def'; }
 const ART_EMOJI={analyst:'📊',english:'🔤',ai:'🤖',ux:'🎨',narc:'🧠',sport:'💪',monday:'🗓',def:'✨'};
 function secEmoji(s){ return s.emoji||ART_EMOJI[secArtKind(s)]; }
-function secCoverStyle(s){ const c=s.cover||''; const photo=/^(https?:|data:|\.?\/|img\/)/.test(c);
-  return 'background-image:'+(photo?"url('"+c+"')":artURL(secArtKind(s)))+';background-size:cover;background-position:center'; }
+/* фото обложек лежат в src/public/img/<вид>.webp (авторы и лицензии - в CREDITS.md рядом); у вида без фото остаётся рисунок */
+const ART_PHOTO={analyst:1,english:1,ai:1,ux:1,narc:1,sport:1,monday:1};
+function secCoverStyle(s){ const c=s.cover||''; const photo=/^(https?:|data:|\.?\/|img\/)/.test(c), k=secArtKind(s);
+  const bg=photo?"url('"+c+"')":ART_PHOTO[k]?"url('./img/"+k+".webp'),"+artURL(k):artURL(k);   // рисунок под фото: если файл не загрузился, виден он
+  return 'background-image:'+bg+';background-size:cover;background-position:center'; }
 Object.assign(window,{ART,artURL,secArtKind,secEmoji,secCoverStyle,ART_EMOJI});

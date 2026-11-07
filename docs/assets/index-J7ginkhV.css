@@ -1181,3 +1181,76 @@ body.dragging *{cursor:grabbing!important;user-select:none!important}
 /* старые правила .item (styles.css) красят пункт в коробку; в «Спорте» это строка списка, как в макете */
 .mk .item{background:transparent;border-width:0 0 1px 0;border-radius:0;margin-bottom:0;padding:8px 2px;transition:none}
 .mk .item:hover{border-color:var(--line)}
+
+/* ---------- телефон: адаптация (mockups/app.html - образец вида, здесь только вёрстка под узкий экран) ---------- */
+.burger,#mkScrim{display:none}
+html,body{max-width:100%}
+.mk{overflow-x:clip}
+.mk .ttl{min-width:0}
+@media (hover:none){
+.mk .dir:hover{transform:none}
+.mk .dir .img .cam{opacity:.9;width:32px;height:32px;font-size:15px}
+.mk .pill[data-act]:hover,.mk .head .pill:hover{background:var(--surface)}
+.mk [data-sort]>[data-sid]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+}
+@media (max-width:760px){
+.mk{padding:10px 12px 32px}
+.mk .banner{height:96px!important}
+.mk .banner{grid-template-columns:.45fr 1.7fr .45fr}
+.mk .banner .b2 .big{font-size:17px!important;line-height:1.15}
+.mk .banner .b2 .script{font-size:16px!important;line-height:1.1}
+.mk .head{flex-wrap:wrap;gap:10px;margin:14px 0 12px}
+.mk .head .ttl{flex:1 1 0}
+.mk .head h1{font-size:26px;overflow-wrap:anywhere}
+.mk .head .sub{overflow-wrap:anywhere}
+.mk .head .tools{flex:1 0 100%;margin-left:0;flex-wrap:wrap}
+.mk .head .pill,.mk .pill{padding:9px 14px;font-size:13px}
+.burger{display:grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:var(--surface);color:var(--brown-d);font-size:20px;line-height:1;cursor:pointer;padding:0}
+.mk .logo{flex:none;width:40px;height:40px}
+.mk .layout,.mk .layout.three{grid-template-columns:minmax(0,1fr)}
+.mk .layout>#view{min-width:0}
+.mk #mkNav{position:fixed;left:0;top:0;bottom:0;z-index:120;width:min(300px,84vw);box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;
+  padding:14px 12px 28px;background:var(--bg);box-shadow:0 0 40px rgba(90,60,40,.28);transform:translateX(-105%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
+.nav-open .mk #mkNav{transform:none;visibility:visible;transition:transform .22s ease}
+#mkScrim{display:block;position:fixed;inset:0;z-index:110;background:rgba(60,40,30,.38);opacity:0;pointer-events:none;transition:opacity .22s}
+.nav-open #mkScrim{opacity:1;pointer-events:auto}
+.nav-open{overflow:hidden}
+.mk .nav a,.mk .qa a{padding:11px 10px;font-size:14.5px}
+.mk .tab,.mk .tbar .tab{padding:10px 14px}
+.mk .tabs,.mk .tbar{gap:8px}
+.mk .tbar .search{min-width:0;flex:1 1 100%;font-size:16px;padding:10px 14px}
+.mk .card{padding:12px;min-width:0}
+.mk .dirs{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mk .dir .img{height:84px}
+.mk .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mk .kan{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding-bottom:8px}
+.mk .kan>.kcol{flex:0 0 78%;min-width:0;scroll-snap-align:start}
+.mk .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mk input,.mk select,.mk textarea{font-size:16px}
+.mk .ck{position:relative}
+.mk .ck::before{content:"";position:absolute;inset:-12px}
+/* широкие виды листаются внутри своей рамки, страница не сдвигается */
+.mk .card:has(>table.hab),.mk .card:has(>table.phtab),.mk .card:has(>.gantt),.mk .card:has(>.tw){overflow-x:auto;-webkit-overflow-scrolling:touch}
+.mk table.hab{min-width:560px}
+.mk .gantt{min-width:560px}
+}
+@media (max-width:380px){
+.mk .dirs{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:760px){
+.mk .pj-tw table{min-width:700px}
+.mk .pj-tw.pj-time table{min-width:780px}
+.mk .tw{-webkit-overflow-scrolling:touch}
+}
+@media (max-width:760px){
+.mk .gnt{--lw:150px;min-width:calc(var(--lw) + var(--n) * 56px)}
+
+}
+@media (max-width:760px){
+.mk .head h1 span{font-size:inherit!important;overflow-wrap:anywhere}
+.mk .gline{flex-wrap:wrap}
+.mk .gline .rg{min-width:120px}
+}
+.mk .pj-tw,.mk .tw:has(>.gnt){padding:0}
+.mk .tw:has(>.gnt){overflow:visible}
+@media (max-width:760px){.mk .tw:has(>.gnt){overflow-x:auto;padding:22px 0 8px}}
