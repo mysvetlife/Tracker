@@ -15,19 +15,22 @@
 .mk h3,
 .mk .serif{font-family:var(--serif);font-weight:600}
 .mk a{color:inherit;text-decoration:none}
-.mk .banner{display:grid;grid-template-columns:1fr 1.15fr 1fr;height:170px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-.mk .banner>div{position:relative}
-.mk .b1{background:radial-gradient(circle at 70% 30%,#f9dcc0 0 18%,transparent 19%),linear-gradient(160deg,#e9c9a9,#c99c78)}
-.mk .b1::after{content:"";position:absolute;left:12%;bottom:0;width:46%;height:70%;border-radius:80px 80px 0 0;background:#8a6a52;opacity:.55}
-.mk .b2{background:linear-gradient(150deg,#d9b896,#b98f6c);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:0 18px}
-.mk .b2 .big{font-family:var(--serif);font-size:27px;line-height:1.15;font-weight:500}
-.mk .b2 .script{font-family:"Brush Script MT","Segoe Script",cursive;font-size:25px;margin-top:4px;opacity:.95}
-.mk .b3{background:radial-gradient(circle at 30% 35%,#fff7ee 0 11%,transparent 12%),radial-gradient(circle at 55% 25%,#fdeedd 0 13%,transparent 14%),radial-gradient(circle at 70% 55%,#fff7ee 0 12%,transparent 13%),radial-gradient(circle at 40% 62%,#f6e2cc 0 10%,transparent 11%),linear-gradient(200deg,#efe0cd,#cfb393)}
+.mk .banner{display:flex;align-items:center;justify-content:center;height:170px;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);background-color:var(--peach);background-size:cover;background-position:center;background-repeat:no-repeat}
+.mk .banner .motto{text-align:center;padding:0 18px;color:var(--brown-d)}
+.mk .banner .motto .big{font-family:var(--serif);font-size:30px;line-height:1.15;font-weight:600}
+.mk .banner .motto .script{font-family:"Brush Script MT","Segoe Script",cursive;font-size:26px;margin-top:4px;color:var(--accent-d)}
 .mk .head{display:flex;align-items:center;gap:14px;margin:20px 4px 14px}
 .mk .logo{width:44px;height:44px;border-radius:50%;background:var(--peach);display:grid;place-items:center;font-size:20px}
 .mk .head h1{font-size:40px;line-height:1}
 .mk .head .sub{color:var(--muted);font-size:13px;margin-top:2px}
-.mk .head .tools{margin-left:auto;display:flex;gap:8px}
+/* шапка: слева значок и название (одна строка), справа две строки кнопок - сверху кнопки направления, снизу служебные; высота шапки у всех одинаковая */
+.mk .head{min-height:68px}
+.mk .head .ttl{flex:1 1 0;min-width:0}
+.mk .head h1:not(.long){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk .head .tools{margin-left:auto;flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.mk .head .acts,.mk .head .sys{display:flex;gap:8px;min-height:30px;justify-content:flex-end}
+.mk .head .pill{box-sizing:border-box;height:30px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.mk .head .slabel{display:block;width:124px;text-align:center;overflow:hidden;text-overflow:ellipsis}
 .mk .pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--brown)}
 .mk .layout{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start}
 .mk .layout.three{grid-template-columns:200px 1fr 270px}
@@ -269,7 +272,7 @@ html{overflow-y:scroll}
 .mk .dir .pg span{text-align:left}
 .mk .dir.newdir{border:2px dashed #dcc2a8;background:rgba(255,250,244,.45);box-shadow:none;align-items:center;justify-content:center;gap:6px;color:var(--brown);text-align:center;font-size:12.5px;padding:10px;min-height:164px;cursor:pointer}
 .mk .dir.newdir:hover{background:rgba(246,220,200,.45);transform:none;border-color:var(--accent)}
-.mk .plusbig{font-size:34px;line-height:1;color:var(--accent);font-weight:300}
+.mk .plusbig{font-size:32px;line-height:1;color:var(--accent);display:grid;place-items:center}
 .mk table.hab{table-layout:fixed}
 .mk .hab th,
 .mk .hab td{text-align:center;padding:7px 3px}
@@ -412,7 +415,6 @@ body.dragging *{cursor:grabbing!important;user-select:none!important}
 .mk th{white-space:nowrap}
 .mk input.di,.mk select.di{width:auto;min-height:0;display:inline-block;margin:0}
 .mk input.di.search{width:auto}
-.mk .head .pill{display:inline-block;width:auto}
 
 /* ---- вложенные страницы на странице задачи и значок VPN ---- */
 .mk .pj-b.t-page{align-items:center}
@@ -434,7 +436,7 @@ body.dragging *{cursor:grabbing!important;user-select:none!important}
 .mk .pj-addrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .mk .pj-b.t-page:not(:focus-within) .pj-bt:empty::before{content:attr(data-ph);color:var(--muted-2)}
 
-/* ---- название в плане: клик открывает или сворачивает, ✎ переименовывает ---- */
+/* ---- название в плане: клик открывает или сворачивает, карандаш переименовывает ---- */
 .mk .pj-nm{cursor:pointer}
 .mk .pj-nm:hover{text-decoration:underline;text-decoration-color:var(--brown);text-underline-offset:3px;background:transparent}
 .mk .pj-nm[contenteditable]{cursor:text;text-decoration:none;background:var(--surface-3)}
@@ -505,17 +507,29 @@ html,body{max-width:100%}
 @media (max-width:760px){
 .mk{padding:10px 12px 32px}
 .mk .banner{height:96px!important}
-.mk .banner{grid-template-columns:.45fr 1.7fr .45fr}
-.mk .banner .b2 .big{font-size:17px!important;line-height:1.15}
-.mk .banner .b2 .script{font-size:16px!important;line-height:1.1}
+.mk .banner .motto .big{font-size:19px;line-height:1.15}
+.mk .banner .motto .script{font-size:17px;line-height:1.1}
 .mk .head{flex-wrap:wrap;gap:10px;margin:14px 0 12px}
 .mk .head .ttl{flex:1 1 0}
 .mk .head h1{font-size:26px;overflow-wrap:anywhere}
 .mk .head .sub{overflow-wrap:anywhere}
-.mk .head .tools{flex:1 0 100%;margin-left:0;flex-wrap:wrap}
-.mk .head .pill,.mk .pill{padding:9px 14px;font-size:13px}
-.burger{display:grid;place-items:center;flex:none;width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:var(--surface);color:var(--brown-d);font-size:20px;line-height:1;cursor:pointer;padding:0}
-.mk .logo{flex:none;width:40px;height:40px}
+.mk .head{min-height:0}
+.mk .head h1:not(.long){font-size:20px}
+.mk .head h1:not(.long) .ed{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mk .head{gap:8px}
+.mk .head .tools{flex:1 0 100%;margin-left:0;align-items:stretch;gap:8px}
+.mk .head .acts,.mk .head .sys{display:grid;grid-template-columns:1fr 1fr;min-height:0;gap:8px}
+.mk .head .acts:empty{display:none}
+.mk .head .acts .pill:nth-child(3){grid-column:1/-1}
+.mk .head .pill{width:100%;height:36px;padding:0 10px;font-size:13px}
+.mk .head .slabel{width:auto;max-width:100%}
+.mk .stage{align-items:flex-start;gap:8px}
+.mk .stage>span:first-child{display:flex;align-items:flex-start;gap:6px;min-width:0;flex:1}
+.mk .stage>span:first-child .pj-rn{flex:none}
+.mk .stage>span:last-child{flex:none;white-space:nowrap}
+.mk .pill{padding:9px 14px;font-size:13px}
+.burger{display:grid;place-items:center;flex:none;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;background:var(--surface);color:var(--brown-d);font-size:20px;line-height:1;cursor:pointer;padding:0}
+.mk .logo{flex:none;width:36px;height:36px}
 .mk .layout,.mk .layout.three{grid-template-columns:minmax(0,1fr)}
 .mk .layout>#view{min-width:0}
 .mk #mkNav{position:fixed;left:0;top:0;bottom:0;z-index:120;width:min(300px,84vw);box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;

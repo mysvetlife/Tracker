@@ -180,6 +180,7 @@ function migrate(d){ if(!d||!d.sections) return d; d._m=d._m||{};
   d.sections.forEach(s=>{ if(!s.kind) s.kind=s.course?"course":(s.sport?"sport":"generic"); });
   d.sections=d.sections.map(s=>s.kind==="course"?courseToProject(s,d._m):s);
   { const seen={}; d.sections=d.sections.filter(s=>{ if(s.kind!=="project") return true; const f=seen[s.id]; if(!f){ seen[s.id]=s; return true; } mergeProject(f,s,d._m,d._m); return false; }); }
+  dedupeCourse(d);                                   // два «Понедельника» с разными id (устройство без данных завело свой) -> один, где есть данные
   seedPlans(d);
   if(!d.sections.some(s=>s.id===NARC_ID)&&d.secDeleted.indexOf(NARC_ID)<0) d.sections.push(narcSeed());
   orderSections(d); secApplyOrder(d);                // secApplyOrder - sort.js: порядок, который Света выставила перетаскиванием

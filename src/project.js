@@ -5,19 +5,19 @@
 
 window.pjTab="plan"; window.pjTask=null; window.pjBTab="theory"; window.pjPath=[]; window.pjFocus=null; window.pjQuery=""; window.pjFilter="all";
 const PJ_ST={n:"Не начато",i:"Идёт",d:"Готово",o:"Необязательно"}, PJ_ORDER=["n","i","d","o"];
-const PJ_TYPE={"":"•",v:"▶",a:"≡",r:"✎",q:"?"}, PJ_TYPE_NEXT={"":"v",v:"a",a:"r",r:"q",q:""};
+const PJ_TYPE={"":IC("dot"),v:IC("play"),a:IC("lines"),r:IC("pencil"),q:IC("help")}, PJ_TYPE_NEXT={"":"v",v:"a",a:"r",r:"q",q:""};
 const PJ_TYPE_NAME={"":"без типа",v:"видео",a:"текст",r:"практика",q:"тест"};
 const PJ_BTABS=[["theory","Теория"],["practice","Практика"],["notes","Заметки"],["questions","Вопросы"],["links","Ссылки"]];
-const PJ_BLK=[["p","Текст","¶"],["h","Заголовок","H"],["ul","Список","•"],["todo","Чек-лист","☑"],["quote","Цитата","❝"],["code","Код","</>"],["page","Страница","📄"]];
+const PJ_BLK=[["p","Текст",IC("textt")],["h","Заголовок",IC("heading")],["ul","Список",IC("list")],["todo","Чек-лист",IC("checklist")],["quote","Цитата",IC("quote")],["code","Код",IC("code")],["page","Страница",IC("file")]];
 
 function pjSec(id){ return data.sections.find(s=>s.id===id&&s.kind==="project"); }
 function pjSub(p,id){ for(const t of pjTasks(p)){ const s=t.subs.find(x=>x.id===id); if(s) return {sub:s,task:t}; } return null; }
 function pjOpenState(p,id,def){ const v=p.exp[id]; return v===undefined?def:!!v; }
 function pjEd(k,secId,id,text,ph,cls){ return `<span class="pj-ed ${cls||''}" contenteditable="plaintext-only" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}">${esc(text)}</span>`; }
-/* название этапа/задачи в плане: клик открывает (задачу) или сворачивает (этап); править - значком ✎ */
-function pjName(k,secId,id,text,ph,cls,click){ return `<span class="pj-ed pj-nm ${cls||''}" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}"${click?` onclick="if(!this.isContentEditable)${click}"`:""}>${esc(text)}</span><span class="pj-rn" onclick="event.stopPropagation();pjBeginEdit(this.previousElementSibling)" title="Переименовать">✎</span>`; }
+/* название этапа/задачи в плане: клик открывает (задачу) или сворачивает (этап); править - значком-карандашом */
+function pjName(k,secId,id,text,ph,cls,click){ return `<span class="pj-ed pj-nm ${cls||''}" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}"${click?` onclick="if(!this.isContentEditable)${click}"`:""}>${esc(text)}</span><span class="pj-rn" onclick="event.stopPropagation();pjBeginEdit(this.previousElementSibling)" title="Переименовать">${IC("pencil")}</span>`; }
 function pjBeginEdit(el){ if(!el) return; el.setAttribute("contenteditable","plaintext-only"); el.focus(); const r=document.createRange(); r.selectNodeContents(el); const g=getSelection(); g.removeAllRanges(); g.addRange(r); }
-/* этап, который открыт по умолчанию: первый, где есть невыполненное; остальные свёрнуты (пустой этап открыт, чтобы был виден «＋ Задача») */
+/* этап, который открыт по умолчанию: первый, где есть невыполненное; остальные свёрнуты (пустой этап открыт, чтобы был виден «Задача») */
 function pjCurStage(p){ const st=p.stages.find(x=>x.tasks.some(t=>t.status==="n"||t.status==="i")); return st?st.id:""; }
 function pjStageOpen(p,st){ return pjOpenState(p,st.id,st.id===pjCurStage(p)||!st.tasks.length); }
 function pjDate(s){ return s?fmtDate(s):""; }
@@ -124,10 +124,10 @@ function pjSubHTML(sec,s){ return `<div class="bl"><span class="ck ${s.done?"d":
 const PJ_STCLS={n:"st-n",i:"st-i",d:"st-d",o:"st-o"};
 function pjStBadge(sec,t){ return `<span class="tag ${PJ_STCLS[t.status]}" style="cursor:pointer" onclick="pjCycle('${sec.id}','${t.id}')" title="Нажми, чтобы сменить статус">${PJ_ST[t.status]}</span>`; }
 function pjPlanHTML(sec){ const p=sec.project;
-  if(!p.stages.length) return `<div class="empty"><div class="serif" style="font-size:24px">Плана пока нет</div><p class="muted">${esc(sec.goal||"")}</p><p>Начни с первого этапа, потом добавь в него задачи.</p><a class="btn" onclick="pjAddStage('${sec.id}')">＋ Первый этап</a></div>`;
+  if(!p.stages.length) return `<div class="empty"><div class="serif" style="font-size:24px">Плана пока нет</div><p class="muted">${esc(sec.goal||"")}</p><p>Начни с первого этапа, потом добавь в него задачи.</p><a class="btn" onclick="pjAddStage('${sec.id}')">${IC("plus")}Первый этап</a></div>`;
   const bar=`<div class="tbar"><a class="tab ${pjFilter==="all"?"on":""}" onclick="pjSetFilter('${sec.id}','all')">Все</a><a class="tab ${pjFilter==="left"?"on":""}" onclick="pjSetFilter('${sec.id}','left')">Незавершённые</a>
     <input class="di search" data-s="${sec.id}" placeholder="Поиск по задачам и подзадачам…" value="${esc(pjQuery)}" oninput="pjSearch(this)"><a class="tab" onclick="pjFoldAll('${sec.id}')">Свернуть / развернуть этапы</a></div>`;
-  return bar+`<div id="pjPlanBody">${pjPlanBody(sec)}</div><div class="addrow" onclick="pjAddStage('${sec.id}')" style="margin-top:12px">＋ Этап</div>`; }
+  return bar+`<div id="pjPlanBody">${pjPlanBody(sec)}</div><div class="addrow" onclick="pjAddStage('${sec.id}')" style="margin-top:12px">${IC("plus")}Этап</div>`; }
 function pjPlanBody(sec){ const p=sec.project, q=pjQuery.trim().toLowerCase(), narrow=!!q||pjFilter==="left", has=s=>String(s||"").toLowerCase().includes(q);
   const cg='<colgroup><col style="width:70px"><col><col style="width:116px"><col style="width:136px"><col style="width:84px"><col style="width:28px"></colgroup>';
   const html=p.stages.map(st=>{ const dn=st.tasks.filter(t=>t.status==="d").length, open=narrow?true:pjStageOpen(p,st);
@@ -139,14 +139,14 @@ function pjPlanBody(sec){ const p=sec.project, q=pjQuery.trim().toLowerCase(), n
     const rows=items.map(({t,subs,force})=>{ const sopen=force||pjOpenState(p,t.id,false), sd=t.subs.filter(s=>s.done).length;
       let r=`<tr><td><span class="ck ${pjDone(t)?"d":""}" onclick="pjCheckTask('${sec.id}','${t.id}')" role="checkbox" aria-checked="${pjDone(t)}"></span></td>
         <td>${t.subs.length?`<span class="pj-chev ${sopen?"open":""}" onclick="pjFold('${sec.id}','${t.id}',false)" style="cursor:pointer">›</span> `:""}${pjName("task",sec.id,t.id,t.name,"Название задачи",pjDone(t)?"strike":"","pjOpenTask('"+sec.id+"','"+t.id+"')")}
-          <a class="open" onclick="pjOpenTask('${sec.id}','${t.id}')" title="Открыть страницу задачи" style="cursor:pointer">↗</a>${t.subs.length?` <span class="muted" style="font-size:11.5px">${sd}/${t.subs.length}</span>`:""}${t.note?' <span class="muted" style="font-size:11px" title="Есть конспект">📝</span>':""}${t.prac?' <span class="muted" style="font-size:11px" title="Практика сделана">🛠</span>':""}</td>
+          <a class="open" onclick="pjOpenTask('${sec.id}','${t.id}')" title="Открыть страницу задачи" style="cursor:pointer">${IC("external")}</a>${t.subs.length?` <span class="muted" style="font-size:11.5px">${sd}/${t.subs.length}</span>`:""}${t.note?' <span class="muted" style="font-size:11px" title="Есть конспект">${IC("file")}</span>':""}${t.prac?' <span class="muted" style="font-size:11px" title="Практика сделана">${IC("wrench")}</span>':""}</td>
         <td>${pjStBadge(sec,t)}</td><td><input type="date" class="di" value="${esc(t.end)}" onchange="pjField('${sec.id}','${t.id}','end',this.value)"></td>
         <td><input type="number" class="di num" min="0" step="0.5" value="${t.hours||""}" placeholder="0" onchange="pjField('${sec.id}','${t.id}','hours',this.value)" style="width:60px"></td>
         <td class="x"><span class="del" onclick="pjDel('${sec.id}','task','${t.id}')" title="Удалить задачу">×</span></td></tr>`;
-      if(sopen) r+=subs.map(s=>`<tr class="subrow"><td></td><td colspan="4"><div style="padding-left:22px">${pjSubHTML(sec,s)}</div></td><td></td></tr>`).join("")+`<tr class="subrow"><td></td><td colspan="5"><div class="addrow" style="padding-left:30px" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></td></tr>`;
+      if(sopen) r+=subs.map(s=>`<tr class="subrow"><td></td><td colspan="4"><div style="padding-left:22px">${pjSubHTML(sec,s)}</div></td><td></td></tr>`).join("")+`<tr class="subrow"><td></td><td colspan="5"><div class="addrow" style="padding-left:30px" onclick="pjAddSub('${sec.id}','${t.id}')">${IC("plus")}подзадача</div></td></tr>`;
       return r; }).join("");
     return `<div class="stage" onclick="if(!event.target.isContentEditable)pjFold('${sec.id}','${st.id}',${!!(st.id===pjCurStage(p)||!st.tasks.length)})" style="cursor:pointer" title="Нажми, чтобы свернуть или развернуть этап"><span><span class="pj-chev ${open?"open":""}">›</span> ${pjName("stage",sec.id,st.id,st.name,"Название этапа")}</span><span class="muted" style="font-weight:400">${dn} из ${st.tasks.length} <span class="del" onclick="event.stopPropagation();pjDel('${sec.id}','stage','${st.id}')" title="Удалить этап">×</span></span></div>`
-      +(open?`<div class="tw pj-tw"><table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table></div>`+(narrow?"":`<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">＋ Задача в этот этап</div>`):""); }).join("");
+      +(open?`<div class="tw pj-tw"><table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table></div>`+(narrow?"":`<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">${IC("plus")}Задача в этот этап</div>`):""); }).join("");
   return html||`<div class="empty"><p class="muted">Ничего не найдено.</p></div>`; }
 function pjSetFilter(secId,f){ window.pjFilter=f; render(); }
 function pjSearch(el){ window.pjQuery=el.value; const sec=pjSec(el.dataset.s), box=document.getElementById("pjPlanBody"); if(sec&&box) box.innerHTML=pjPlanBody(sec); }
@@ -195,7 +195,7 @@ function pjTimeHTML(sec){ const p=sec.project, opts=pjTasks(p);
     <td class="x"><span class="del" onclick="pjDelTime('${sec.id}','${x.id}')" title="Удалить">×</span></td></tr>`).join("");
   const sum=p.time.reduce((a,x)=>a+(+x.min||0),0);
   return `<div class="tw pj-tw pj-time"><table style="table-layout:fixed"><colgroup><col style="width:130px"><col><col style="width:190px"><col style="width:80px"><col style="width:130px"><col style="width:28px"></colgroup><tr><th>Дата</th><th>Что делала</th><th>Задача</th><th>Минут</th><th>Источник</th><th></th></tr>${rows}</table></div>
-  <div class="addrow" onclick="pjAddTime('${sec.id}')">＋ Запись времени</div><div class="muted" style="font-size:12px;margin-top:8px">Всего записано: ${fmtMin(sum)}</div>`; }
+  <div class="addrow" onclick="pjAddTime('${sec.id}')">${IC("plus")}Запись времени</div><div class="muted" style="font-size:12px;margin-top:8px">Всего записано: ${fmtMin(sum)}</div>`; }
 function pjAddTime(secId){ const sec=pjSec(secId); if(!sec) return; const x={id:uid(),task:"",date:todayStr(),min:0,what:"",src:""};
   sec.project.time.push(x); mstamp("pt:"+x.id); render(); }
 function pjTimeField(secId,id,f,v){ const sec=pjSec(secId); const x=sec&&sec.project.time.find(y=>y.id===id); if(!x) return;
@@ -208,7 +208,7 @@ function pjGoalsHTML(sec){ const p=sec.project;
     <div class="bar" style="margin:6px 0"><i style="width:${g.pct}%"></i></div>
     <div class="gline" style="display:flex;gap:12px;align-items:center"><input type="range" min="0" max="100" value="${g.pct}" class="rg" style="flex:1" onchange="pjGoalField('${sec.id}','${g.id}','pct',this.value)"> <span class="muted" style="font-size:12px">срок</span>
       <input type="date" class="di" value="${esc(g.date)}" onchange="pjGoalField('${sec.id}','${g.id}','date',this.value)"><span class="del" onclick="pjDelGoal('${sec.id}','${g.id}')" title="Удалить цель">×</span></div></div>`).join("")
-    +`<div class="addrow" onclick="pjAddGoal('${sec.id}','month')">＋ Цель месяца</div><div class="addrow" onclick="pjAddGoal('${sec.id}','year')">＋ Цель года</div><div class="muted" style="font-size:12px;margin-top:8px">Процент ставится вручную ползунком.</div>`; }
+    +`<div class="addrow" onclick="pjAddGoal('${sec.id}','month')">${IC("plus")}Цель месяца</div><div class="addrow" onclick="pjAddGoal('${sec.id}','year')">${IC("plus")}Цель года</div><div class="muted" style="font-size:12px;margin-top:8px">Процент ставится вручную ползунком.</div>`; }
 function pjAddGoal(secId,kind){ const sec=pjSec(secId); if(!sec) return; const g={id:uid(),kind:kind,title:"",date:"",pct:0}; sec.project.goals.push(g); mstamp("pg:"+g.id); render(); }
 function pjGoalField(secId,id,f,v){ const sec=pjSec(secId); const g=sec&&sec.project.goals.find(x=>x.id===id); if(!g) return; g[f]=f==="pct"?Math.max(0,Math.min(100,parseInt(v,10)||0)):v; mstamp("pg:"+id); save(); if(f==="pct") render(); }
 function pjDelGoal(secId,id){ const sec=pjSec(secId); if(!sec) return; sec.project.del.push(id); sec.project.goals=sec.project.goals.filter(x=>x.id!==id); render(); }
@@ -223,10 +223,10 @@ function pjTaskHTML(sec,t,st){ const key=window.pjBTab, p=sec.project, R=pjResol
       <span class="muted">до</span><input type="date" class="di" value="${esc(t.end)}" onchange="pjField('${sec.id}','${t.id}','end',this.value)">
       <span class="muted">план</span><input type="number" class="di num" min="0" step="0.5" value="${t.hours||''}" placeholder="0" style="width:60px" onchange="pjField('${sec.id}','${t.id}','hours',this.value)"><span class="muted">ч · записано ${fmtMin(pjTaskMin(p,t.id))}</span>
       <span style="margin-left:auto"><span class="ck ${t.note?'d':''}" onclick="pjField('${sec.id}','${t.id}','note',${!t.note})"></span> Конспект есть &nbsp; <span class="ck ${t.prac?'d':''}" onclick="pjField('${sec.id}','${t.id}','prac',${!t.prac})"></span> Практика сделана</span></div>
-    <div class="sec"><h3>Подзадачи</h3>${t.subs.map(s=>pjSubHTML(sec,s)).join("")}<div class="addrow" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></div>
+    <div class="sec"><h3>Подзадачи</h3>${t.subs.map(s=>pjSubHTML(sec,s)).join("")}<div class="addrow" onclick="pjAddSub('${sec.id}','${t.id}')">${IC("plus")}подзадача</div></div>
     <div class="sec"><div class="tabs" style="margin-bottom:8px">${tabs}</div>
       <div class="pj-blocks" id="pjBlocks" data-s="${sec.id}" data-t="${t.id}" data-k="${key}" data-p="">${pjBlocksInner(list,key)}</div></div>
-    <div class="muted" style="font-size:12px;margin-top:10px">Enter - новая строка, «/» в пустой строке - выбор типа блока. Кнопка «＋ Страница» создаёт страницу: назови её и нажми «Открыть ›», внутри пишешь дальше.</div></div>`; }
+    <div class="muted" style="font-size:12px;margin-top:10px">Enter - новая строка, «/» в пустой строке - выбор типа блока. Кнопка «Страница» создаёт страницу: назови её и нажми «Открыть ›», внутри пишешь дальше.</div></div>`; }
 /* открытая вложенная страница: цепочка «задача › вкладка › страница», название, её блоки */
 function pjPageHTML(sec,t,key,R){ const cur=R.chain[R.chain.length-1], tabName=(PJ_BTABS.find(x=>x[0]===key)||["",""])[1], path=R.chain.map(b=>b.id).join(","), n=R.chain.length;
   const nm=b=>esc(b.text||"Без названия");
@@ -237,18 +237,18 @@ function pjPageHTML(sec,t,key,R){ const cur=R.chain[R.chain.length-1], tabName=(
     <div class="pj-ptitle" contenteditable="plaintext-only" data-ph="Название страницы" ${at}>${esc(cur.text)}</div>
     ${td.t?`<div class="muted" style="margin:-4px 0 10px">Сделано ${td.d} из ${td.t}</div>`:""}
     <div class="pj-blocks" id="pjBlocks" ${at}>${pjBlocksInner(cur.kids,key)}</div>
-    <div class="muted" style="font-size:12px;margin-top:10px">«＋ Страница» создаёт ещё одну страницу внутри этой.</div></div>`; }
+    <div class="muted" style="font-size:12px;margin-top:10px">«Страница» создаёт ещё одну страницу внутри этой.</div></div>`; }
 function pjBlocksInner(list,key){
-  if(!list.length) return `<div class="pj-ghost" onclick="pjAddBlock(null)">Нажми и начни писать</div>`+`<div class="pj-addrow"><span class="pj-add" onclick="pjAddBlock(null)">＋ Блок</span><span class="pj-add" onclick="pjAddBlock(null,'page')">📄 ＋ Страница</span></div>`;
+  if(!list.length) return `<div class="pj-ghost" onclick="pjAddBlock(null)">Нажми и начни писать</div>`+`<div class="pj-addrow"><span class="pj-add" onclick="pjAddBlock(null)">${IC("plus")}Блок</span><span class="pj-add" onclick="pjAddBlock(null,'page')">${IC("plus")}Страница</span></div>`;
   return list.map(b=>{ const ph={h:"Заголовок",ul:"Пункт списка",todo:"Задача",quote:"Цитата",code:"Код",page:"Страница без названия"}[b.type]||"Пиши текст или нажми «/»";
     const ck=`<span class="pj-ck ${b.done?'on':''}" data-ck="${b.id}"></span>`;
     const mark=b.type==="ul"?'<span class="pj-dot">•</span>':(b.type==="todo"||b.type==="page"?ck:'');
     const strike=(b.type==="todo"||b.type==="page")&&b.done?'strike':'';
     let tail=""; const u=b.type==="page"?null:String(b.text||"").match(/https?:\/\/[^\s)]+/);
-    if(u) tail=`<a class="pj-lnk" href="${esc(u[0])}" target="_blank" rel="noopener" title="Открыть ссылку">↗</a>`;
+    if(u) tail=`<a class="pj-lnk" href="${esc(u[0])}" target="_blank" rel="noopener" title="Открыть ссылку">${IC("external")}</a>`;
     if(b.type==="page"){ const c=pjTodoCount(b.kids);
-      return `<div class="pj-b t-page" data-b="${b.id}">${mark}<span class="pj-pico" data-open="${b.id}" title="Открыть страницу">📄</span><div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${c.t?`<span class="muted pj-pc">${c.d}/${c.t}</span>`:""}<a class="pj-po" data-open="${b.id}">Открыть ›</a><span class="del" data-delb="${b.id}" title="Удалить страницу">×</span></div>`; }
-    return `<div class="pj-b t-${b.type}" data-b="${b.id}">${mark}<div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${tail}</div>`; }).join("")+`<div class="pj-addrow"><span class="pj-add" onclick="pjAddBlock(null)">＋ Блок</span><span class="pj-add" onclick="pjAddBlock(null,'page')">📄 ＋ Страница</span></div>`; }
+      return `<div class="pj-b t-page" data-b="${b.id}">${mark}<span class="pj-pico" data-open="${b.id}" title="Открыть страницу">${IC("file")}</span><div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${c.t?`<span class="muted pj-pc">${c.d}/${c.t}</span>`:""}<a class="pj-po" data-open="${b.id}">Открыть ›</a><span class="del" data-delb="${b.id}" title="Удалить страницу">×</span></div>`; }
+    return `<div class="pj-b t-${b.type}" data-b="${b.id}">${mark}<div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${tail}</div>`; }).join("")+`<div class="pj-addrow"><span class="pj-add" onclick="pjAddBlock(null)">${IC("plus")}Блок</span><span class="pj-add" onclick="pjAddBlock(null,'page')">${IC("plus")}Страница</span></div>`; }
 
 /* ---------- редактор блоков ---------- */
 /* env: список блоков, в котором правим (вкладка или открытая вложенная страница); метка синхронизации одна на вкладку */

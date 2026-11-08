@@ -154,13 +154,13 @@ function metFmt(m,prev,pMon){ const p=(m.w&&prev)?prev.find(x=>x.k===m.k):null;
 function metricsAuto(sec,mon){ const pMon=dateAddDays(mon,-7), prev=metricsOf(sec,pMon); return metricsOf(sec,mon).map(m=>metFmt(m,prev,pMon)); }
 function metricsText(sec,mon){ const man=String(revRead(sec,mon).metrics||""); return man.trim()!==""?man:metricsAuto(sec,mon).join("\n"); }
 function metricsLines(sec,mon){ return metricsText(sec,mon).split("\n").filter(l=>l.trim()!==""); }
-function reportSport(sec,mon){ return ["🏋 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
-function reportCareer(sec,mon){ return ["💼 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
-function reportEnglish(sec,mon){ return ["🇬🇧 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
-function reportProject(sec,mon){ return ["📘 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
-function reportCourse(sec,mon){ return ["📘 "+sec.name].concat(metricsLines(sec,mon)).concat([""]); }
-function reportGeneric(sec,mon){ return ["🎯 "+sec.name].concat(metricsLines(sec,mon||mondayOf(todayStr()))).concat([""]); }
-function reportCustom(sec,mon){ return ["✨ "+sec.name].concat(metricsLines(sec,mon||mondayOf(todayStr()))).concat([""]); }
+function reportSport(sec,mon){ return [sec.name].concat(metricsLines(sec,mon)).concat([""]); }
+function reportCareer(sec,mon){ return [sec.name].concat(metricsLines(sec,mon)).concat([""]); }
+function reportEnglish(sec,mon){ return [sec.name].concat(metricsLines(sec,mon)).concat([""]); }
+function reportProject(sec,mon){ return [sec.name].concat(metricsLines(sec,mon)).concat([""]); }
+function reportCourse(sec,mon){ return [sec.name].concat(metricsLines(sec,mon)).concat([""]); }
+function reportGeneric(sec,mon){ return [sec.name].concat(metricsLines(sec,mon||mondayOf(todayStr()))).concat([""]); }
+function reportCustom(sec,mon){ return [sec.name].concat(metricsLines(sec,mon||mondayOf(todayStr()))).concat([""]); }
 function buildWeeklyReport(mon){ const sun=dateAddDays(mon,6);
   let L=["ОТЧЁТ ЗА НЕДЕЛЮ · "+ruDate(mon)+" – "+ruDate(sun),""];
   data.sections.forEach(sec=>{
@@ -344,7 +344,7 @@ function buildFullReport(mon){ const w=isoWeek(mon); const done=planWeekDone(mon
   let L=["ОТЧЁТ ЗА НЕДЕЛЮ · "+ruDate(mon)+" – "+ruDate(dateAddDays(mon,6)),""];
   data.sections.forEach(sec=>{ const sk=secKey(sec), rev=wReview(w,sk), mets=metricsLines(sec,mon); const dts=done.filter(t=>t.secId===sec.id); const nts=nextT.filter(t=>t.secId===sec.id);
     const secAll=planForWeek(mon).filter(t=>t.secId===sec.id); const secPct=secAll.length?Math.round(dts.length/secAll.length*100):null;
-    L.push("🎯 "+sec.name); if(sec.sub) L.push("Категория: "+sec.sub);
+    L.push(sec.name); if(sec.sub) L.push("Категория: "+sec.sub);
     L.push("");
     if(mets.length){ L.push("Метрики:"); mets.forEach(m=>L.push(m)); L.push(""); }
     if(secPct!=null){ L.push("Выполнено плана: "+dts.length+"/"+secAll.length+" ("+secPct+"%)"); L.push(""); }
@@ -437,7 +437,7 @@ function buildWeekPlan(mon){
   let L=["ПЛАН","Неделя "+isoWeek(mon).split("-W")[1]+" ("+ruDate(mon)+" — "+ruDate(sun)+")",""];
   PLAN_ORDER.forEach(kind=>{ const sec=planSec(kind); if(!sec) return;
     const g=PLAN_GOALS[kind]||{goal:sec.name,cat:""};
-    L.push("🎯 "+g.goal);
+    L.push(g.goal);
     if(g.cat) L.push("Категория: "+g.cat);
     L.push("");
     L.push("План:");

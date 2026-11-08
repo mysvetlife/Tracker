@@ -63,6 +63,16 @@ function courseToProject(sec,M){ M=M||{}; const c=JSON.parse(JSON.stringify(sec.
   const out=Object.assign({},sec,{kind:"project",legacyKey:"course",cover:sec.cover||"",goal:sec.goal||sec.sub||"",
     project:ensureProject({stages:stages,time:time,moods:c.moods||[],exp:exp,legacy:{course:c}})});
   delete out.course; return out; }
+/* «Понедельник» один. Устройство без данных заводит свой «Понедельник» с другим id (id в defaultData случайный), и после слияния их два.
+   Остаётся тот, где больше записанного (отметки, записи страниц, время, настроение), при равенстве - с меньшим id, одинаково на всех устройствах.
+   Остальные вливаются в него (ничего не теряется: слияние объединяет) и попадают в тумбстоны secDeleted - с другого устройства не вернутся. */
+function dedupeCourse(d){ const cs=d.sections.filter(s=>s.kind==="project"&&s.legacyKey==="course"); if(cs.length<2) return;
+  const sc=s=>{ const p=ensureProject(s.project); return projectScore(p)+p.moods.length; };
+  cs.sort((x,y)=>sc(y)-sc(x)||(x.id<y.id?-1:1));
+  const keep=cs[0]; d.secDeleted=d.secDeleted||[];
+  cs.slice(1).forEach(s=>{ mergeProject(keep,s,d._m||{},d._m||{}); if(d.secDeleted.indexOf(s.id)<0) d.secDeleted.push(s.id); });
+  d.sections=d.sections.filter(s=>s===keep||cs.indexOf(s)<0);
+  if(d.active&&!d.sections.some(s=>s.id===d.active)&&["overview","inbox"].indexOf(d.active)<0) d.active=keep.id; }
 function newProjectSection(o){ o=o||{};
   return { id:o.id||uid(), name:o.name||"Новое направление", kind:"project", color:o.color||"var(--a-blue)", icon:o.icon||"star",
     sub:o.sub||"", cover:o.cover||"", goal:o.goal||"", project:ensureProject(o.project) }; }
@@ -141,5 +151,5 @@ function mergeProject(m,b,aM,bM){ const a=ensureProject(m.project), bb=ensurePro
 
 Object.assign(window, {
   PJ_BLOCK_KEYS, PJ_RANK, pjBlkCount, pjTodoCount, ensureTask, ensureProject, newProjectSection, pjTasks, pjFind, pjProgress,
-  projectScore, mergeProject, pjWeekMin, courseToProject, pjCourseStages, NARC_ID, narcSeed, pjHash,
+  projectScore, mergeProject, dedupeCourse, pjWeekMin, courseToProject, pjCourseStages, NARC_ID, narcSeed, pjHash,
 });

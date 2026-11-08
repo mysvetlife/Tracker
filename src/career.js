@@ -179,7 +179,7 @@ function rtCardHTML(sec,p){
   const done=rtDone(c,p), total=rtTotal(p), cur=rtCurBlock(c,p), next=rtNextStep(c,p);
   let body=next?`<p style="font-size:12.5px; color:var(--muted); margin:0 0 4px">Сейчас: <b style="color:var(--text)">${esc(cur.t)}</b></p>
     <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Следующий шаг: <b style="color:var(--text)">${esc(next)}</b></p>`
-   :`<p style="font-size:12.5px; color:var(--success); margin:0 0 12px">Все шаги пройдены 🎉</p>`;
+   :`<p style="font-size:12.5px; color:var(--success); margin:0 0 12px">Все шаги пройдены</p>`;
   body+=tlogRowHTML('career',p.tk,'Ставь минуты в тот день, когда работала над проектом. Галочки шагов — про прогресс, минуты — про потраченное время.');
   p.blocks.forEach((b,bi)=>{
     const bd=rtBlockDone(c,p,b), btot=b.items.length, bp=btot?bd/btot:0, full=bd===btot;
@@ -276,7 +276,7 @@ function careerHTML(sec){
         </div>
       </div>
     </div>
-    <div class="beacon">${svg('info')}<div>${nextP?`Следующий шаг — <b style="color:var(--text)">${esc(rtNextStep(c,nextP))}</b> (${esc(nextP.short)}).`:'Все шаги плана пройдены 🎉'} Отклики каждый день понемногу, пост в LinkedIn раз в неделю.${treeOn?` Ключевых артефактов по древу собрано: <b style="color:var(--text)">${arts}</b> из ${CR_ARTIFACTS.length}.`:''}</div></div>
+    <div class="beacon">${svg('info')}<div>${nextP?`Следующий шаг — <b style="color:var(--text)">${esc(rtNextStep(c,nextP))}</b> (${esc(nextP.short)}).`:'Все шаги плана пройдены'} Отклики каждый день понемногу, пост в LinkedIn раз в неделю.${treeOn?` Ключевых артефактов по древу собрано: <b style="color:var(--text)">${arts}</b> из ${CR_ARTIFACTS.length}.`:''}</div></div>
   </div>`;
 
   // ежедневные отклики + LinkedIn
@@ -289,7 +289,7 @@ function careerHTML(sec){
   // проект «Семейное древо»
   const st=CR_STAGES[0];
   let treeBody=nextStep?`<p style="font-size:12.5px; color:var(--muted); margin:0 0 4px">Сейчас: <b style="color:var(--text)">${esc(curBlock.t)}</b></p>
-    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Следующий шаг: <b style="color:var(--text)">${esc(nextStep)}</b></p>`:`<p style="font-size:12.5px; color:var(--success); margin:0 0 12px">Все шаги пройдены 🎉</p>`;
+    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Следующий шаг: <b style="color:var(--text)">${esc(nextStep)}</b></p>`:`<p style="font-size:12.5px; color:var(--success); margin:0 0 12px">Все шаги пройдены</p>`;
   treeBody+=tlogRowHTML('career','tr','Ставь минуты в тот день, когда работала над проектом. Галочки шагов — про прогресс, минуты — про потраченное время.');
   TREE_BLOCKS.forEach((b,bi)=>{
     const bd=crBlockDone(c,b), btot=b.items.length, bp=btot?bd/btot:0, full=bd===btot;
@@ -363,7 +363,7 @@ function liCardHTML(sec){
 
 /* ---- career actions ---- */
 function crToggleItem(sk,k){ const c=activeCareer().career; c.stages[sk][k]=!c.stages[sk][k]; mstamp("st:"+sk+"."+k); save(); renderCareer(); }
-function crToggleCheckpoint(cp){ const c=activeCareer().career; c.checkpoints[cp]=!c.checkpoints[cp]; mstamp("st:cp."+cp); save(); renderCareer(); if(c.checkpoints[cp]) toast("Чек-поинт закрыт 🎉"); }
+function crToggleCheckpoint(cp){ const c=activeCareer().career; c.checkpoints[cp]=!c.checkpoints[cp]; mstamp("st:cp."+cp); save(); renderCareer(); if(c.checkpoints[cp]) toast("Чек-поинт закрыт"); }
 function crToggleStage(k,cur){ const c=activeCareer().career; c.exp[k]=!cur; save(); renderCareer(); }
 
 /* ================= Порядок блоков и «Временно приостановлено» =================

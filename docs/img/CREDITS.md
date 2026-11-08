@@ -14,4 +14,13 @@
 | monday.webp | Понедельник | https://www.pexels.com/photo/minimalist-cappuccino-and-gratitude-journal-flat-lay-28699945/ | Erika Andrade | Pexels License |
 | sport.webp | Спорт / Тело | https://www.pexels.com/photo/yoga-mats-and-yoga-blocks-on-a-wooden-floor-6752163/ | Rachel Claire | Pexels License |
 
-Направление с другим названием (вид `def`) остаётся с нарисованной обложкой. Своя картинка через кнопку 📷 главнее фото.
+Направление с другим названием (вид `def`) остаётся с нарисованной обложкой. Своя картинка через кнопку с фотоаппаратом главнее фото.
+
+## Шапки страниц (banner-*.webp, 2400×400)
+
+Широкие вырезки из тех же фото, что и обложки, в той же тёплой гамме: banner-<вид>.webp у каждого направления.
+Для главной (banner-home.webp) добавлено отдельное фото:
+
+| Файл | Где | Источник | Автор | Лицензия |
+| --- | --- | --- | --- | --- |
+| banner-home.webp | Главная | https://www.pexels.com/photo/pink-clouds-1831234/ | Madison Inouye | Pexels License |

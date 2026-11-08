@@ -128,6 +128,59 @@ Object.assign(window, {
 	}
 });
 //#endregion
+//#region src/ic.js
+var IC_SET = {
+	home: "<path d=\"m3 10.5 9-7.5 9 7.5\"/><path d=\"M5 9.5V20h14V9.5\"/><path d=\"M10 20v-6h4v6\"/>",
+	calendar: "<rect x=\"3\" y=\"4.5\" width=\"18\" height=\"16.5\" rx=\"2.5\"/><path d=\"M8 2.5v4M16 2.5v4M3 10h18\"/>",
+	calcheck: "<rect x=\"3\" y=\"4.5\" width=\"18\" height=\"16.5\" rx=\"2.5\"/><path d=\"M8 2.5v4M16 2.5v4M3 10h18\"/><path d=\"m9 15.5 2 2 4-4\"/>",
+	pencil: "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z\"/>",
+	inbox: "<path d=\"M22 12h-6l-2 3h-4l-2-3H2\"/><path d=\"M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.8 1.1z\"/>",
+	menu: "<path d=\"M4 6.5h16M4 12h16M4 17.5h16\"/>",
+	camera: "<path d=\"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z\"/><circle cx=\"12\" cy=\"13\" r=\"3.2\"/>",
+	chart: "<path d=\"M3 3v18h18\"/><path d=\"m7 15.5 4-4.5 3.2 3L19 7.5\"/>",
+	sparkles: "<path d=\"M11 3.5 12.9 9 18.5 11l-5.6 2L11 18.5 9.1 13 3.5 11 9.1 9z\"/><path d=\"M19 3v4M17 5h4\"/><path d=\"M18 16v4M16 18h4\"/>",
+	pentool: "<path d=\"m12 19 7-7 3 3-7 7z\"/><path d=\"m18 13-1.5-7.5L2 2l3.5 14.5L13 18z\"/><path d=\"m2 2 7.6 7.6\"/><circle cx=\"11\" cy=\"11\" r=\"2\"/>",
+	brain: "<path d=\"M12 5a3 3 0 1 0-6 .1 4 4 0 0 0-2.5 5.7 4 4 0 0 0 .6 6.6A4 4 0 1 0 12 18z\"/><path d=\"M12 5a3 3 0 1 1 6 .1 4 4 0 0 1 2.5 5.7 4 4 0 0 1-.6 6.6A4 4 0 1 1 12 18z\"/><path d=\"M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4\"/>",
+	dumbbell: "<path d=\"M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11\"/>",
+	star: "<path d=\"m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z\"/>",
+	book: "<path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/>",
+	plus: "<path d=\"M12 5v14M5 12h14\"/>",
+	external: "<path d=\"M15 3h6v6\"/><path d=\"M10 14 21 3\"/><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/>",
+	file: "<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z\"/><path d=\"M14 2v5h6\"/><path d=\"M8 13h8M8 17h5\"/>",
+	wrench: "<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z\"/>",
+	play: "<path d=\"M7 4.5v15l12.5-7.5z\"/>",
+	lines: "<path d=\"M4 6.5h16M4 12h16M4 17.5h10\"/>",
+	help: "<circle cx=\"12\" cy=\"12\" r=\"9.5\"/><path d=\"M9.1 9.2a3 3 0 0 1 5.8 1c0 2-2.9 2.8-2.9 2.8\"/><path d=\"M12 17h.01\"/>",
+	dot: "<circle cx=\"12\" cy=\"12\" r=\"2.4\"/>",
+	heading: "<path d=\"M6 4v16M18 4v16M6 12h12\"/>",
+	textt: "<path d=\"M4 7V4h16v3\"/><path d=\"M9 20h6\"/><path d=\"M12 4v16\"/>",
+	list: "<path d=\"M9 6.5h11M9 12h11M9 17.5h11\"/><circle cx=\"4.5\" cy=\"6.5\" r=\".8\"/><circle cx=\"4.5\" cy=\"12\" r=\".8\"/><circle cx=\"4.5\" cy=\"17.5\" r=\".8\"/>",
+	checklist: "<path d=\"m9 11 3 3L22 4\"/><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11\"/>",
+	quote: "<path d=\"M3 21c3 0 7-1 7-8V5c0-1.2-.8-2-2-2H4c-1.2 0-2 .8-2 2v6c0 1.2.8 2 2 2h4\"/><path d=\"M15 21c3 0 7-1 7-8V5c0-1.2-.8-2-2-2h-3c-1.2 0-2 .8-2 2v6c0 1.2.8 2 2 2h4\"/>",
+	code: "<path d=\"m16 18 6-6-6-6\"/><path d=\"m8 6-6 6 6 6\"/>"
+};
+var IC_STYLE = (function() {
+	let css = ".ic{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em;flex:none;background-color:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}.ic:not(:only-child){margin-right:.3em}";
+	Object.keys(IC_SET).forEach((k) => {
+		const svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#000\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\">" + IC_SET[k] + "</svg>";
+		css += ".ic-" + k + "{--m:url(\"data:image/svg+xml," + encodeURIComponent(svg).replace(/"/g, "%22") + "\")}";
+	});
+	return css;
+})();
+(function() {
+	const st = document.createElement("style");
+	st.id = "icStyle";
+	st.textContent = IC_STYLE;
+	document.head.appendChild(st);
+})();
+function IC$1(n) {
+	return "<i class=\"ic ic-" + n + "\"></i>";
+}
+Object.assign(window, {
+	IC: IC$1,
+	IC_SET
+});
+//#endregion
 //#region src/course-program.js
 Object.assign(window, { COURSE: [
 	{
@@ -1531,6 +1584,7 @@ function migrate$1(d) {
 			return false;
 		});
 	}
+	dedupeCourse(d);
 	seedPlans(d);
 	if (!d.sections.some((s) => s.id === NARC_ID) && d.secDeleted.indexOf(NARC_ID) < 0) d.sections.push(narcSeed());
 	orderSections(d);
@@ -1821,6 +1875,23 @@ function courseToProject$1(sec, M) {
 	delete out.course;
 	return out;
 }
+function dedupeCourse$1(d) {
+	const cs = d.sections.filter((s) => s.kind === "project" && s.legacyKey === "course");
+	if (cs.length < 2) return;
+	const sc = (s) => {
+		const p = ensureProject$1(s.project);
+		return projectScore$1(p) + p.moods.length;
+	};
+	cs.sort((x, y) => sc(y) - sc(x) || (x.id < y.id ? -1 : 1));
+	const keep = cs[0];
+	d.secDeleted = d.secDeleted || [];
+	cs.slice(1).forEach((s) => {
+		mergeProject$1(keep, s, d._m || {}, d._m || {});
+		if (d.secDeleted.indexOf(s.id) < 0) d.secDeleted.push(s.id);
+	});
+	d.sections = d.sections.filter((s) => s === keep || cs.indexOf(s) < 0);
+	if (d.active && !d.sections.some((s) => s.id === d.active) && ["overview", "inbox"].indexOf(d.active) < 0) d.active = keep.id;
+}
 function newProjectSection$1(o) {
 	o = o || {};
 	return {
@@ -2097,6 +2168,7 @@ Object.assign(window, {
 	pjProgress: pjProgress$1,
 	projectScore: projectScore$1,
 	mergeProject: mergeProject$1,
+	dedupeCourse: dedupeCourse$1,
 	pjWeekMin: pjWeekMin$1,
 	courseToProject: courseToProject$1,
 	pjCourseStages,
@@ -2355,11 +2427,11 @@ var PJ_ORDER = [
 	"o"
 ];
 var PJ_TYPE = {
-	"": "•",
-	v: "▶",
-	a: "≡",
-	r: "✎",
-	q: "?"
+	"": IC("dot"),
+	v: IC("play"),
+	a: IC("lines"),
+	r: IC("pencil"),
+	q: IC("help")
 };
 var PJ_TYPE_NEXT = {
 	"": "v",
@@ -2386,37 +2458,37 @@ var PJ_BLK = [
 	[
 		"p",
 		"Текст",
-		"¶"
+		IC("textt")
 	],
 	[
 		"h",
 		"Заголовок",
-		"H"
+		IC("heading")
 	],
 	[
 		"ul",
 		"Список",
-		"•"
+		IC("list")
 	],
 	[
 		"todo",
 		"Чек-лист",
-		"☑"
+		IC("checklist")
 	],
 	[
 		"quote",
 		"Цитата",
-		"❝"
+		IC("quote")
 	],
 	[
 		"code",
 		"Код",
-		"</>"
+		IC("code")
 	],
 	[
 		"page",
 		"Страница",
-		"📄"
+		IC("file")
 	]
 ];
 function pjSec$1(id) {
@@ -2440,7 +2512,7 @@ function pjEd$1(k, secId, id, text, ph, cls) {
 	return `<span class="pj-ed ${cls || ""}" contenteditable="plaintext-only" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}">${esc(text)}</span>`;
 }
 function pjName(k, secId, id, text, ph, cls, click) {
-	return `<span class="pj-ed pj-nm ${cls || ""}" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}"${click ? ` onclick="if(!this.isContentEditable)${click}"` : ""}>${esc(text)}</span><span class="pj-rn" onclick="event.stopPropagation();pjBeginEdit(this.previousElementSibling)" title="Переименовать">✎</span>`;
+	return `<span class="pj-ed pj-nm ${cls || ""}" data-k="${k}" data-s="${secId}" data-id="${id}" data-ph="${esc(ph)}"${click ? ` onclick="if(!this.isContentEditable)${click}"` : ""}>${esc(text)}</span><span class="pj-rn" onclick="event.stopPropagation();pjBeginEdit(this.previousElementSibling)" title="Переименовать">${IC("pencil")}</span>`;
 }
 function pjBeginEdit(el) {
 	if (!el) return;
@@ -2809,9 +2881,9 @@ function pjStBadge(sec, t) {
 	return `<span class="tag ${PJ_STCLS[t.status]}" style="cursor:pointer" onclick="pjCycle('${sec.id}','${t.id}')" title="Нажми, чтобы сменить статус">${PJ_ST[t.status]}</span>`;
 }
 function pjPlanHTML(sec) {
-	if (!sec.project.stages.length) return `<div class="empty"><div class="serif" style="font-size:24px">Плана пока нет</div><p class="muted">${esc(sec.goal || "")}</p><p>Начни с первого этапа, потом добавь в него задачи.</p><a class="btn" onclick="pjAddStage('${sec.id}')">＋ Первый этап</a></div>`;
+	if (!sec.project.stages.length) return `<div class="empty"><div class="serif" style="font-size:24px">Плана пока нет</div><p class="muted">${esc(sec.goal || "")}</p><p>Начни с первого этапа, потом добавь в него задачи.</p><a class="btn" onclick="pjAddStage('${sec.id}')">${IC("plus")}Первый этап</a></div>`;
 	return `<div class="tbar"><a class="tab ${pjFilter === "all" ? "on" : ""}" onclick="pjSetFilter('${sec.id}','all')">Все</a><a class="tab ${pjFilter === "left" ? "on" : ""}" onclick="pjSetFilter('${sec.id}','left')">Незавершённые</a>
-    <input class="di search" data-s="${sec.id}" placeholder="Поиск по задачам и подзадачам…" value="${esc(pjQuery)}" oninput="pjSearch(this)"><a class="tab" onclick="pjFoldAll('${sec.id}')">Свернуть / развернуть этапы</a></div><div id="pjPlanBody">${pjPlanBody(sec)}</div><div class="addrow" onclick="pjAddStage('${sec.id}')" style="margin-top:12px">＋ Этап</div>`;
+    <input class="di search" data-s="${sec.id}" placeholder="Поиск по задачам и подзадачам…" value="${esc(pjQuery)}" oninput="pjSearch(this)"><a class="tab" onclick="pjFoldAll('${sec.id}')">Свернуть / развернуть этапы</a></div><div id="pjPlanBody">${pjPlanBody(sec)}</div><div class="addrow" onclick="pjAddStage('${sec.id}')" style="margin-top:12px">${IC("plus")}Этап</div>`;
 }
 function pjPlanBody(sec) {
 	const p = sec.project, q = pjQuery.trim().toLowerCase(), narrow = !!q || pjFilter === "left", has = (s) => String(s || "").toLowerCase().includes(q);
@@ -2843,14 +2915,14 @@ function pjPlanBody(sec) {
 			const sopen = force || pjOpenState(p, t.id, false), sd = t.subs.filter((s) => s.done).length;
 			let r = `<tr><td><span class="ck ${pjDone(t) ? "d" : ""}" onclick="pjCheckTask('${sec.id}','${t.id}')" role="checkbox" aria-checked="${pjDone(t)}"></span></td>
         <td>${t.subs.length ? `<span class="pj-chev ${sopen ? "open" : ""}" onclick="pjFold('${sec.id}','${t.id}',false)" style="cursor:pointer">›</span> ` : ""}${pjName("task", sec.id, t.id, t.name, "Название задачи", pjDone(t) ? "strike" : "", "pjOpenTask('" + sec.id + "','" + t.id + "')")}
-          <a class="open" onclick="pjOpenTask('${sec.id}','${t.id}')" title="Открыть страницу задачи" style="cursor:pointer">↗</a>${t.subs.length ? ` <span class="muted" style="font-size:11.5px">${sd}/${t.subs.length}</span>` : ""}${t.note ? " <span class=\"muted\" style=\"font-size:11px\" title=\"Есть конспект\">📝</span>" : ""}${t.prac ? " <span class=\"muted\" style=\"font-size:11px\" title=\"Практика сделана\">🛠</span>" : ""}</td>
+          <a class="open" onclick="pjOpenTask('${sec.id}','${t.id}')" title="Открыть страницу задачи" style="cursor:pointer">${IC("external")}</a>${t.subs.length ? ` <span class="muted" style="font-size:11.5px">${sd}/${t.subs.length}</span>` : ""}${t.note ? " <span class=\"muted\" style=\"font-size:11px\" title=\"Есть конспект\">${IC(\"file\")}</span>" : ""}${t.prac ? " <span class=\"muted\" style=\"font-size:11px\" title=\"Практика сделана\">${IC(\"wrench\")}</span>" : ""}</td>
         <td>${pjStBadge(sec, t)}</td><td><input type="date" class="di" value="${esc(t.end)}" onchange="pjField('${sec.id}','${t.id}','end',this.value)"></td>
         <td><input type="number" class="di num" min="0" step="0.5" value="${t.hours || ""}" placeholder="0" onchange="pjField('${sec.id}','${t.id}','hours',this.value)" style="width:60px"></td>
         <td class="x"><span class="del" onclick="pjDel('${sec.id}','task','${t.id}')" title="Удалить задачу">×</span></td></tr>`;
-			if (sopen) r += subs.map((s) => `<tr class="subrow"><td></td><td colspan="4"><div style="padding-left:22px">${pjSubHTML(sec, s)}</div></td><td></td></tr>`).join("") + `<tr class="subrow"><td></td><td colspan="5"><div class="addrow" style="padding-left:30px" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></td></tr>`;
+			if (sopen) r += subs.map((s) => `<tr class="subrow"><td></td><td colspan="4"><div style="padding-left:22px">${pjSubHTML(sec, s)}</div></td><td></td></tr>`).join("") + `<tr class="subrow"><td></td><td colspan="5"><div class="addrow" style="padding-left:30px" onclick="pjAddSub('${sec.id}','${t.id}')">${IC("plus")}подзадача</div></td></tr>`;
 			return r;
 		}).join("");
-		return `<div class="stage" onclick="if(!event.target.isContentEditable)pjFold('${sec.id}','${st.id}',${!!(st.id === pjCurStage(p) || !st.tasks.length)})" style="cursor:pointer" title="Нажми, чтобы свернуть или развернуть этап"><span><span class="pj-chev ${open ? "open" : ""}">›</span> ${pjName("stage", sec.id, st.id, st.name, "Название этапа")}</span><span class="muted" style="font-weight:400">${dn} из ${st.tasks.length} <span class="del" onclick="event.stopPropagation();pjDel('${sec.id}','stage','${st.id}')" title="Удалить этап">×</span></span></div>` + (open ? `<div class="tw pj-tw"><table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table></div>` + (narrow ? "" : `<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">＋ Задача в этот этап</div>`) : "");
+		return `<div class="stage" onclick="if(!event.target.isContentEditable)pjFold('${sec.id}','${st.id}',${!!(st.id === pjCurStage(p) || !st.tasks.length)})" style="cursor:pointer" title="Нажми, чтобы свернуть или развернуть этап"><span><span class="pj-chev ${open ? "open" : ""}">›</span> ${pjName("stage", sec.id, st.id, st.name, "Название этапа")}</span><span class="muted" style="font-weight:400">${dn} из ${st.tasks.length} <span class="del" onclick="event.stopPropagation();pjDel('${sec.id}','stage','${st.id}')" title="Удалить этап">×</span></span></div>` + (open ? `<div class="tw pj-tw"><table style="table-layout:fixed">${cg}<tr><th>Сделано</th><th>Задача</th><th>Статус</th><th>Срок</th><th>Часы план</th><th></th></tr>${rows}</table></div>` + (narrow ? "" : `<div class="addrow" onclick="pjAddTask('${sec.id}','${st.id}')">${IC("plus")}Задача в этот этап</div>`) : "");
 	}).join("") || `<div class="empty"><p class="muted">Ничего не найдено.</p></div>`;
 }
 function pjSetFilter(secId, f) {
@@ -2931,7 +3003,7 @@ function pjTimeHTML(sec) {
     <td class="x"><span class="del" onclick="pjDelTime('${sec.id}','${x.id}')" title="Удалить">×</span></td></tr>`).join("");
 	const sum = p.time.reduce((a, x) => a + (+x.min || 0), 0);
 	return `<div class="tw pj-tw pj-time"><table style="table-layout:fixed"><colgroup><col style="width:130px"><col><col style="width:190px"><col style="width:80px"><col style="width:130px"><col style="width:28px"></colgroup><tr><th>Дата</th><th>Что делала</th><th>Задача</th><th>Минут</th><th>Источник</th><th></th></tr>${rows}</table></div>
-  <div class="addrow" onclick="pjAddTime('${sec.id}')">＋ Запись времени</div><div class="muted" style="font-size:12px;margin-top:8px">Всего записано: ${fmtMin(sum)}</div>`;
+  <div class="addrow" onclick="pjAddTime('${sec.id}')">${IC("plus")}Запись времени</div><div class="muted" style="font-size:12px;margin-top:8px">Всего записано: ${fmtMin(sum)}</div>`;
 }
 function pjAddTime(secId) {
 	const sec = pjSec$1(secId);
@@ -2968,7 +3040,7 @@ function pjGoalsHTML(sec) {
 	return sec.project.goals.map((g) => `<div class="goal"><b><span>${PJ_GOAL_KIND[g.kind] || "Цель"}: <input class="di" style="width:60%;font-weight:600;color:var(--text)" value="${esc(g.title)}" placeholder="Название цели" onchange="pjGoalField('${sec.id}','${g.id}','title',this.value)"></span><span>${g.pct}%</span></b>
     <div class="bar" style="margin:6px 0"><i style="width:${g.pct}%"></i></div>
     <div class="gline" style="display:flex;gap:12px;align-items:center"><input type="range" min="0" max="100" value="${g.pct}" class="rg" style="flex:1" onchange="pjGoalField('${sec.id}','${g.id}','pct',this.value)"> <span class="muted" style="font-size:12px">срок</span>
-      <input type="date" class="di" value="${esc(g.date)}" onchange="pjGoalField('${sec.id}','${g.id}','date',this.value)"><span class="del" onclick="pjDelGoal('${sec.id}','${g.id}')" title="Удалить цель">×</span></div></div>`).join("") + `<div class="addrow" onclick="pjAddGoal('${sec.id}','month')">＋ Цель месяца</div><div class="addrow" onclick="pjAddGoal('${sec.id}','year')">＋ Цель года</div><div class="muted" style="font-size:12px;margin-top:8px">Процент ставится вручную ползунком.</div>`;
+      <input type="date" class="di" value="${esc(g.date)}" onchange="pjGoalField('${sec.id}','${g.id}','date',this.value)"><span class="del" onclick="pjDelGoal('${sec.id}','${g.id}')" title="Удалить цель">×</span></div></div>`).join("") + `<div class="addrow" onclick="pjAddGoal('${sec.id}','month')">${IC("plus")}Цель месяца</div><div class="addrow" onclick="pjAddGoal('${sec.id}','year')">${IC("plus")}Цель года</div><div class="muted" style="font-size:12px;margin-top:8px">Процент ставится вручную ползунком.</div>`;
 }
 function pjAddGoal(secId, kind) {
 	const sec = pjSec$1(secId);
@@ -3014,10 +3086,10 @@ function pjTaskHTML(sec, t, st) {
       <span class="muted">до</span><input type="date" class="di" value="${esc(t.end)}" onchange="pjField('${sec.id}','${t.id}','end',this.value)">
       <span class="muted">план</span><input type="number" class="di num" min="0" step="0.5" value="${t.hours || ""}" placeholder="0" style="width:60px" onchange="pjField('${sec.id}','${t.id}','hours',this.value)"><span class="muted">ч · записано ${fmtMin(pjTaskMin(p, t.id))}</span>
       <span style="margin-left:auto"><span class="ck ${t.note ? "d" : ""}" onclick="pjField('${sec.id}','${t.id}','note',${!t.note})"></span> Конспект есть &nbsp; <span class="ck ${t.prac ? "d" : ""}" onclick="pjField('${sec.id}','${t.id}','prac',${!t.prac})"></span> Практика сделана</span></div>
-    <div class="sec"><h3>Подзадачи</h3>${t.subs.map((s) => pjSubHTML(sec, s)).join("")}<div class="addrow" onclick="pjAddSub('${sec.id}','${t.id}')">＋ подзадача</div></div>
+    <div class="sec"><h3>Подзадачи</h3>${t.subs.map((s) => pjSubHTML(sec, s)).join("")}<div class="addrow" onclick="pjAddSub('${sec.id}','${t.id}')">${IC("plus")}подзадача</div></div>
     <div class="sec"><div class="tabs" style="margin-bottom:8px">${tabs}</div>
       <div class="pj-blocks" id="pjBlocks" data-s="${sec.id}" data-t="${t.id}" data-k="${key}" data-p="">${pjBlocksInner(list, key)}</div></div>
-    <div class="muted" style="font-size:12px;margin-top:10px">Enter - новая строка, «/» в пустой строке - выбор типа блока. Кнопка «＋ Страница» создаёт страницу: назови её и нажми «Открыть ›», внутри пишешь дальше.</div></div>`;
+    <div class="muted" style="font-size:12px;margin-top:10px">Enter - новая строка, «/» в пустой строке - выбор типа блока. Кнопка «Страница» создаёт страницу: назови её и нажми «Открыть ›», внутри пишешь дальше.</div></div>`;
 }
 function pjPageHTML(sec, t, key, R) {
 	const cur = R.chain[R.chain.length - 1], tabName = (PJ_BTABS.find((x) => x[0] === key) || ["", ""])[1], path = R.chain.map((b) => b.id).join(","), n = R.chain.length;
@@ -3028,10 +3100,10 @@ function pjPageHTML(sec, t, key, R) {
     <div class="pj-ptitle" contenteditable="plaintext-only" data-ph="Название страницы" ${at}>${esc(cur.text)}</div>
     ${td.t ? `<div class="muted" style="margin:-4px 0 10px">Сделано ${td.d} из ${td.t}</div>` : ""}
     <div class="pj-blocks" id="pjBlocks" ${at}>${pjBlocksInner(cur.kids, key)}</div>
-    <div class="muted" style="font-size:12px;margin-top:10px">«＋ Страница» создаёт ещё одну страницу внутри этой.</div></div>`;
+    <div class="muted" style="font-size:12px;margin-top:10px">«Страница» создаёт ещё одну страницу внутри этой.</div></div>`;
 }
 function pjBlocksInner(list, key) {
-	if (!list.length) return "<div class=\"pj-ghost\" onclick=\"pjAddBlock(null)\">Нажми и начни писать</div><div class=\"pj-addrow\"><span class=\"pj-add\" onclick=\"pjAddBlock(null)\">＋ Блок</span><span class=\"pj-add\" onclick=\"pjAddBlock(null,'page')\">📄 ＋ Страница</span></div>";
+	if (!list.length) return `<div class="pj-ghost" onclick="pjAddBlock(null)">Нажми и начни писать</div><div class="pj-addrow"><span class="pj-add" onclick="pjAddBlock(null)">${IC("plus")}Блок</span><span class="pj-add" onclick="pjAddBlock(null,'page')">${IC("plus")}Страница</span></div>`;
 	return list.map((b) => {
 		const ph = {
 			h: "Заголовок",
@@ -3046,13 +3118,13 @@ function pjBlocksInner(list, key) {
 		const strike = (b.type === "todo" || b.type === "page") && b.done ? "strike" : "";
 		let tail = "";
 		const u = b.type === "page" ? null : String(b.text || "").match(/https?:\/\/[^\s)]+/);
-		if (u) tail = `<a class="pj-lnk" href="${esc(u[0])}" target="_blank" rel="noopener" title="Открыть ссылку">↗</a>`;
+		if (u) tail = `<a class="pj-lnk" href="${esc(u[0])}" target="_blank" rel="noopener" title="Открыть ссылку">${IC("external")}</a>`;
 		if (b.type === "page") {
 			const c = pjTodoCount(b.kids);
-			return `<div class="pj-b t-page" data-b="${b.id}">${mark}<span class="pj-pico" data-open="${b.id}" title="Открыть страницу">📄</span><div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${c.t ? `<span class="muted pj-pc">${c.d}/${c.t}</span>` : ""}<a class="pj-po" data-open="${b.id}">Открыть ›</a><span class="del" data-delb="${b.id}" title="Удалить страницу">×</span></div>`;
+			return `<div class="pj-b t-page" data-b="${b.id}">${mark}<span class="pj-pico" data-open="${b.id}" title="Открыть страницу">${IC("file")}</span><div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${c.t ? `<span class="muted pj-pc">${c.d}/${c.t}</span>` : ""}<a class="pj-po" data-open="${b.id}">Открыть ›</a><span class="del" data-delb="${b.id}" title="Удалить страницу">×</span></div>`;
 		}
 		return `<div class="pj-b t-${b.type}" data-b="${b.id}">${mark}<div class="pj-bt ${strike}" contenteditable="plaintext-only" data-ph="${ph}">${esc(b.text)}</div>${tail}</div>`;
-	}).join("") + `<div class="pj-addrow"><span class="pj-add" onclick="pjAddBlock(null)">＋ Блок</span><span class="pj-add" onclick="pjAddBlock(null,'page')">📄 ＋ Страница</span></div>`;
+	}).join("") + `<div class="pj-addrow"><span class="pj-add" onclick="pjAddBlock(null)">${IC("plus")}Блок</span><span class="pj-add" onclick="pjAddBlock(null,'page')">${IC("plus")}Страница</span></div>`;
 }
 function pjBlkEnv(el) {
 	const box = el.closest("#pjBlocks,.pj-ptitle");
@@ -6975,18 +7047,18 @@ function secArtKind(s) {
 	if (/аналит|данн/.test(n)) return "analyst";
 	return "def";
 }
-var ART_EMOJI = {
-	analyst: "📊",
-	english: "🔤",
-	ai: "🤖",
-	ux: "🎨",
-	narc: "🧠",
-	sport: "💪",
-	monday: "🗓",
-	def: "✨"
+var ART_ICON = {
+	analyst: "chart",
+	english: "book",
+	ai: "sparkles",
+	ux: "pentool",
+	narc: "brain",
+	sport: "dumbbell",
+	monday: "calcheck",
+	def: "star"
 };
-function secEmoji$1(s) {
-	return s.emoji || ART_EMOJI[secArtKind(s)];
+function secIcon$1(s) {
+	return IC(ART_ICON[secArtKind(s)]);
 }
 var ART_PHOTO = {
 	analyst: 1,
@@ -7002,13 +7074,18 @@ function secCoverStyle$1(s) {
 	const photo = /^(https?:|data:|\.?\/|img\/)/.test(c), k = secArtKind(s);
 	return "background-image:" + (photo ? "url('" + c + "')" : ART_PHOTO[k] ? "url('./img/" + k + ".webp')," + artURL(k) : artURL(k)) + ";background-size:cover;background-position:center";
 }
+function secBannerStyle$1(s) {
+	const c = s && s.cover || "", k = s ? secArtKind(s) : "home";
+	return "background-image:url('" + (/^(https?:|data:|\.?\/|img\/)/.test(c) ? c : "./img/banner-" + (ART_PHOTO[k] ? k : "home") + ".webp") + "')";
+}
 Object.assign(window, {
 	ART,
 	artURL,
 	secArtKind,
-	secEmoji: secEmoji$1,
+	secIcon: secIcon$1,
 	secCoverStyle: secCoverStyle$1,
-	ART_EMOJI
+	secBannerStyle: secBannerStyle$1,
+	ART_ICON
 });
 //#endregion
 //#region src/habits.js
@@ -7295,7 +7372,7 @@ function habDayFlip(i, el) {
 }
 function todayHTML$1() {
 	ensureHabits$1(data);
-	return data.today.map((t) => `<div class="bl"><span class="ck ${t.done ? "d" : ""}" onclick="tdToggle('${t.id}')"></span><span class="ed ${t.done ? "strike" : ""}" contenteditable="plaintext-only" data-ph="Пункт" onblur="tdRename('${t.id}',this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${esc(t.text)}</span><span class="del" onclick="tdDel('${t.id}')" title="Удалить">×</span></div>`).join("") + `<div class="addrow" onclick="tdAdd()">＋ Пункт</div>`;
+	return data.today.map((t) => `<div class="bl"><span class="ck ${t.done ? "d" : ""}" onclick="tdToggle('${t.id}')"></span><span class="ed ${t.done ? "strike" : ""}" contenteditable="plaintext-only" data-ph="Пункт" onblur="tdRename('${t.id}',this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${esc(t.text)}</span><span class="del" onclick="tdDel('${t.id}')" title="Удалить">×</span></div>`).join("") + `<div class="addrow" onclick="tdAdd()">${IC("plus")}Пункт</div>`;
 }
 function tdAdd() {
 	const t = {
@@ -7360,57 +7437,53 @@ Object.assign(window, {
 });
 //#endregion
 //#region src/home.js
-var mkBanner = (a, b, h) => `<div class="banner" style="height:${h || 120}px"><div class="b1"></div><div class="b2"><div class="big" style="font-size:${h > 140 ? 27 : 24}px">${a}</div><div class="script" style="font-size:${h > 140 ? 25 : 20}px">${b}</div></div><div class="b3"></div></div>`;
-var MK_TOOLS = `<span class="pill" id="syncBtn" onclick="openSyncModal()"><span class="slabel">Всё сохранено</span></span><span class="pill" onclick="exportData()">Сохранить в файл</span><span class="pill" onclick="document.getElementById('imp').click()">Загрузить из файла</span><span class="pill" onclick="openPlan()">План</span>`;
+var mkBanner = (sec, h, motto) => `<div class="banner" style="height:${h || 140}px;${secBannerStyle(sec)}">${motto ? `<div class="motto"><div class="big">${motto[0]}</div><div class="script">${motto[1]}</div></div>` : ""}</div>`;
+var MK_SYS = `<span class="pill" onclick="exportData()">Сохранить в файл</span><span class="pill" onclick="document.getElementById('imp').click()">Загрузить из файла</span><span class="pill" onclick="openPlan()">План</span><span class="pill" id="syncBtn" onclick="openSyncModal()"><span class="slabel">Всё сохранено</span></span>`;
+var mkTools = (acts) => `<div class="acts">${acts}</div><div class="sys">${MK_SYS}</div>`;
 function renderShell$1() {
 	const a = data.active, sec = data.sections.find((s) => s.id === a);
-	let banner, logo, title, sub, tools = MK_TOOLS;
+	let banner, logo, title, sub = "", acts = "", long = false;
 	if (a === "overview") {
-		banner = mkBanner("Весь твой год может измениться.", "Пусть это будет он.", 170);
-		logo = "🏠";
+		banner = mkBanner(null, 170, ["Весь твой год может измениться.", "Пусть это будет он."]);
+		logo = IC("home");
 		title = esc(data.title);
-		sub = "Будь внимательной. Будь последовательной. Будь собой.";
 	} else if (a === "inbox") {
-		banner = mkBanner("Входящие", "быстрые записи");
-		logo = "✎";
+		banner = mkBanner(null, 170);
+		logo = IC("inbox");
 		title = "Входящие";
-		sub = "Записать мысль сейчас, переложить в направление потом";
 	} else if (sec) {
-		banner = mkBanner(esc(sec.name), sec.kind === "sport" ? "сильнее каждый день" : "шаг за шагом");
-		logo = secEmoji(sec);
+		banner = mkBanner(sec, 170);
+		logo = secIcon(sec);
 		if (sec.kind === "project") {
 			const f = window.pjTask ? pjFind(sec.project, window.pjTask) : null;
 			if (f) {
+				long = true;
 				title = `<span style="font-size:34px">${pjEd("task", sec.id, f.task.id, f.task.name, "Название задачи")}</span>`;
 				sub = `<a style="color:var(--accent);cursor:pointer" onclick="pjGo('${sec.id}','plan')">← План</a> · ${esc(f.stage.name)}`;
-				tools = "";
 			} else {
 				title = pjEd("proj", sec.id, sec.id, sec.name, "Название");
-				sub = pjEd("goal", sec.id, sec.id, sec.goal || "", "Цель направления");
-				tools = `<span class="pill" onclick="pjAddTask('${sec.id}')">＋ Задача</span><span class="pill" onclick="openNoteModal()">＋ Заметка</span>` + tools + `<span class="pill" onclick="deleteSection('${sec.id}')">Удалить направление</span>`;
+				acts = `<span class="pill" onclick="pjAddTask('${sec.id}')">${IC("plus")}Задача</span><span class="pill" onclick="openNoteModal()">${IC("plus")}Заметка</span><span class="pill" onclick="deleteSection('${sec.id}')">Удалить направление</span>`;
 			}
 		} else {
 			title = esc(sec.name);
-			sub = esc(sec.sub || "");
-			tools = `<span class="pill" onclick="openSectionModal('${sec.id}')">Изменить</span>` + tools;
+			acts = `<span class="pill" onclick="openSectionModal('${sec.id}')">Изменить</span>`;
 		}
 	} else {
-		banner = mkBanner("Мой прогресс", "", 120);
-		logo = "🏠";
+		banner = mkBanner(null, 170);
+		logo = IC("home");
 		title = esc(data.title);
-		sub = "";
 	}
 	document.getElementById("mkBanner").innerHTML = banner;
-	document.getElementById("mkHead").innerHTML = `<button class="burger" type="button" aria-label="Меню" onclick="mkNavToggle()">☰</button><div class="logo">${logo}</div><div class="ttl"><h1>${title}</h1><div class="sub">${sub}</div></div><div class="tools">${tools}</div>`;
+	document.getElementById("mkHead").innerHTML = `<button class="burger" type="button" aria-label="Меню" onclick="mkNavToggle()">${IC("menu")}</button><div class="logo">${logo}</div><div class="ttl"><h1${long ? " class=\"long\"" : ""}>${title}</h1>${sub ? `<div class="sub">${sub}</div>` : ""}</div><div class="tools">${mkTools(acts)}</div>`;
 	document.getElementById("mkLayout").className = "layout" + (a === "overview" ? " three" : "");
 	if (typeof updateSyncBtn === "function") updateSyncBtn();
 }
 function renderTabs$1() {
 	const on = (id) => data.active === id ? "on" : "", nn = (data.notes || []).length;
-	const dirs = data.sections.map((s) => `<a class="${on(s.id)}" data-sid="${s.id}" onclick="go('${s.id}')">${secEmoji(s)} ${esc(s.name)}</a>`).join("");
-	document.getElementById("mkNav").innerHTML = `<div class="card nav"><a class="${on("overview")}" onclick="go('overview')">🏡 Главная</a><a onclick="openReport2()">📅 Отчёт по неделям</a></div>
-  <div class="card nav"><div class="cap">Направления</div><div data-sort="nav">${dirs}</div><a class="plus" onclick="openSectionModal()">＋ Новое направление</a></div>
-  <div class="card qa"><a onclick="openNoteModal()"><span class="qi">✎</span>Создать заметку</a><a class="${on("inbox")}" onclick="go('inbox')"><span class="qi">▤</span>Входящие${nn ? " (" + nn + ")" : ""}</a></div>`;
+	const dirs = data.sections.map((s) => `<a class="${on(s.id)}" data-sid="${s.id}" onclick="go('${s.id}')">${secIcon(s)}${esc(s.name)}</a>`).join("");
+	document.getElementById("mkNav").innerHTML = `<div class="card nav"><a class="${on("overview")}" onclick="go('overview')">${IC("home")}Главная</a><a onclick="openReport2()">${IC("calendar")}Отчёт по неделям</a></div>
+  <div class="card nav"><div class="cap">Направления</div><div data-sort="nav">${dirs}</div><a class="plus" onclick="openSectionModal()">${IC("plus")}Новое направление</a></div>
+  <div class="card qa"><a onclick="openNoteModal()"><span class="qi">${IC("pencil")}</span>Создать заметку</a><a class="${on("inbox")}" onclick="go('inbox')"><span class="qi">${IC("inbox")}</span>Входящие${nn ? " (" + nn + ")" : ""}</a></div>`;
 }
 function hmTasks() {
 	const r = [];
@@ -7424,9 +7497,9 @@ function hmTasks() {
 function wDirs() {
 	return `<section class="card" data-sid="w-dirs"><div class="band">Направления</div><div class="dirs" data-sort="dirs">${data.sections.map((s) => {
 		const p = sectionProgress(s), pct = Math.round((p === null ? 0 : p) * 100);
-		return `<a class="dir" data-sid="${s.id}" onclick="go('${s.id}')"><div class="img" style="${secCoverStyle(s)}"><span class="cam" onclick="event.stopPropagation();coverPick('${s.id}')" title="Своя картинка">📷</span></div>
+		return `<a class="dir" data-sid="${s.id}" onclick="go('${s.id}')"><div class="img" style="${secCoverStyle(s)}"><span class="cam" onclick="event.stopPropagation();coverPick('${s.id}')" title="Своя картинка">${IC("camera")}</span></div>
       <div class="tt"><b>${esc(s.name)}</b><div class="pg"><div class="bar"><i style="width:${pct}%"></i></div><span>${pct}%</span></div></div></a>`;
-	}).join("")}<a class="dir newdir" onclick="openSectionModal()"><span class="plusbig">＋</span><span>Добавить новое направление</span></a></div></section>`;
+	}).join("")}<a class="dir newdir" onclick="openSectionModal()"><span class="plusbig">${IC("plus")}</span><span>Добавить новое направление</span></a></div></section>`;
 }
 function wNow() {
 	const now = hmTasks().filter((x) => x.t.status === "i").sort((a, b) => (a.t.end || "9") < (b.t.end || "9") ? -1 : 1);
@@ -7437,7 +7510,7 @@ function wNow() {
 }
 function wHabits() {
 	ensureHabits(data);
-	return `<section class="card" data-sid="w-habits"><div class="band s">Привычки · эта неделя</div>${habitsTable(mondayOf(todayStr()))}<div class="addrow" onclick="habAdd()">＋ Привычка</div></section>`;
+	return `<section class="card" data-sid="w-habits"><div class="band s">Привычки · эта неделя</div>${habitsTable(mondayOf(todayStr()))}<div class="addrow" onclick="habAdd()">${IC("plus")}Привычка</div></section>`;
 }
 function wTime() {
 	const ws = mondayOf(todayStr()), ps = data.sections.filter((s) => s.kind === "project");
@@ -8207,7 +8280,7 @@ function openBlockModal$1(sid) {
 	window.bmTarget = sid;
 	window.bmType = null;
 	document.getElementById("modal").innerHTML = `<h3>Новый блок</h3>
-  <p class="mhint">Что добавить в раздел «${esc(sec.name)}»? Блок появится внизу раздела; потом его можно переименовать (✎ в шапке блока), приостановить (⏸) или переставить (⠿).</p>
+  <p class="mhint">Что добавить в раздел «${esc(sec.name)}»? Блок появится внизу раздела; потом его можно переименовать, приостановить или переставить кнопками в шапке блока.</p>
   <div class="btypes" role="group" aria-label="Тип блока">${BLOCK_TYPES.map((x) => `
     <button type="button" class="btype" id="bt_${x.t}" aria-pressed="false" onclick="bmPick('${x.t}')">
       <span class="btico" aria-hidden="true">${svg(x.ic)}</span>
@@ -9551,7 +9624,7 @@ function spCBody(sp) {
 	const rows = defs.map((r) => {
 		const k = r[0], a = arr(k), last = a.length ? a[a.length - 1] : null, v = last ? k === "weight" ? last.kg : last.cm : null;
 		const old = k !== "weight" && (!last || spDaysSince(last.date) > 28);
-		return `<div class="mrow"><div><b>${r[1]}</b>${old ? "<small class=\"rem\">пора замерить</small>" : ""}</div><div class="mval">${v != null ? spFnum(v) + " <small>" + r[2] + "</small>" : "—"}</div><span class="pill" onclick="${k === "weight" ? "openWeight()" : "openMeasure('" + k + "')"}">＋</span></div>`;
+		return `<div class="mrow"><div><b>${r[1]}</b>${old ? "<small class=\"rem\">пора замерить</small>" : ""}</div><div class="mval">${v != null ? spFnum(v) + " <small>" + r[2] + "</small>" : "—"}</div><span class="pill" onclick="${k === "weight" ? "openWeight()" : "openMeasure('" + k + "')"}">${IC("plus")}</span></div>`;
 	}).join("");
 	const pts = arr("weight").map((x) => ({
 		label: ruDate$1(x.date),
@@ -9582,7 +9655,7 @@ function spCKb(sp) {
 }
 function spCBlog(sp) {
 	const posts = (sp.blog || []).slice().sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (a.date < b.date ? 1 : -1));
-	const form = window.sportBlogNew ? `<div class="blogform"><input id="blogT" class="di" placeholder="Название, например: Неделя 3 · 23–29 ноября" style="width:100%"><textarea id="blogX" class="di" rows="7" placeholder="Вставь сюда текст недели: установка, напоминания, что съесть" style="width:100%;margin-top:6px"></textarea><div class="inl" style="margin-top:6px"><span class="pill" onclick="spBlogSave()">Сохранить</span><span class="pill" onclick="spBlogNew(0)">Отмена</span></div></div>` : `<span class="pill" onclick="spBlogNew(1)">＋ Запись недели</span>`;
+	const form = window.sportBlogNew ? `<div class="blogform"><input id="blogT" class="di" placeholder="Название, например: Неделя 3 · 23–29 ноября" style="width:100%"><textarea id="blogX" class="di" rows="7" placeholder="Вставь сюда текст недели: установка, напоминания, что съесть" style="width:100%;margin-top:6px"></textarea><div class="inl" style="margin-top:6px"><span class="pill" onclick="spBlogSave()">Сохранить</span><span class="pill" onclick="spBlogNew(0)">Отмена</span></div></div>` : `<span class="pill" onclick="spBlogNew(1)">${IC("plus")}Запись недели</span>`;
 	return spBand("blog", "Блог · еда на неделю", "новая запись по воскресеньям", `<div class="blogl">${posts.map((p) => `<article class="bpost"><div class="bh"><b>${esc(p.title || "Без названия")}</b><span class="muted">${p.pin ? "всегда наверху" : ruDate$1(p.date) + " <span class=\"del\" onclick=\"spBlogDel('" + p.id + "')\" title=\"Удалить\">×</span>"}</span></div><div class="btext">${spFmtPost(p.text)}</div></article>`).join("") || "<p class=\"muted\" style=\"font-size:13px\">Записей пока нет.</p>"}</div>${form}`);
 }
 function spCEnergy(sp) {
@@ -10380,7 +10453,7 @@ function rtCardHTML(sec, p) {
 	const c = sec.career, s = rtStage(c, p);
 	const done = rtDone$1(c, p), total = rtTotal$1(p), cur = rtCurBlock$1(c, p), next = rtNextStep$1(c, p);
 	let body = next ? `<p style="font-size:12.5px; color:var(--muted); margin:0 0 4px">Сейчас: <b style="color:var(--text)">${esc(cur.t)}</b></p>
-    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Следующий шаг: <b style="color:var(--text)">${esc(next)}</b></p>` : `<p style="font-size:12.5px; color:var(--success); margin:0 0 12px">Все шаги пройдены 🎉</p>`;
+    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Следующий шаг: <b style="color:var(--text)">${esc(next)}</b></p>` : `<p style="font-size:12.5px; color:var(--success); margin:0 0 12px">Все шаги пройдены</p>`;
 	body += tlogRowHTML("career", p.tk, "Ставь минуты в тот день, когда работала над проектом. Галочки шагов — про прогресс, минуты — про потраченное время.");
 	p.blocks.forEach((b, bi) => {
 		const bd = rtBlockDone(c, p, b), btot = b.items.length, bp = btot ? bd / btot : 0, full = bd === btot;
@@ -10540,7 +10613,7 @@ function careerHTML$1(sec) {
         </div>
       </div>
     </div>
-    <div class="beacon">${svg("info")}<div>${nextP ? `Следующий шаг — <b style="color:var(--text)">${esc(rtNextStep$1(c, nextP))}</b> (${esc(nextP.short)}).` : "Все шаги плана пройдены 🎉"} Отклики каждый день понемногу, пост в LinkedIn раз в неделю.${treeOn ? ` Ключевых артефактов по древу собрано: <b style="color:var(--text)">${arts}</b> из ${CR_ARTIFACTS.length}.` : ""}</div></div>
+    <div class="beacon">${svg("info")}<div>${nextP ? `Следующий шаг — <b style="color:var(--text)">${esc(rtNextStep$1(c, nextP))}</b> (${esc(nextP.short)}).` : "Все шаги плана пройдены"} Отклики каждый день понемногу, пост в LinkedIn раз в неделю.${treeOn ? ` Ключевых артефактов по древу собрано: <b style="color:var(--text)">${arts}</b> из ${CR_ARTIFACTS.length}.` : ""}</div></div>
   </div>`;
 	html += dailyCardHTML(sec, "apply");
 	html += liCardHTML(sec);
@@ -10549,7 +10622,7 @@ function careerHTML$1(sec) {
 	});
 	const st = CR_STAGES$1[0];
 	let treeBody = nextStep ? `<p style="font-size:12.5px; color:var(--muted); margin:0 0 4px">Сейчас: <b style="color:var(--text)">${esc(curBlock.t)}</b></p>
-    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Следующий шаг: <b style="color:var(--text)">${esc(nextStep)}</b></p>` : `<p style="font-size:12.5px; color:var(--success); margin:0 0 12px">Все шаги пройдены 🎉</p>`;
+    <p style="font-size:12.5px; color:var(--muted); margin:0 0 12px">Следующий шаг: <b style="color:var(--text)">${esc(nextStep)}</b></p>` : `<p style="font-size:12.5px; color:var(--success); margin:0 0 12px">Все шаги пройдены</p>`;
 	treeBody += tlogRowHTML("career", "tr", "Ставь минуты в тот день, когда работала над проектом. Галочки шагов — про прогресс, минуты — про потраченное время.");
 	TREE_BLOCKS$1.forEach((b, bi) => {
 		const bd = crBlockDone(c, b), btot = b.items.length, bp = btot ? bd / btot : 0, full = bd === btot;
@@ -10700,7 +10773,7 @@ function crToggleCheckpoint(cp) {
 	mstamp("st:cp." + cp);
 	save();
 	renderCareer$1();
-	if (c.checkpoints[cp]) toast("Чек-поинт закрыт 🎉");
+	if (c.checkpoints[cp]) toast("Чек-поинт закрыт");
 }
 function crToggleStage(k, cur) {
 	const c = activeCareer$1().career;
@@ -14819,25 +14892,25 @@ function metricsLines(sec, mon) {
 	return metricsText(sec, mon).split("\n").filter((l) => l.trim() !== "");
 }
 function reportSport(sec, mon) {
-	return ["🏋 " + sec.name].concat(metricsLines(sec, mon)).concat([""]);
+	return [sec.name].concat(metricsLines(sec, mon)).concat([""]);
 }
 function reportCareer(sec, mon) {
-	return ["💼 " + sec.name].concat(metricsLines(sec, mon)).concat([""]);
+	return [sec.name].concat(metricsLines(sec, mon)).concat([""]);
 }
 function reportEnglish(sec, mon) {
-	return ["🇬🇧 " + sec.name].concat(metricsLines(sec, mon)).concat([""]);
+	return [sec.name].concat(metricsLines(sec, mon)).concat([""]);
 }
 function reportProject(sec, mon) {
-	return ["📘 " + sec.name].concat(metricsLines(sec, mon)).concat([""]);
+	return [sec.name].concat(metricsLines(sec, mon)).concat([""]);
 }
 function reportCourse(sec, mon) {
-	return ["📘 " + sec.name].concat(metricsLines(sec, mon)).concat([""]);
+	return [sec.name].concat(metricsLines(sec, mon)).concat([""]);
 }
 function reportGeneric(sec, mon) {
-	return ["🎯 " + sec.name].concat(metricsLines(sec, mon || mondayOf(todayStr()))).concat([""]);
+	return [sec.name].concat(metricsLines(sec, mon || mondayOf(todayStr()))).concat([""]);
 }
 function reportCustom(sec, mon) {
-	return ["✨ " + sec.name].concat(metricsLines(sec, mon || mondayOf(todayStr()))).concat([""]);
+	return [sec.name].concat(metricsLines(sec, mon || mondayOf(todayStr()))).concat([""]);
 }
 function buildWeeklyReport(mon) {
 	const sun = dateAddDays(mon, 6);
@@ -15489,7 +15562,7 @@ function buildFullReport(mon) {
 		const nts = nextT.filter((t) => t.secId === sec.id);
 		const secAll = planForWeek(mon).filter((t) => t.secId === sec.id);
 		const secPct = secAll.length ? Math.round(dts.length / secAll.length * 100) : null;
-		L.push("🎯 " + sec.name);
+		L.push(sec.name);
 		if (sec.sub) L.push("Категория: " + sec.sub);
 		L.push("");
 		if (mets.length) {
@@ -15773,7 +15846,7 @@ function buildWeekPlan(mon) {
 			goal: sec.name,
 			cat: ""
 		};
-		L.push("🎯 " + g.goal);
+		L.push(g.goal);
 		if (g.cat) L.push("Категория: " + g.cat);
 		L.push("");
 		L.push("План:");

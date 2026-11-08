@@ -1,5 +1,5 @@
 /* art.js
-   Картинки карточек направлений: спокойные нарисованные обложки из макета (одна гамма). Своё фото - поле cover раздела (путь или адрес). */
+   Картинки направлений: фото-обложки карточек и фото-шапки страниц; нарисованные обложки из макета остались запасными. Своё фото - поле cover раздела (путь или адрес). */
 const ART={
  analyst:`<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ece6d6"/><stop offset="1" stop-color="#cfd8c0"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><circle cx="325" cy="46" r="26" fill="#f6e8cf" opacity=".9"/><path d="M0 150 C80 120 140 165 220 135 S340 112 400 138 V200 H0Z" fill="#b9c7a6" opacity=".75"/><g fill="#9fb08b"><rect x="70" y="112" width="24" height="60" rx="5"/><rect x="106" y="92" width="24" height="80" rx="5"/><rect x="142" y="122" width="24" height="50" rx="5"/><rect x="178" y="72" width="24" height="100" rx="5"/><rect x="214" y="100" width="24" height="72" rx="5"/></g><polyline points="60,102 118,80 154,104 190,58 226,84 262,50" fill="none" stroke="#8a6a52" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><g fill="#8a6a52"><circle cx="118" cy="80" r="5"/><circle cx="190" cy="58" r="5"/><circle cx="262" cy="50" r="5"/></g>`,
  english:`<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e5d3"/><stop offset="1" stop-color="#e8c8ae"/></linearGradient></defs><rect width="400" height="200" fill="url(#g)"/><path d="M95 152 Q150 124 200 148 Q250 124 305 152 V72 Q250 46 200 70 Q150 46 95 72Z" fill="#fff6ea" stroke="#c99b78" stroke-width="3" stroke-linejoin="round"/><path d="M200 70 V148" stroke="#c99b78" stroke-width="3"/><g stroke="#e3c6aa" stroke-width="3.5" stroke-linecap="round" fill="none"><path d="M118 90 Q150 80 182 94"/><path d="M118 108 Q150 98 182 112"/><path d="M118 126 Q150 116 182 130"/><path d="M218 94 Q250 80 282 90"/><path d="M218 112 Q250 98 282 108"/></g><rect x="268" y="22" width="92" height="46" rx="16" fill="#fff6ea" stroke="#d9b496" stroke-width="2.5"/><path d="M292 68 l-8 18 l26 -18z" fill="#fff6ea" stroke="#d9b496" stroke-width="2.5" stroke-linejoin="round"/><text x="314" y="52" font-family="Georgia,serif" font-size="22" fill="#b98562" text-anchor="middle">Hello</text>`,
@@ -17,11 +17,14 @@ function secArtKind(s){ const n=(s.name||'').toLowerCase();
   if(s.kind==='sport'||/спорт/.test(n)) return 'sport'; if(s.kind==='english'||/англ/.test(n)) return 'english';
   if(/нарцисс/.test(n)) return 'narc'; if(/понедельн/.test(n)||s.legacyKey==='course') return 'monday';
   if(/(^|[^а-яё])ии([^а-яё]|$)|нейро/.test(n)) return 'ai'; if(/ux|ui|дизайн/.test(n)) return 'ux'; if(/аналит|данн/.test(n)) return 'analyst'; return 'def'; }
-const ART_EMOJI={analyst:'📊',english:'🔤',ai:'🤖',ux:'🎨',narc:'🧠',sport:'💪',monday:'🗓',def:'✨'};
-function secEmoji(s){ return s.emoji||ART_EMOJI[secArtKind(s)]; }
+const ART_ICON={analyst:'chart',english:'book',ai:'sparkles',ux:'pentool',narc:'brain',sport:'dumbbell',monday:'calcheck',def:'star'};
+function secIcon(s){ return IC(ART_ICON[secArtKind(s)]); }
 /* фото обложек лежат в src/public/img/<вид>.webp (авторы и лицензии - в CREDITS.md рядом); у вида без фото остаётся рисунок */
 const ART_PHOTO={analyst:1,english:1,ai:1,ux:1,narc:1,sport:1,monday:1};
 function secCoverStyle(s){ const c=s.cover||''; const photo=/^(https?:|data:|\.?\/|img\/)/.test(c), k=secArtKind(s);
   const bg=photo?"url('"+c+"')":ART_PHOTO[k]?"url('./img/"+k+".webp'),"+artURL(k):artURL(k);   // рисунок под фото: если файл не загрузился, виден он
   return 'background-image:'+bg+';background-size:cover;background-position:center'; }
-Object.assign(window,{ART,artURL,secArtKind,secEmoji,secCoverStyle,ART_EMOJI});
+/* шапка страницы: широкое фото направления (img/banner-<вид>.webp); своя картинка из карточки главнее; у вида без фото - фото главной */
+function secBannerStyle(s){ const c=(s&&s.cover)||'', k=s?secArtKind(s):'home', photo=/^(https?:|data:|\.?\/|img\/)/.test(c);
+  return "background-image:url('"+(photo?c:'./img/banner-'+(ART_PHOTO[k]?k:'home')+'.webp')+"')"; }
+Object.assign(window,{ART,artURL,secArtKind,secIcon,secCoverStyle,secBannerStyle,ART_ICON});

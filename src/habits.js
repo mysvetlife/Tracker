@@ -59,7 +59,7 @@ function habDayFlip(i,el){ const h=data.habits.find(x=>x.id===window.habEditing)
 /* ---------- план на сегодня ---------- */
 function todayHTML(){ ensureHabits(data);
   const rows=data.today.map(t=>`<div class="bl"><span class="ck ${t.done?'d':''}" onclick="tdToggle('${t.id}')"></span><span class="ed ${t.done?'strike':''}" contenteditable="plaintext-only" data-ph="Пункт" onblur="tdRename('${t.id}',this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${esc(t.text)}</span><span class="del" onclick="tdDel('${t.id}')" title="Удалить">×</span></div>`).join("");
-  return rows+`<div class="addrow" onclick="tdAdd()">＋ Пункт</div>`; }
+  return rows+`<div class="addrow" onclick="tdAdd()">${IC("plus")}Пункт</div>`; }
 function tdAdd(){ const t={id:uid(),text:"",done:false}; data.today.push(t); mstamp("tt:"+t.id); render();
   setTimeout(()=>{ const els=document.querySelectorAll('[data-sid="w-today"] .ed'); const e=els[els.length-1]; if(e) e.focus(); },30); }
 function tdToggle(id){ const t=data.today.find(x=>x.id===id); if(!t) return; t.done=!t.done; mstamp("td:"+id); render(); }

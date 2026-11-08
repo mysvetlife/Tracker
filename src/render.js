@@ -252,7 +252,7 @@ const BLOCK_TYPES=[
 function openBlockModal(sid){ const sec=findSec(sid); if(!sec) return; ensureBlocks(sec);
   window.bmTarget=sid; window.bmType=null;
   document.getElementById("modal").innerHTML=`<h3>Новый блок</h3>
-  <p class="mhint">Что добавить в раздел «${esc(sec.name)}»? Блок появится внизу раздела; потом его можно переименовать (✎ в шапке блока), приостановить (⏸) или переставить (⠿).</p>
+  <p class="mhint">Что добавить в раздел «${esc(sec.name)}»? Блок появится внизу раздела; потом его можно переименовать, приостановить или переставить кнопками в шапке блока.</p>
   <div class="btypes" role="group" aria-label="Тип блока">${BLOCK_TYPES.map(x=>`
     <button type="button" class="btype" id="bt_${x.t}" aria-pressed="false" onclick="bmPick('${x.t}')">
       <span class="btico" aria-hidden="true">${svg(x.ic)}</span>

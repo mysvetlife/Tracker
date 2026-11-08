@@ -2,41 +2,46 @@
    Оболочка и главная по макету mockups/app.html: баннер, шапка, левая колонка (навигация), виджеты.
    Каждый раздел рисуется в колонке #view, шапка и баннер зависят от открытого раздела (renderShell). */
 
-const mkBanner=(a,b,h)=>`<div class="banner" style="height:${h||120}px"><div class="b1"></div><div class="b2"><div class="big" style="font-size:${h>140?27:24}px">${a}</div><div class="script" style="font-size:${h>140?25:20}px">${b}</div></div><div class="b3"></div></div>`;
-const MK_TOOLS=`<span class="pill" id="syncBtn" onclick="openSyncModal()"><span class="slabel">Всё сохранено</span></span><span class="pill" onclick="exportData()">Сохранить в файл</span><span class="pill" onclick="document.getElementById('imp').click()">Загрузить из файла</span><span class="pill" onclick="openPlan()">План</span>`;
+/* шапка страницы - фото (art.js, secBannerStyle); на главной поверх фото лежит девиз */
+const mkBanner=(sec,h,motto)=>`<div class="banner" style="height:${h||140}px;${secBannerStyle(sec)}">${motto?`<div class="motto"><div class="big">${motto[0]}</div><div class="script">${motto[1]}</div></div>`:""}</div>`;
+/* служебные кнопки всегда на одном месте: справа, в одном порядке, статус синхронизации - последним и фиксированной ширины;
+   кнопки направления (acts) стоят левее и от статуса не зависят */
+const MK_SYS=`<span class="pill" onclick="exportData()">Сохранить в файл</span><span class="pill" onclick="document.getElementById('imp').click()">Загрузить из файла</span><span class="pill" onclick="openPlan()">План</span><span class="pill" id="syncBtn" onclick="openSyncModal()"><span class="slabel">Всё сохранено</span></span>`;
+const mkTools=acts=>`<div class="acts">${acts}</div><div class="sys">${MK_SYS}</div>`;
 
 /* ---------- шапка и баннер ---------- */
 function renderShell(){
-  const a=data.active, sec=data.sections.find(s=>s.id===a); let banner, logo, title, sub, tools=MK_TOOLS;
-  if(a==="overview"){ banner=mkBanner("Весь твой год может измениться.","Пусть это будет он.",170); logo="🏠"; title=esc(data.title); sub="Будь внимательной. Будь последовательной. Будь собой."; }
-  else if(a==="inbox"){ banner=mkBanner("Входящие","быстрые записи"); logo="✎"; title="Входящие"; sub="Записать мысль сейчас, переложить в направление потом"; }
-  else if(sec){ banner=mkBanner(esc(sec.name),sec.kind==="sport"?"сильнее каждый день":"шаг за шагом"); logo=secEmoji(sec);
+  const a=data.active, sec=data.sections.find(s=>s.id===a); let banner, logo, title, sub="", acts="", long=false;
+  if(a==="overview"){ banner=mkBanner(null,170,["Весь твой год может измениться.","Пусть это будет он."]); logo=IC("home"); title=esc(data.title); }
+  else if(a==="inbox"){ banner=mkBanner(null,170); logo=IC("inbox"); title="Входящие"; }
+  else if(sec){ banner=mkBanner(sec,170); logo=secIcon(sec);
+    /* под названием направления надписей нет; подпись остаётся только у страницы задачи (путь назад) */
     if(sec.kind==="project"){ const f=window.pjTask?pjFind(sec.project,window.pjTask):null;
-      if(f){ title=`<span style="font-size:34px">${pjEd("task",sec.id,f.task.id,f.task.name,"Название задачи")}</span>`;
-        sub=`<a style="color:var(--accent);cursor:pointer" onclick="pjGo('${sec.id}','plan')">← План</a> · ${esc(f.stage.name)}`; tools=""; }
-      else { title=pjEd("proj",sec.id,sec.id,sec.name,"Название"); sub=pjEd("goal",sec.id,sec.id,sec.goal||"","Цель направления");
-        tools=`<span class="pill" onclick="pjAddTask('${sec.id}')">＋ Задача</span><span class="pill" onclick="openNoteModal()">＋ Заметка</span>`+tools+`<span class="pill" onclick="deleteSection('${sec.id}')">Удалить направление</span>`; } }
-    else { title=esc(sec.name); sub=esc(sec.sub||""); tools=`<span class="pill" onclick="openSectionModal('${sec.id}')">Изменить</span>`+tools; } }
-  else { banner=mkBanner("Мой прогресс","",120); logo="🏠"; title=esc(data.title); sub=""; }
+      if(f){ long=true; title=`<span style="font-size:34px">${pjEd("task",sec.id,f.task.id,f.task.name,"Название задачи")}</span>`;
+        sub=`<a style="color:var(--accent);cursor:pointer" onclick="pjGo('${sec.id}','plan')">← План</a> · ${esc(f.stage.name)}`; }
+      else { title=pjEd("proj",sec.id,sec.id,sec.name,"Название");
+        acts=`<span class="pill" onclick="pjAddTask('${sec.id}')">${IC("plus")}Задача</span><span class="pill" onclick="openNoteModal()">${IC("plus")}Заметка</span><span class="pill" onclick="deleteSection('${sec.id}')">Удалить направление</span>`; } }
+    else { title=esc(sec.name); acts=`<span class="pill" onclick="openSectionModal('${sec.id}')">Изменить</span>`; } }
+  else { banner=mkBanner(null,170); logo=IC("home"); title=esc(data.title); }
   document.getElementById("mkBanner").innerHTML=banner;
-  document.getElementById("mkHead").innerHTML=`<button class="burger" type="button" aria-label="Меню" onclick="mkNavToggle()">☰</button><div class="logo">${logo}</div><div class="ttl"><h1>${title}</h1><div class="sub">${sub}</div></div><div class="tools">${tools}</div>`;
+  document.getElementById("mkHead").innerHTML=`<button class="burger" type="button" aria-label="Меню" onclick="mkNavToggle()">${IC("menu")}</button><div class="logo">${logo}</div><div class="ttl"><h1${long?' class="long"':""}>${title}</h1>${sub?`<div class="sub">${sub}</div>`:""}</div><div class="tools">${mkTools(acts)}</div>`;
   document.getElementById("mkLayout").className="layout"+(a==="overview"?" three":"");
   if(typeof updateSyncBtn==="function") updateSyncBtn(); }
 
 /* ---------- левая колонка ---------- */
 function renderTabs(){ const on=id=>data.active===id?"on":"", nn=(data.notes||[]).length;
-  const dirs=data.sections.map(s=>`<a class="${on(s.id)}" data-sid="${s.id}" onclick="go('${s.id}')">${secEmoji(s)} ${esc(s.name)}</a>`).join("");
-  document.getElementById("mkNav").innerHTML=`<div class="card nav"><a class="${on('overview')}" onclick="go('overview')">🏡 Главная</a><a onclick="openReport2()">📅 Отчёт по неделям</a></div>
-  <div class="card nav"><div class="cap">Направления</div><div data-sort="nav">${dirs}</div><a class="plus" onclick="openSectionModal()">＋ Новое направление</a></div>
-  <div class="card qa"><a onclick="openNoteModal()"><span class="qi">✎</span>Создать заметку</a><a class="${on('inbox')}" onclick="go('inbox')"><span class="qi">▤</span>Входящие${nn?" ("+nn+")":""}</a></div>`; }
+  const dirs=data.sections.map(s=>`<a class="${on(s.id)}" data-sid="${s.id}" onclick="go('${s.id}')">${secIcon(s)}${esc(s.name)}</a>`).join("");
+  document.getElementById("mkNav").innerHTML=`<div class="card nav"><a class="${on('overview')}" onclick="go('overview')">${IC("home")}Главная</a><a onclick="openReport2()">${IC("calendar")}Отчёт по неделям</a></div>
+  <div class="card nav"><div class="cap">Направления</div><div data-sort="nav">${dirs}</div><a class="plus" onclick="openSectionModal()">${IC("plus")}Новое направление</a></div>
+  <div class="card qa"><a onclick="openNoteModal()"><span class="qi">${IC("pencil")}</span>Создать заметку</a><a class="${on('inbox')}" onclick="go('inbox')"><span class="qi">${IC("inbox")}</span>Входящие${nn?" ("+nn+")":""}</a></div>`; }
 
 /* ---------- виджеты главной ---------- */
 function hmTasks(){ const r=[]; data.sections.filter(s=>s.kind==="project").forEach(sec=>sec.project.stages.forEach(st=>st.tasks.forEach(t=>r.push({sec:sec,st:st,t:t})))); return r; }
 function wDirs(){
   const cards=data.sections.map(s=>{ const p=sectionProgress(s), pct=Math.round((p===null?0:p)*100);
-    return `<a class="dir" data-sid="${s.id}" onclick="go('${s.id}')"><div class="img" style="${secCoverStyle(s)}"><span class="cam" onclick="event.stopPropagation();coverPick('${s.id}')" title="Своя картинка">📷</span></div>
+    return `<a class="dir" data-sid="${s.id}" onclick="go('${s.id}')"><div class="img" style="${secCoverStyle(s)}"><span class="cam" onclick="event.stopPropagation();coverPick('${s.id}')" title="Своя картинка">${IC("camera")}</span></div>
       <div class="tt"><b>${esc(s.name)}</b><div class="pg"><div class="bar"><i style="width:${pct}%"></i></div><span>${pct}%</span></div></div></a>`; }).join("");
-  return `<section class="card" data-sid="w-dirs"><div class="band">Направления</div><div class="dirs" data-sort="dirs">${cards}<a class="dir newdir" onclick="openSectionModal()"><span class="plusbig">＋</span><span>Добавить новое направление</span></a></div></section>`; }
+  return `<section class="card" data-sid="w-dirs"><div class="band">Направления</div><div class="dirs" data-sort="dirs">${cards}<a class="dir newdir" onclick="openSectionModal()"><span class="plusbig">${IC("plus")}</span><span>Добавить новое направление</span></a></div></section>`; }
 function wNow(){ const now=hmTasks().filter(x=>x.t.status==="i").sort((a,b)=>(a.t.end||"9")<(b.t.end||"9")?-1:1);
   const more=now.length>5?`<tr><td></td><td class="muted" colspan="3">и ещё ${now.length-5} — все видны в плане каждого направления</td></tr>`:"";
   const rows=now.slice(0,5).map(x=>`<tr><td style="width:34px"><span class="ck" onclick="pjCheckTask('${x.sec.id}','${x.t.id}')"></span></td>
@@ -44,7 +49,7 @@ function wNow(){ const now=hmTasks().filter(x=>x.t.status==="i").sort((a,b)=>(a.
     <td><span class="tag st-i">Идёт</span></td><td class="muted">${x.t.end?"до "+fmtDate(x.t.end):""}</td></tr>`).join("")||`<tr><td class="muted">Нет задач со статусом «Идёт»</td></tr>`;
   return `<section class="card now" data-sid="w-now"><div class="cap">Сейчас в работе</div><table>${rows}${more}</table></section>`; }
 function wHabits(){ ensureHabits(data);
-  return `<section class="card" data-sid="w-habits"><div class="band s">Привычки · эта неделя</div>${habitsTable(mondayOf(todayStr()))}<div class="addrow" onclick="habAdd()">＋ Привычка</div></section>`; }
+  return `<section class="card" data-sid="w-habits"><div class="band s">Привычки · эта неделя</div>${habitsTable(mondayOf(todayStr()))}<div class="addrow" onclick="habAdd()">${IC("plus")}Привычка</div></section>`; }
 function wTime(){ const ws=mondayOf(todayStr()), ps=data.sections.filter(s=>s.kind==="project");
   const days=[0,1,2,3,4,5,6].map(i=>{ const ds=dateAddDays(ws,i); return ps.reduce((a,s)=>a+s.project.time.filter(x=>x.date===ds).reduce((b,x)=>b+(+x.min||0),0),0); });
   const mx=Math.max(60,...days), wk=days.reduce((a,b)=>a+b,0);
@@ -73,7 +78,7 @@ function coverPick(id){ const s=data.sections.find(x=>x.id===id); if(!s) return;
   const v=prompt("Адрес своей картинки (пусто - вернуть рисунок):",s.cover||""); if(v===null) return;
   s.cover=v.trim(); mstamp("cs:"+id); render(); }
 
-/* выезжающее меню на телефоне (≤760px): кнопка ☰ в шапке, закрытие касанием вне меню или выбором пункта */
+/* выезжающее меню на телефоне (≤760px): кнопка меню в шапке, закрытие касанием вне меню или выбором пункта */
 function mkNavToggle(){ document.body.classList.toggle("nav-open"); }
 function mkNavClose(){ document.body.classList.remove("nav-open"); }
 document.addEventListener("click",e=>{ if(!document.body.classList.contains("nav-open")) return;

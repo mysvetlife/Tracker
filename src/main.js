@@ -5,6 +5,7 @@
 
 import './state.js';
 import './icons.js';
+import './ic.js';
 import './course-program.js';
 import './data-model.js';
 import './project-model.js';
