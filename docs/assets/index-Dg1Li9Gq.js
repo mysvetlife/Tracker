@@ -14081,33 +14081,75 @@ function openSyncModal() {
 	const c = syncCfg || {};
 	document.getElementById("modal").innerHTML = `
   <h3>Облачная синхронизация</h3><p class="mhint">Данные будут одни и те же на всех устройствах. Введи одинаковый «Код синхронизации» на телефоне и компьютере.</p>
-  <label for="syUrl">Supabase Project URL</label><input type="text" id="syUrl" value="${esc(c.url || "")}" placeholder="https://xxxx.supabase.co">
-  <label for="syKey">anon public key</label><input type="text" id="syKey" value="${esc(c.key || "")}" placeholder="eyJhbGciOi...">
-  <label for="syCode">Код синхронизации (секретное слово)</label><input type="text" id="syCode" value="${esc(c.code || "")}" placeholder="напр. sveta-progress-2026">
+  <label for="syUrl">Supabase Project URL</label><input type="text" id="syUrl" ${SY_RAW} inputmode="url" value="${esc(c.url || "")}" placeholder="https://xxxx.supabase.co">
+  <label for="syKey">anon public key</label><input type="text" id="syKey" ${SY_RAW} value="${esc(c.key || "")}" placeholder="eyJhbGciOi...">
+  <label for="syCode">Код синхронизации (секретное слово)</label><input type="text" id="syCode" ${SY_RAW} value="${esc(c.code || "")}" placeholder="напр. sveta-progress-2026">
   <p class="mhint" style="margin-top:14px">Как получить URL и ключ — см. инструкцию, которую я дал в чате (Supabase → Project Settings → API).</p>
-  <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button>${syncConfigured$1() ? "<button class=\"btn\" onclick=\"syncDisable()\">Отключить</button>" : ""}<button class="btn primary" onclick="saveSyncCfg()">Подключить</button></div>`;
+  <p class="mhint" id="syErr" style="color:#b4452b;display:none"></p>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Отмена</button>${syncConfigured$1() ? "<button class=\"btn\" onclick=\"syncDisable()\">Отключить</button>" : ""}<button class="btn primary" id="syGo" onclick="saveSyncCfg()">Подключить</button></div>`;
 	showModal();
 }
+var SY_RAW = "autocapitalize=\"none\" autocorrect=\"off\" autocomplete=\"off\" spellcheck=\"false\"";
+function normSyncUrl(u) {
+	u = String(u || "").replace(/\s+/g, "");
+	if (!u) return "";
+	if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+	try {
+		return new URL(u).origin;
+	} catch (e) {
+		return "";
+	}
+}
+function syncProbe(cfg) {
+	if (!/^[\x21-\x7e]+$/.test(cfg.key)) return Promise.resolve("В ключе лишние символы: он должен быть одной строкой латиницы и цифр (начинается с eyJ). Скопируй его целиком ещё раз.");
+	return fetch(cfg.url + "/rest/v1/trackers?code=eq." + encodeURIComponent(cfg.code) + "&select=updated_at", { headers: {
+		"apikey": cfg.key,
+		"Authorization": "Bearer " + cfg.key
+	} }).then((r) => {
+		if (r.ok) return "";
+		if (r.status === 401 || r.status === 403) return "Сервер ответил, но ключ не подошёл (код " + r.status + "). Проверь anon public key: без пробелов, целиком.";
+		if (r.status === 404) return "Сервер ответил, но таблицы trackers там нет (код 404). Проверь адрес проекта.";
+		return "Сервер ответил ошибкой " + r.status + ".";
+	}).catch(() => "Не удалось связаться с " + cfg.url + ". Проверь адрес: он такой же, как на компьютере (https://буквы.supabase.co). Если проект давно не открывали, Supabase мог его приостановить: на supabase.com нажми Restore project.");
+}
 function saveSyncCfg() {
-	const url = document.getElementById("syUrl").value.trim().replace(/\/+$/, "");
-	const key = document.getElementById("syKey").value.trim();
+	const url = normSyncUrl(document.getElementById("syUrl").value);
+	const key = document.getElementById("syKey").value.replace(/\s+/g, "");
 	const code = document.getElementById("syCode").value.trim();
+	const err = document.getElementById("syErr"), go = document.getElementById("syGo");
+	const say = (t) => {
+		err.textContent = t;
+		err.style.display = t ? "" : "none";
+	};
 	if (!url || !key || !code) {
-		alert("Заполни все три поля");
+		say("Заполни все три поля (адрес должен быть вида https://буквы.supabase.co).");
 		return;
 	}
-	window.syncCfg = {
+	say("Проверяю связь…");
+	go.disabled = true;
+	syncProbe({
 		url,
 		key,
 		code
-	};
-	try {
-		localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg));
-	} catch (e) {}
-	closeModal();
-	updateSyncBtn$1();
-	cloudPull(false);
-	toast("Синхронизация подключена");
+	}).then((bad) => {
+		go.disabled = false;
+		if (bad) {
+			say(bad);
+			return;
+		}
+		window.syncCfg = {
+			url,
+			key,
+			code
+		};
+		try {
+			localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg));
+		} catch (e) {}
+		closeModal();
+		updateSyncBtn$1();
+		cloudPull(false);
+		toast("Синхронизация подключена");
+	});
 }
 function syncDisable() {
 	window.syncCfg = null;
