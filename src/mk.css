@@ -577,3 +577,30 @@ html,body{max-width:100%}
 .mk .pj-tw,.mk .tw:has(>.gnt){padding:0}
 .mk .tw:has(>.gnt){overflow:visible}
 @media (max-width:760px){.mk .tw:has(>.gnt){overflow-x:auto;padding:22px 0 8px}}
+
+/* телефон: план - не таблица, а карточки задач (название на всю ширину, под ним статус, срок, часы); цифры плиток не вылезают */
+@media (max-width:760px){
+.mk .tile .n{font-size:30px}
+.mk .tile .n small{font-size:16px}
+.mk .tile .n.sm{font-size:24px}
+.mk .pj-tw:not(.pj-time){overflow:visible}
+.mk .pj-tw:not(.pj-time) table,.mk .pj-tw:not(.pj-time) tbody{display:block;width:100%;min-width:0;table-layout:auto}
+.mk .pj-tw:not(.pj-time) colgroup,.mk .pj-tw:not(.pj-time) tr:has(th){display:none}
+.mk .pj-tw:not(.pj-time) tr{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 6px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.mk .pj-tw:not(.pj-time) td{display:block;padding:0;border:0;min-width:0}
+.mk .pj-tw:not(.pj-time) td:nth-child(1){order:1;width:30px;flex:none;padding-top:2px}
+.mk .pj-tw:not(.pj-time) td:nth-child(2){order:2;flex:1 1 calc(100% - 76px);overflow-wrap:anywhere}
+.mk .pj-tw:not(.pj-time) td:nth-child(6){order:3;width:28px;flex:none;text-align:center}
+.mk .pj-tw:not(.pj-time) td:nth-child(3){order:4;margin-left:36px}
+.mk .pj-tw:not(.pj-time) td:nth-child(4){order:5}
+.mk .pj-tw:not(.pj-time) td:nth-child(5){order:6;display:flex;align-items:center;gap:6px}
+.mk .pj-tw:not(.pj-time) td:nth-child(5)::after{content:"ч";color:var(--muted);font-size:12px}
+.mk .pj-tw:not(.pj-time) td:nth-child(4) .di{width:128px}
+.mk .pj-tw:not(.pj-time) td:nth-child(5) .di{width:46px!important}
+.mk .pj-tw:not(.pj-time) .pj-nm{display:inline}
+.mk .pj-tw:not(.pj-time) tr.subrow{display:block;padding:2px 0;border-bottom:0}
+.mk .pj-tw:not(.pj-time) tr.subrow td:empty{display:none}
+.mk .pj-tw:not(.pj-time) tr.subrow td{margin:0;width:auto}
+.mk .pj-tw:not(.pj-time) .open{opacity:1}
+.mk .pj-tw:not(.pj-time) .di{max-width:100%}
+}
