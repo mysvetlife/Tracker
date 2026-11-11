@@ -58,10 +58,6 @@ function defaultData(){
       sub:"Легче, сильнее, выносливее",
       sport:{ config:{ startDate:PROGRAM.start, exercises:[], height:177, weightStart:null, cycleWeeks:PROGRAM.weeks, stepGoal:PROGRAM.stepGoal, goals:c2goals(), c2Migr:1, yearMigr:1 },
         days:{}, workouts:[], weight:[], chest:[], waist:[], belly:[], hips:[], energy:[], weekNotes:{}, archives:[], physio:{done:{},dates:{}}, cook:{} } },
-    { id:uid(), name:"Дизайн и карьера", kind:"career", color:"var(--a-blue)", icon:"sparkle",
-      sub:"UX/UI + цифровая доступность", career:ensureCareer(null) },
-    { id:uid(), name:"Английский", kind:"english", color:"var(--a-green)", icon:"lang",
-      sub:"Яндекс.Практикум + практика речи", english:ensureEnglish(null) },
     { id:uid(), name:"Понедельник", kind:"course", color:"var(--a-violet)", icon:"target",
       sub:"Никто не начинает с совершенства", course:{ done:{}, exp:{0:true}, timeLog:[], moods:[] } }
   ]};
@@ -202,6 +198,7 @@ function migrate(d){ if(!d||!d.sections) return d; d._m=d._m||{};
   if(vkSec&&carSec){ carSec.career=ensureCareer(carSec.career);
     if(vkSec.vkcourse&&Object.keys(vkSec.vkcourse.done||{}).length>Object.keys(carSec.career.vkcourse.done||{}).length) carSec.career.vkcourse=ensureVk(vkSec.vkcourse); }
   d.sections=d.sections.filter(s=>s.kind!=="vkcourse");
+  archiveLegacy(d);                                  // старые «Дизайн и карьера» и «Английский» - в архив, не вкладками (plan-seed.js)
   return d; }
 function load(){
   const cur=lsGet(STORE_KEY); const prev=lsGet("progress_tracker_v3")||lsGet("progress_tracker_v2");

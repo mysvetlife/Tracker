@@ -1122,76 +1122,55 @@ function defaultData$1() {
 		active: "overview",
 		updatedAt: 0,
 		secDeleted: [],
-		sections: [
-			{
-				id: uid$1(),
-				name: "Спорт / Тело",
-				kind: "sport",
-				color: "var(--a-rose)",
-				icon: "dumbbell",
-				sub: "Легче, сильнее, выносливее",
-				sport: {
-					config: {
-						startDate: PROGRAM$1.start,
-						exercises: [],
-						height: 177,
-						weightStart: null,
-						cycleWeeks: PROGRAM$1.weeks,
-						stepGoal: PROGRAM$1.stepGoal,
-						goals: c2goals(),
-						c2Migr: 1,
-						yearMigr: 1
-					},
-					days: {},
-					workouts: [],
-					weight: [],
-					chest: [],
-					waist: [],
-					belly: [],
-					hips: [],
-					energy: [],
-					weekNotes: {},
-					archives: [],
-					physio: {
-						done: {},
-						dates: {}
-					},
-					cook: {}
-				}
-			},
-			{
-				id: uid$1(),
-				name: "Дизайн и карьера",
-				kind: "career",
-				color: "var(--a-blue)",
-				icon: "sparkle",
-				sub: "UX/UI + цифровая доступность",
-				career: ensureCareer(null)
-			},
-			{
-				id: uid$1(),
-				name: "Английский",
-				kind: "english",
-				color: "var(--a-green)",
-				icon: "lang",
-				sub: "Яндекс.Практикум + практика речи",
-				english: ensureEnglish(null)
-			},
-			{
-				id: uid$1(),
-				name: "Понедельник",
-				kind: "course",
-				color: "var(--a-violet)",
-				icon: "target",
-				sub: "Никто не начинает с совершенства",
-				course: {
+		sections: [{
+			id: uid$1(),
+			name: "Спорт / Тело",
+			kind: "sport",
+			color: "var(--a-rose)",
+			icon: "dumbbell",
+			sub: "Легче, сильнее, выносливее",
+			sport: {
+				config: {
+					startDate: PROGRAM$1.start,
+					exercises: [],
+					height: 177,
+					weightStart: null,
+					cycleWeeks: PROGRAM$1.weeks,
+					stepGoal: PROGRAM$1.stepGoal,
+					goals: c2goals(),
+					c2Migr: 1,
+					yearMigr: 1
+				},
+				days: {},
+				workouts: [],
+				weight: [],
+				chest: [],
+				waist: [],
+				belly: [],
+				hips: [],
+				energy: [],
+				weekNotes: {},
+				archives: [],
+				physio: {
 					done: {},
-					exp: { 0: true },
-					timeLog: [],
-					moods: []
-				}
+					dates: {}
+				},
+				cook: {}
 			}
-		]
+		}, {
+			id: uid$1(),
+			name: "Понедельник",
+			kind: "course",
+			color: "var(--a-violet)",
+			icon: "target",
+			sub: "Никто не начинает с совершенства",
+			course: {
+				done: {},
+				exp: { 0: true },
+				timeLog: [],
+				moods: []
+			}
+		}]
 	};
 }
 function save$1() {
@@ -1358,7 +1337,7 @@ function ensureCycle2(sp) {
 	c.goals = c2goals();
 	c.exercises = PHASE_A_EXERCISES.slice();
 }
-function ensureCareer(c) {
+function ensureCareer$1(c) {
 	c = c || {};
 	c.config = Object.assign({
 		startDate: null,
@@ -1453,7 +1432,7 @@ function ensureCustom$1(sec) {
 	sec.paused = sec.paused || {};
 	return sec;
 }
-function ensureEnglish(e) {
+function ensureEnglish$1(e) {
 	e = e || {};
 	e.config = Object.assign({
 		startDate: null,
@@ -1625,8 +1604,8 @@ function migrate$1(d) {
 		}
 		if (s.kind === "project") s.project = ensureProject(s.project);
 		if (s.kind === "sport") s.sport = ensureSport(s.sport);
-		if (s.kind === "career") s.career = ensureCareer(s.career);
-		if (s.kind === "english") s.english = ensureEnglish(s.english);
+		if (s.kind === "career") s.career = ensureCareer$1(s.career);
+		if (s.kind === "english") s.english = ensureEnglish$1(s.english);
 		if (s.kind === "course") {
 			s.course = Object.assign({
 				done: {},
@@ -1646,10 +1625,11 @@ function migrate$1(d) {
 	});
 	const vkSec = d.sections.find((s) => s.kind === "vkcourse"), carSec = d.sections.find((s) => s.kind === "career");
 	if (vkSec && carSec) {
-		carSec.career = ensureCareer(carSec.career);
+		carSec.career = ensureCareer$1(carSec.career);
 		if (vkSec.vkcourse && Object.keys(vkSec.vkcourse.done || {}).length > Object.keys(carSec.career.vkcourse.done || {}).length) carSec.career.vkcourse = ensureVk(vkSec.vkcourse);
 	}
 	d.sections = d.sections.filter((s) => s.kind !== "vkcourse");
+	archiveLegacy(d);
 	return d;
 }
 function load$1() {
@@ -1682,11 +1662,11 @@ Object.assign(window, {
 	lsGet,
 	ensureSport,
 	ensureCycle2,
-	ensureCareer,
+	ensureCareer: ensureCareer$1,
 	ensureVk,
 	ensureBlocks: ensureBlocks$1,
 	ensureCustom: ensureCustom$1,
-	ensureEnglish,
+	ensureEnglish: ensureEnglish$1,
 	migrate: migrate$1,
 	load: load$1,
 	STORE_KEY: STORE_KEY$1,
@@ -6829,6 +6809,27 @@ function seedPlans$1(d) {
 		d.sections.splice(at, 0, sec);
 	});
 }
+var LEGACY_KINDS$1 = ["career", "english"];
+function legacyIntake$1(d, s, aM, bM) {
+	const k = s.kind;
+	if (k === "career") s.career = ensureCareer(s.career);
+	if (k === "english") s.english = ensureEnglish(s.english);
+	d.legacyArchive = d.legacyArchive || {};
+	d.secDeleted = d.secDeleted || [];
+	const have = d.legacyArchive[k];
+	if (!have) d.legacyArchive[k] = JSON.parse(JSON.stringify(s));
+	else mergeSection(have, s, aM, bM);
+	if (d.secDeleted.indexOf(s.id) < 0) d.secDeleted.push(s.id);
+}
+function archiveLegacy$1(d) {
+	d.legacyArchive = d.legacyArchive || {};
+	d.sections = d.sections.filter((s) => {
+		if (LEGACY_KINDS$1.indexOf(s.kind) < 0) return true;
+		legacyIntake$1(d, s, d._m || {}, d._m || {});
+		if (d.active === s.id) d.active = "overview";
+		return false;
+	});
+}
 function orderSections$1(d) {
 	if (d.navOrder) return;
 	d.navOrder = 1;
@@ -6842,7 +6843,10 @@ function orderSections$1(d) {
 Object.assign(window, {
 	planSection,
 	seedPlans: seedPlans$1,
-	orderSections: orderSections$1
+	orderSections: orderSections$1,
+	LEGACY_KINDS: LEGACY_KINDS$1,
+	legacyIntake: legacyIntake$1,
+	archiveLegacy: archiveLegacy$1
 });
 //#endregion
 //#region src/notes.js
@@ -13701,7 +13705,7 @@ function mSpeakT(a, b, aM, bM) {
 	}
 	return o;
 }
-function mergeSection(m, b, aM, bM) {
+function mergeSection$1(m, b, aM, bM) {
 	if (b.kind === "course" && b.course) {
 		const c = m.course;
 		c.done = mmT$1(c.done, b.course.done, "co:", aM, bM);
@@ -13905,14 +13909,26 @@ function mergeData(A, B) {
 	(B.sections || []).forEach((bs) => {
 		if (M.secDeleted.indexOf(bs.id) >= 0) return;
 		if (bs.kind === "course") bs = courseToProject(bs, bM);
+		if (LEGACY_KINDS.indexOf(bs.kind) >= 0) {
+			legacyIntake(M, JSON.parse(JSON.stringify(bs)), aM, bM);
+			return;
+		}
 		let ms;
 		if (bs.kind === "custom" || bs.kind === "project") ms = M.sections.find((s) => s.kind === bs.kind && s.id === bs.id);
 		else if (bs.kind === "generic") ms = M.sections.find((s) => s.kind === "generic" && s.name === bs.name);
 		else ms = M.sections.find((s) => s.kind === bs.kind);
 		if (!ms) M.sections.push(JSON.parse(JSON.stringify(bs)));
-		else mergeSection(ms, bs, aM, bM);
+		else mergeSection$1(ms, bs, aM, bM);
 	});
 	M.sections = M.sections.filter((s) => M.secDeleted.indexOf(s.id) < 0);
+	{
+		const bl = B.legacyArchive || {};
+		M.legacyArchive = M.legacyArchive || {};
+		Object.keys(bl).forEach((k) => {
+			if (M.legacyArchive[k]) mergeSection$1(M.legacyArchive[k], bl[k], aM, bM);
+			else M.legacyArchive[k] = JSON.parse(JSON.stringify(bl[k]));
+		});
+	}
 	if (A.secOrder && A.secOrder.length || B.secOrder && B.secOrder.length) {
 		M.secOrder = lwwArr(A.secOrder, B.secOrder, "or:sections", aM, bM).slice();
 		secApplyOrder(M);
@@ -14257,7 +14273,7 @@ Object.assign(window, {
 	mDaysT,
 	mStagesT,
 	mSpeakT,
-	mergeSection,
+	mergeSection: mergeSection$1,
 	mergeBlocksT,
 	mergeData,
 	canonV,

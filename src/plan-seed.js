@@ -57,9 +57,24 @@ function seedPlans(d){ d.secDeleted=d.secDeleted||[];
         sec.project.legacy=lg; sec.legacyKey=rep; at=i;
         d.sections.splice(i,1); if(d.secDeleted.indexOf(old.id)<0) d.secDeleted.push(old.id); } }
     d.sections.splice(at,0,sec); }); }
+/* Архив старых разделов «Дизайн и карьера» (career) и «Английский» (english).
+   Их заменили направления «UX/UI Design» и «Английский», но старый раздел мог вернуться: устройство без данных заводило его заново
+   с новым случайным номером, и тумбстон по номеру его не ловил. Теперь такой раздел никогда не становится вкладкой:
+   он целиком уходит в data.legacyArchive[kind] (ничего не теряется, несколько копий объединяются по меткам),
+   его номер идёт в secDeleted, а на экране его нет. Работает и при загрузке (migrate), и при слиянии с облаком (mergeData). */
+const LEGACY_KINDS=["career","english"];
+function legacyIntake(d,s,aM,bM){ const k=s.kind;
+  if(k==="career") s.career=ensureCareer(s.career); if(k==="english") s.english=ensureEnglish(s.english);
+  d.legacyArchive=d.legacyArchive||{}; d.secDeleted=d.secDeleted||[];
+  const have=d.legacyArchive[k];
+  if(!have) d.legacyArchive[k]=JSON.parse(JSON.stringify(s)); else mergeSection(have,s,aM,bM);
+  if(d.secDeleted.indexOf(s.id)<0) d.secDeleted.push(s.id); }
+function archiveLegacy(d){ d.legacyArchive=d.legacyArchive||{};
+  d.sections=d.sections.filter(s=>{ if(LEGACY_KINDS.indexOf(s.kind)<0) return true;
+    legacyIntake(d,s,d._m||{},d._m||{}); if(d.active===s.id) d.active="overview"; return false; }); }
 /* порядок левой панели как в макете; один раз, дальше порядок остаётся как есть */
 function orderSections(d){ if(d.navOrder) return; d.navOrder=1;
   const rank=s=>s.id==="pj-analyst"?0:s.id==="pj-english"?1:s.id==="pj-ai"?2:s.id==="pj-ux"?3:s.id===NARC_ID?4:s.kind==="sport"?5:(s.legacyKey==="course"||/понедельн/i.test(s.name))?6:7;
   d.sections=d.sections.map((s,i)=>[rank(s),i,s]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>x[2]); }
 
-Object.assign(window,{ planSection, seedPlans, orderSections });
+Object.assign(window,{ planSection, seedPlans, orderSections, LEGACY_KINDS, legacyIntake, archiveLegacy });

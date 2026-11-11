@@ -160,10 +160,13 @@ function mergeData(A,B){ if(!A) return B; if(!B) return A; const M=JSON.parse(JS
   M.secDeleted=M.secDeleted||[]; (B.secDeleted||[]).forEach(id=>{ if(M.secDeleted.indexOf(id)<0) M.secDeleted.push(id); });
   (B.sections||[]).forEach(bs=>{ if(M.secDeleted.indexOf(bs.id)>=0) return;
     if(bs.kind==="course") bs=courseToProject(bs,bM);        // устаревшее устройство: переводим раздел и его метки
+    if(LEGACY_KINDS.indexOf(bs.kind)>=0){ legacyIntake(M,JSON.parse(JSON.stringify(bs)),aM,bM); return; }   // старые «Дизайн и карьера» / «Английский» - только в архив
     let ms; if(bs.kind==="custom"||bs.kind==="project") ms=M.sections.find(s=>s.kind===bs.kind&&s.id===bs.id);
     else if(bs.kind==="generic") ms=M.sections.find(s=>s.kind==="generic"&&s.name===bs.name); else ms=M.sections.find(s=>s.kind===bs.kind);
     if(!ms){ M.sections.push(JSON.parse(JSON.stringify(bs))); } else { mergeSection(ms,bs,aM,bM); } });
   M.sections=M.sections.filter(s=>M.secDeleted.indexOf(s.id)<0);
+  { const bl=B.legacyArchive||{}; M.legacyArchive=M.legacyArchive||{};      // архивы старых разделов с двух устройств: объединяются
+    Object.keys(bl).forEach(k=>{ if(M.legacyArchive[k]) mergeSection(M.legacyArchive[k],bl[k],aM,bM); else M.legacyArchive[k]=JSON.parse(JSON.stringify(bl[k])); }); }
   if((A.secOrder&&A.secOrder.length)||(B.secOrder&&B.secOrder.length)){ M.secOrder=lwwArr(A.secOrder,B.secOrder,"or:sections",aM,bM).slice(); secApplyOrder(M); }   // порядок направлений: свежая перестановка побеждает
   M.week=mergeWeek(M.week||A.week, B.week, aM, bM);
   M.plan=mergePlan(M.plan||A.plan, B.plan, aM, bM);
